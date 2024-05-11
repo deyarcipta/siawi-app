@@ -143,7 +143,7 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
                           lineWidth: 12.0,
                           percent: kehadiran,
                           center: new Text(
-                            '${presentaseKehadiran ?? 'Loading...'}',
+                            '${presentaseKehadiran}',
                             style: new TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 30.0,

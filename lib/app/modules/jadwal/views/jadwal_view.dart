@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:siawi_app/app/models/jadwal.dart';
+// import 'package:siawi_app/app/models/jadwal.dart';
 import 'package:siawi_app/app/modules/jadwal/widget/jadwal_list.dart';
 
 import 'package:siawi_app/utils/colors.dart';

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:siawi_app/app/modules/informasi/widget/informasi.dart';
+// import 'package:siawi_app/app/modules/informasi/widget/informasi.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+// ignore: must_be_immutable
 class DetailInformasi extends StatelessWidget {
   late String fileURL;
 
@@ -14,7 +15,7 @@ class DetailInformasi extends StatelessWidget {
   var appBarHeight = AppBar().preferredSize.height;
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
+    // var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,

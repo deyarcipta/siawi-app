@@ -9,7 +9,7 @@ import 'package:siawi_app/utils/colors.dart';
 import 'package:accordion/accordion.dart';
 import 'package:http/http.dart' as http;
 // import 'package:path_provider/path_provider.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+// import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 class InformasiView extends StatefulWidget {
   final VoidCallback signOut;

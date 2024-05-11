@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:siawi_app/app/modules/home/views/MyHomePage.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:http/http.dart' as http;

@@ -1,8 +1,8 @@
 // import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:siawi_app/app/modules/home/views/home_view.dart';
+// import 'package:siawi_app/app/modules/home/views/home_view.dart';
 // import 'package:get/get.dart';
-import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
+// import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:http/http.dart' as http;

@@ -3,6 +3,7 @@ import 'package:siawi_app/app/modules/rapot/widget/rapot_list.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+// ignore: must_be_immutable
 class DetailRapot extends StatelessWidget {
   final RapotList rapot;
 

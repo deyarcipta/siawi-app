@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/modules/about/views/about_view.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
-import 'package:siawi_app/app/modules/login/views/login_view.dart';
+// import 'package:siawi_app/app/modules/login/views/login_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
 // import 'package:get/get.dart';
