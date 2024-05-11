@@ -8,7 +8,8 @@ import 'package:siawi_app/utils/colors.dart';
 // import 'package:http/http.dart' as http;
 
 class _BottomViewState extends StatefulWidget {
-  const _BottomViewState({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const _BottomViewState(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const _BottomViewState(this.signOut, {super.key});
 
@@ -17,6 +18,12 @@ class _BottomViewState extends StatefulWidget {
 }
 
 class __BottomViewStateState extends State<_BottomViewState> {
+  SignOut() {
+    setState(() {
+      widget.signOut();
+    });
+  }
+
   int _selectedTabIndex = 2;
 
   void _onNavBarTapped(int index) {
@@ -32,8 +39,8 @@ class __BottomViewStateState extends State<_BottomViewState> {
     final _listPage = <Widget>[
       const Text('test1'),
       const Text('test2'),
-      const HomeView(),
-      const InformasiView(),
+      // const HomeView(),
+      const Text('test3'),
       const Text('test3'),
     ];
     final _BottomNavBarItems = <BottomNavigationBarItem>[

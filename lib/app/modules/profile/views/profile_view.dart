@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 // import 'package:get/get.dart';
@@ -7,11 +8,14 @@ import 'package:siawi_app/app/modules/profile/widget/profil.dart';
 import 'package:siawi_app/app/modules/profile/widget/wali.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/utils/tab_silver_delegate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 // import '../controllers/profile_controller.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const ProfileView(this.signOut, {Key? key}) : super(key: key);
   // final VoidCallback signOut;
   // const ProfileView(this.signOut, {super.key});
 
@@ -21,6 +25,60 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   var appBarHeight = AppBar().preferredSize.height;
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil getIdSiswa dan tunggu hasilnya
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _lihatData(idSiswa);
+      }
+    });
+  }
+
+  bool loading = false;
+  String? namaSiswa;
+  String? namaJurusan;
+  String? namaKelas;
+  int presentaseKehadiran = 0;
+  double kehadiran = 0;
+  Future<void> _lihatData(String idSiswa) async {
+    setState(() {
+      loading = true;
+    });
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+    // print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      var datasiswa = json.decode(response.body);
+      var siswaData = datasiswa['data'];
+      var kelasData = siswaData['kelas'];
+      var jurusanData = siswaData['jurusan'];
+      if (siswaData['nis'] != null) {
+        setState(() {
+          namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
+          namaKelas = kelasData['nama_kelas'].toString();
+          namaJurusan = jurusanData['nama_jurusan'].toString();
+          // print(nama);
+          // print('Nama Kelas: $presentaseKehadiran');
+        });
+      }
+    } else {
+      // print(idSiswa);
+    }
+    setState(() {
+      loading = false;
+    });
+  }
+
   final tabs = ['Profile', 'Data Diri', 'Orang Tua', 'Wali'];
   @override
   Widget build(BuildContext context) {
@@ -79,7 +137,7 @@ class _ProfileViewState extends State<ProfileView> {
                                       children: [
                                         ClipOval(
                                           child: Image.asset(
-                                            'assets/images/avatar.jpg',
+                                            'assets/images/avatar.png',
                                             width: 90,
                                             height: 90,
                                             fit: BoxFit.cover,
@@ -99,10 +157,9 @@ class _ProfileViewState extends State<ProfileView> {
                                     )
                                   ],
                                 ),
-                                _buildTitle('ILHAM MUHAMMAD ALAMSYAH'),
-                                _buildTitleData(
-                                    'Teknik Jaringan Komputer & Telekomunikasi'),
-                                _buildTitleData('XII TKJ'),
+                                _buildTitle('${namaSiswa}'),
+                                _buildTitleData('${namaJurusan}'),
+                                _buildTitleData('${namaKelas}'),
                                 SizedBox(height: size.height * 0.01),
                                 Row(
                                   mainAxisAlignment:
@@ -184,28 +241,28 @@ class _ProfileViewState extends State<ProfileView> {
                 child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 15),
-                    child: ProfileScreen()),
+                    child: ProfileScreen(widget.signOut)),
               ),
               Container(
                 color: AppColors.backgroundColor2,
                 child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 15),
-                    child: DataDiriScreen()),
+                    child: DataDiriScreen(widget.signOut)),
               ),
               Container(
                 color: AppColors.backgroundColor2,
                 child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 15),
-                    child: OrangTuaScreen()),
+                    child: OrangTuaScreen(widget.signOut)),
               ),
               Container(
                 color: AppColors.backgroundColor2,
                 child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 15),
-                    child: WaliScreen()),
+                    child: WaliScreen(widget.signOut)),
               ),
             ],
           ),

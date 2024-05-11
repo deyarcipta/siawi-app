@@ -1,15 +1,19 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:siawi_app/app/modules/absensi/widget/absen_list.dart';
 // import 'package:siawi_app/app/modules/absensi/widget/absen.dart';
 import 'package:siawi_app/utils/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 // import 'package:get/get.dart';
 
 // import '../controllers/absensi_controller.dart';
 
 class AbsensiView extends StatefulWidget {
-  const AbsensiView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const AbsensiView(this.signOut, {Key? key}) : super(key: key);
   // final VoidCallback signOut;
   // const AbsensiView(this.signOut, {super.key});
 
@@ -19,6 +23,61 @@ class AbsensiView extends StatefulWidget {
 
 class _AbsensiViewState extends State<AbsensiView> {
   var appBarHeight = AppBar().preferredSize.height;
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _fetchPoint(idSiswa);
+      }
+    });
+  }
+
+  List<AbsenList> absenList = [];
+  String? jumlahIzin;
+  String? namaSiswa;
+  String? jumlahAlfa;
+  String? jumlahSakit;
+  String? jumlahHadir;
+  String? jumlahTidakHadir;
+  int presentaseKehadiran = 0;
+  double kehadiran = 0;
+  Future<void> _fetchPoint(String idSiswa) async {
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/absensi/$idSiswa'));
+    if (response.statusCode == 200) {
+      var dataAbsen = json.decode(response.body);
+      var siswaData = dataAbsen['dataSiswa'];
+      // var kelasData = siswaData['kelas'];
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final List<dynamic> absenData = responseData['data'];
+      setState(() {
+        namaSiswa = siswaData['nama_siswa'].toString();
+        jumlahSakit = dataAbsen['jumlahSakit'].toString();
+        jumlahIzin = dataAbsen['jumlahIzin'].toString();
+        jumlahAlfa = dataAbsen['jumlahAlfa'].toString();
+        jumlahHadir = dataAbsen['jumlahHadir'].toString();
+        jumlahTidakHadir = dataAbsen['jumlahTidakHadir'].toString();
+        presentaseKehadiran =
+            int.tryParse(dataAbsen['presentaseKehadiran'].toString()) ?? 0;
+        kehadiran = presentaseKehadiran / 100;
+        absenList.clear();
+        for (var item in absenData) {
+          AbsenList absen = AbsenList.fromJson(item);
+          absenList.add(absen);
+        }
+      });
+    } else {
+      print('Failed to load absen siswa');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +119,9 @@ class _AbsensiViewState extends State<AbsensiView> {
                         animation: true,
                         radius: 60.0,
                         lineWidth: 10.0,
-                        percent: 0.9,
+                        percent: kehadiran,
                         center: new Text(
-                          "90",
+                          "${presentaseKehadiran}",
                           style: new TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 26.0,
@@ -78,7 +137,7 @@ class _AbsensiViewState extends State<AbsensiView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 5),
-                          _buildTitle('ILHAM MUHAMMAD ALAMSYAH'),
+                          _buildTitle('${namaSiswa}'),
                           Container(
                             width: size.width * 0.5,
                             // child: Padding(
@@ -88,31 +147,31 @@ class _AbsensiViewState extends State<AbsensiView> {
                                 Row(
                                   children: [
                                     _buildTitleData('Hadir'),
-                                    _buildData(': 90'),
+                                    _buildData(': ${jumlahHadir}'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Sakit'),
-                                    _buildData(': 3'),
+                                    _buildData(': ${jumlahSakit}'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Izin'),
-                                    _buildData(': 2'),
+                                    _buildData(': ${jumlahIzin}'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Alfa'),
-                                    _buildData(': 5'),
+                                    _buildData(': ${jumlahAlfa}'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Tidak Hadir'),
-                                    _buildData(': 10'),
+                                    _buildData(': ${jumlahTidakHadir}'),
                                   ],
                                 ),
                               ],
@@ -144,7 +203,7 @@ class _AbsensiViewState extends State<AbsensiView> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Column(
-                children: myData.map((item) {
+                children: absenList.map((item) {
                   return Padding(
                     padding: EdgeInsets.only(bottom: 10),
                     child: ListTile(
@@ -154,16 +213,16 @@ class _AbsensiViewState extends State<AbsensiView> {
                       ),
                       tileColor: AppColors.thirdColor,
                       leading: Image.asset(
-                        item.img,
+                        'assets/icon/absen.png',
                         width: 25,
                         height: 25,
                       ),
-                      title: Text(item.tanggal),
+                      title: Text('${item.hari}, ${item.tanggal}'),
                       titleTextStyle: TextStyle(
                           fontSize: 10,
                           color: AppColors.sixColor,
                           fontWeight: FontWeight.w500),
-                      subtitle: Text(item.keterangan),
+                      subtitle: Text(item.status),
                       subtitleTextStyle: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

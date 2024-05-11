@@ -15,6 +15,7 @@ abstract class Routes {
   static const MODUL = _Paths.MODUL;
   static const PROFILE = _Paths.PROFILE;
   static const ABOUT = _Paths.ABOUT;
+  static const PASSWORD = _Paths.PASSWORD;
 }
 
 abstract class _Paths {
@@ -31,4 +32,5 @@ abstract class _Paths {
   static const MODUL = '/modul';
   static const PROFILE = '/profile';
   static const ABOUT = '/about';
+  static const PASSWORD = '/password';
 }

@@ -1,26 +1,59 @@
-// import 'dart:convert';
+import 'dart:convert';
 // import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 // import 'package:siawi_app/app/models/api.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/models/jadwal_hari_ini.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:siawi_app/utils/colors.dart';
 // import 'package:percent_indicator/percent_indicator.dart';
 
 class JadwalToday extends StatefulWidget {
-  JadwalToday({Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const DataMahasiswa(this.signOut, {super.key});
+  final VoidCallback signOut;
+  const JadwalToday(this.signOut, {Key? key}) : super(key: key);
 
   @override
   State<JadwalToday> createState() => _JadwalState();
 }
 
 class _JadwalState extends State<JadwalToday> {
-  final List<JadwalHariIni> listJadwalHariIni =
-      JadwalHariIni.generateJadwalHariIni();
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _fetchJadwalToday(idSiswa);
+      }
+    });
+  }
+
+  List<JadwalHariIni> jadwalHariIniList = [];
+  Future<void> _fetchJadwalToday(String idSiswa) async {
+    final response = await http
+        .get(Uri.parse('http://203.194.113.46/api/jadwalToday/$idSiswa'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final List<dynamic> jadwalData = responseData['data'];
+      setState(() {
+        jadwalHariIniList.clear();
+        for (var item in jadwalData) {
+          JadwalHariIni jadwal = JadwalHariIni.fromJson(item);
+          jadwalHariIniList.add(jadwal);
+        }
+      });
+    } else {
+      print('Failed to load jadwal hari ini');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -93,7 +126,16 @@ class _JadwalState extends State<JadwalToday> {
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          listJadwalHariIni[index].mapel,
+                                          jadwalHariIniList[index]
+                                                      .namaMapel
+                                                      .length >
+                                                  20 // Misalnya, Anda ingin membatasi hingga 10 karakter
+                                              ? jadwalHariIniList[index]
+                                                      .namaMapel
+                                                      .substring(0, 20) +
+                                                  '...' // Jika panjang string lebih dari 10 karakter, potong dan tambahkan tanda titik-titik
+                                              : jadwalHariIniList[index]
+                                                  .namaMapel,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
@@ -103,7 +145,7 @@ class _JadwalState extends State<JadwalToday> {
                                         Row(
                                           children: [
                                             Text(
-                                              listJadwalHariIni[index].jamMulai,
+                                              jadwalHariIniList[index].jamAwal,
                                               style: TextStyle(
                                                 fontSize: 10,
                                               ),
@@ -115,7 +157,7 @@ class _JadwalState extends State<JadwalToday> {
                                               ),
                                             ),
                                             Text(
-                                              listJadwalHariIni[index].jamAkhir,
+                                              jadwalHariIniList[index].jamAkhir,
                                               style: TextStyle(
                                                 fontSize: 10,
                                               ),
@@ -127,8 +169,8 @@ class _JadwalState extends State<JadwalToday> {
                                               ),
                                             ),
                                             Text(
-                                              listJadwalHariIni[index]
-                                                  .waktuMulai,
+                                              jadwalHariIniList[index]
+                                                  .waktuAwal,
                                               style: TextStyle(
                                                 fontSize: 10,
                                               ),
@@ -140,7 +182,7 @@ class _JadwalState extends State<JadwalToday> {
                                               ),
                                             ),
                                             Text(
-                                              listJadwalHariIni[index]
+                                              jadwalHariIniList[index]
                                                   .waktuAkhir,
                                               style: TextStyle(
                                                 fontSize: 10,
@@ -150,7 +192,7 @@ class _JadwalState extends State<JadwalToday> {
                                         ),
                                         SizedBox(height: 2),
                                         Text(
-                                          listJadwalHariIni[index].guru,
+                                          jadwalHariIniList[index].namaGuru,
                                           style: TextStyle(
                                             fontSize: 10,
                                           ),
@@ -163,7 +205,7 @@ class _JadwalState extends State<JadwalToday> {
                             ),
                             separatorBuilder: (_, index) =>
                                 const SizedBox(width: 8),
-                            itemCount: listJadwalHariIni.length,
+                            itemCount: jadwalHariIniList.length,
                           ),
                         ),
                       ),

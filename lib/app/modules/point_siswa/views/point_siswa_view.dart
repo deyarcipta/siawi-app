@@ -1,13 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 // import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/point_siswa/widget/point_list.dart';
 import 'package:siawi_app/utils/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 // import '../controllers/point_siswa_controller.dart';
 
 class PointSiswaView extends StatefulWidget {
-  const PointSiswaView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const PointSiswaView(this.signOut, {Key? key}) : super(key: key);
   // final VoidCallback signOut;
   // const PointSiswaView(this.signOut, {super.key});
 
@@ -17,6 +21,53 @@ class PointSiswaView extends StatefulWidget {
 
 class _PointSiswaViewState extends State<PointSiswaView> {
   var appBarHeight = AppBar().preferredSize.height;
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _fetchPoint(idSiswa);
+      }
+    });
+  }
+
+  List<PointList> pointList = [];
+  String? totalSkor;
+  String? namaSiswa;
+  String? jurusan;
+  String? kelas;
+  Future<void> _fetchPoint(String idSiswa) async {
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/point/$idSiswa'));
+    if (response.statusCode == 200) {
+      var dataPoint = json.decode(response.body);
+      var siswaData = dataPoint['dataSiswa'];
+      var kelasData = siswaData['kelas'];
+      var jurusanData = siswaData['jurusan'];
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final List<dynamic> pointData = responseData['data'];
+      setState(() {
+        namaSiswa = siswaData['nama_siswa'].toString();
+        kelas = kelasData['nama_kelas'].toString();
+        jurusan = jurusanData['nama_jurusan'].toString();
+        totalSkor = dataPoint['totalSkor'].toString();
+        pointList.clear();
+        for (var item in pointData) {
+          PointList point = PointList.fromJson(item);
+          pointList.add(point);
+        }
+      });
+    } else {
+      print('Failed to load point siswa');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +117,9 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                           ),
                         ),
                       ),
-                      _buildTitle('ILHAM MUHAMMAD ALAMSYAH'),
-                      _buildTitleData(
-                          'Teknik Jaringan Komputer & Telekomunikasi'),
-                      _buildTitleData('XII TKJ'),
+                      _buildTitle('${namaSiswa}'),
+                      _buildTitleData('${jurusan}'),
+                      _buildTitleData('${kelas}'),
                       // ),
                     ],
                   ),
@@ -100,7 +150,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                           children: <TextSpan>[
                             TextSpan(text: 'Total Point : '),
                             TextSpan(
-                                text: '100',
+                                text: '${totalSkor}',
                                 style: TextStyle(color: Colors.red))
                           ],
                         ),
@@ -114,7 +164,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Column(
-                children: myData.map((item) {
+                children: pointList.map((item) {
                   return Padding(
                     padding: EdgeInsets.only(bottom: 10),
                     child: ListTile(
@@ -124,11 +174,11 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                       ),
                       tileColor: AppColors.thirdColor,
                       leading: Image.asset(
-                        item.img,
+                        'assets/icon/point1.png',
                         width: 25,
                         height: 25,
                       ),
-                      title: Text(item.tanggal),
+                      title: Text('${item.hari}, ${item.tanggal}'),
                       titleTextStyle: TextStyle(
                           fontSize: 10,
                           color: AppColors.sixColor,
@@ -137,7 +187,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.keterangan,
+                            item.namaPoint,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -145,7 +195,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                             ),
                           ),
                           Text(
-                            item.point,
+                            '+${item.skorPoint} Point',
                             style: TextStyle(
                               fontSize: 10,
                               color: Colors.red,

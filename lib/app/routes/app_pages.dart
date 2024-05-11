@@ -16,6 +16,8 @@ import '../modules/login/bindings/login_binding.dart';
 import '../modules/login/views/login_view.dart';
 import '../modules/modul/bindings/modul_binding.dart';
 import '../modules/modul/views/modul_mapel_view.dart';
+import '../modules/password/bindings/password_binding.dart';
+import '../modules/password/views/password_view.dart';
 import '../modules/point_siswa/bindings/point_siswa_binding.dart';
 import '../modules/point_siswa/views/point_siswa_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
@@ -35,47 +37,47 @@ class AppPages {
   static final routes = [
     GetPage(
       name: _Paths.HOME,
-      page: () => MyHomePage(),
+      page: () => MyHomePage(signOut != null ? signOut! : () {}),
       binding: HomeBinding(),
     ),
     GetPage(
       name: _Paths.LOGIN,
-      page: () => const LoginView(),
+      page: () => LoginView(),
       binding: LoginBinding(),
     ),
     GetPage(
       name: _Paths.INFORMASI,
-      page: () => InformasiView(),
+      page: () => InformasiView(signOut != null ? signOut! : () {}),
       binding: InformasiBinding(),
     ),
     GetPage(
       name: _Paths.TAGIHAN,
-      page: () => TagihanView(),
+      page: () => TagihanView(signOut != null ? signOut! : () {}),
       binding: TagihanBinding(),
     ),
     GetPage(
       name: _Paths.KALENDER,
-      page: () => KalenderView(),
+      page: () => KalenderView(signOut != null ? signOut! : () {}),
       binding: KalenderBinding(),
     ),
     GetPage(
       name: _Paths.ABSENSI,
-      page: () => const AbsensiView(),
+      page: () => AbsensiView(signOut != null ? signOut! : () {}),
       binding: AbsensiBinding(),
     ),
     GetPage(
       name: _Paths.JADWAL,
-      page: () => const JadwalView(),
+      page: () => JadwalView(signOut != null ? signOut! : () {}),
       binding: JadwalBinding(),
     ),
     GetPage(
       name: _Paths.RAPOT,
-      page: () => const RapotView(),
+      page: () => RapotView(signOut != null ? signOut! : () {}),
       binding: RapotBinding(),
     ),
     GetPage(
       name: _Paths.POINT_SISWA,
-      page: () => const PointSiswaView(),
+      page: () => PointSiswaView(signOut != null ? signOut! : () {}),
       binding: PointSiswaBinding(),
     ),
     GetPage(
@@ -85,13 +87,18 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.PROFILE,
-      page: () => const ProfileView(),
+      page: () => ProfileView(signOut != null ? signOut! : () {}),
       binding: ProfileBinding(),
     ),
     GetPage(
       name: _Paths.ABOUT,
       page: () => const AboutView(),
       binding: AboutBinding(),
+    ),
+    GetPage(
+      name: _Paths.PASSWORD,
+      page: () => PasswordView(signOut != null ? signOut! : () {}),
+      binding: PasswordBinding(),
     ),
   ];
 

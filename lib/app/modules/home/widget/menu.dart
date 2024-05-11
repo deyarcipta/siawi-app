@@ -18,9 +18,8 @@ import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class Menu extends StatefulWidget {
-  Menu({Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const Menu(this.signOut, {super.key});
+  final VoidCallback signOut;
+  const Menu(this.signOut, {Key? key}) : super(key: key);
 
   @override
   State<Menu> createState() => _MenuState();
@@ -29,221 +28,8 @@ class Menu extends StatefulWidget {
 class _MenuState extends State<Menu> {
   @override
   Widget build(BuildContext context) {
-    // return Expanded(
-    //   child: Padding(
-    //     padding: EdgeInsets.symmetric(horizontal: 15),
-    //     child: GridView.count(
-    //       crossAxisCount: 4,
-    //       childAspectRatio: .85,
-    //       crossAxisSpacing: 10,
-    //       mainAxisSpacing: 10,
-    //       children: <Widget>[
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //         Container(
-    //           padding: EdgeInsets.all(10),
-    //           decoration: BoxDecoration(
-    //             color: AppColors.thirdColor,
-    //             borderRadius: BorderRadius.circular(13),
-    //           ),
-    //           child: Column(
-    //             children: <Widget>[
-    //               Image.asset(
-    //                 'assets/images/default.png',
-    //                 width: 40,
-    //               ),
-    //               SizedBox(
-    //                 height: 2,
-    //               ),
-    //               Text(
-    //                 'Informasi Sekolah',
-    //                 textAlign: TextAlign.center,
-    //                 style: TextStyle(
-    //                   fontSize: 10,
-    //                 ),
-    //               )
-    //             ],
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 15),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Wrap(
         spacing: 5.0,
         runSpacing: 5.0,
@@ -251,37 +37,37 @@ class _MenuState extends State<Menu> {
           MenuCard(
             title: "Informasi Sekolah",
             img: "assets/icon/informasi.png",
-            tujuan: InformasiView(),
+            tujuan: InformasiView(widget.signOut),
           ),
           MenuCard(
             title: "Kalender Sekolah",
             img: "assets/icon/kalender-sekolah.png",
-            tujuan: KalenderView(),
+            tujuan: KalenderView(widget.signOut),
           ),
           MenuCard(
             title: "Absensi",
             img: "assets/icon/absen.png",
-            tujuan: AbsensiView(),
+            tujuan: AbsensiView(widget.signOut),
           ),
           MenuCard(
             title: "Jadwal Mata Pelajaran",
             img: "assets/icon/jadwal.png",
-            tujuan: JadwalView(),
+            tujuan: JadwalView(widget.signOut),
           ),
           MenuCard(
             title: "e-rapot",
             img: "assets/icon/e-rapot.png",
-            tujuan: RapotView(),
+            tujuan: RapotView(widget.signOut),
           ),
           MenuCard(
             title: "Tagihan",
             img: "assets/icon/tagihan.png",
-            tujuan: TagihanView(),
+            tujuan: TagihanView(widget.signOut),
           ),
           MenuCard(
             title: "Point Siswa",
             img: "assets/icon/point.png",
-            tujuan: PointSiswaView(),
+            tujuan: PointSiswaView(widget.signOut),
           ),
           MenuCard(
             title: "Modul",

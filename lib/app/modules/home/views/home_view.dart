@@ -1,11 +1,12 @@
 // import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/home/widget/absen.dart';
 import 'package:siawi_app/app/modules/home/widget/berita_terbaru.dart';
 import 'package:siawi_app/app/modules/home/widget/data_mahasiswa.dart';
-import 'package:siawi_app/app/models/menu_item.dart';
-import 'package:siawi_app/app/models/menu_items.dart';
+// import 'package:siawi_app/app/models/menu_item.dart';
+// import 'package:siawi_app/app/models/menu_items.dart';
 import 'package:siawi_app/app/modules/home/widget/header.dart';
 import 'package:siawi_app/app/modules/home/widget/jadwal.dart';
 import 'package:siawi_app/app/modules/home/widget/menu.dart';
@@ -19,7 +20,11 @@ import 'package:siawi_app/utils/colors.dart';
 // import '../controllers/home_controller.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  final void Function(bool show)? toggleBottomNavBar;
+
+  const HomeView(this.signOut, {Key? key, this.toggleBottomNavBar})
+      : super(key: key);
   // final VoidCallback signOut;
   // const HomeView(this.signOut, {super.key});
 
@@ -29,6 +34,20 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   var appBarHeight = AppBar().preferredSize.height;
+  // ignore: non_constant_identifier_names
+  SignOut() {
+    setState(() {
+      widget.signOut();
+    });
+  }
+
+  String idSiswa = "";
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      idSiswa = preferences.getString("idSiswa")!;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,24 +76,24 @@ class _HomeViewState extends State<HomeView> {
                         SizedBox(
                           height: size.height * 0.02,
                         ),
-                        Header(),
+                        Header(SignOut),
                         SizedBox(
                           height: size.height * 0.03,
                         ),
                         Wrap(
                           children: <Widget>[
-                            DataMahasiswa(),
-                            Absen(),
+                            DataMahasiswa(SignOut),
+                            Absen(SignOut),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  JadwalToday(),
+                  JadwalToday(SignOut),
                   SizedBox(height: 20),
-                  Menu(),
+                  Menu(SignOut),
                   SizedBox(height: 20),
-                  BeritaTerbaru(),
+                  BeritaTerbaru(SignOut),
                 ],
               ),
             ),
@@ -84,28 +103,20 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  PopupMenuItem<MenuKu> buildItem(MenuKu item) => PopupMenuItem<MenuKu>(
-        value: item,
-        child: Row(
-          children: [
-            Icon(
-              item.icon,
-              color: const Color.fromRGBO(0, 0, 0, 1),
-              size: 16,
-            ),
-            const SizedBox(
-              width: 12,
-            ),
-            Text(item.text),
-          ],
-        ),
-      );
-
-  void onSelected(BuildContext context, MenuKu item) {
-    switch (item) {
-      case MenuItems.itemLogout:
-        // SignOut();
-        break;
-    }
-  }
+  // PopupMenuItem<MenuKu> buildItem(MenuKu item) => PopupMenuItem<MenuKu>(
+  //       value: item,
+  //       child: Row(
+  //         children: [
+  //           Icon(
+  //             item.icon,
+  //             color: const Color.fromRGBO(0, 0, 0, 1),
+  //             size: 16,
+  //           ),
+  //           const SizedBox(
+  //             width: 12,
+  //           ),
+  //           Text(item.text),
+  //         ],
+  //       ),
+  //     );
 }

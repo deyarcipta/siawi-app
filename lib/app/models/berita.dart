@@ -1,31 +1,25 @@
 class Berita {
-  String bgImg;
-  String name;
-  String type;
-  // List<String> imgs;
-  Berita(
-    this.bgImg,
-    this.name,
-    this.type,
-    // this.imgs,
-  );
-  static List<Berita> generateBerita() {
-    return [
-      Berita(
-        'assets/images/background2.jpg',
-        'Berita 1',
-        'Pendidikan',
-      ),
-      Berita(
-        'assets/images/background2.jpg',
-        'Berita 2',
-        'Perkuliahaan',
-      ),
-      Berita(
-        'assets/images/background2.jpg',
-        'Berita 2',
-        'Perkuliahaan',
-      ),
-    ];
+  final String judulBerita;
+  final String isiBerita;
+  final String pembuat;
+  final String tanggal;
+  final String cover;
+
+  Berita({
+    required this.judulBerita,
+    required this.isiBerita,
+    required this.pembuat,
+    required this.tanggal,
+    required this.cover,
+  });
+
+  factory Berita.fromJson(Map<String, dynamic> json) {
+    return Berita(
+      judulBerita: json['judul_berita'],
+      isiBerita: json['isi_berita'],
+      pembuat: json['pembuat'],
+      tanggal: json['tanggal'],
+      cover: json['cover'],
+    );
   }
 }

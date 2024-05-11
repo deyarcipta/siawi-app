@@ -1,7 +1,75 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-class WaliScreen extends StatelessWidget {
-  WaliScreen({Key? key}) : super(key: key);
+class WaliScreen extends StatefulWidget {
+  final VoidCallback signOut;
+  const WaliScreen(this.signOut, {super.key});
+  // final VoidCallback signOut;
+  // const ProfileScreen(this.signOut, {super.key});
+
+  @override
+  State<WaliScreen> createState() => _WaliScreenState();
+}
+
+class _WaliScreenState extends State<WaliScreen> {
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil getIdSiswa dan tunggu hasilnya
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _lihatData(idSiswa);
+      }
+    });
+  }
+
+  bool loading = false;
+  String? nikWali;
+  String? namaWali;
+  String? tmptLahirWali;
+  String? tglLahirWali;
+  String? pendidikanWali;
+  String? pekerjaanWali;
+  String? penghasilanWali;
+  Future<void> _lihatData(String idSiswa) async {
+    setState(() {
+      loading = true;
+    });
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+    // print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      var datasiswa = json.decode(response.body);
+      var siswaData = datasiswa['data'];
+      if (siswaData['nis'] != null) {
+        setState(() {
+          nikWali = siswaData['nik_wali'].toString();
+          namaWali = siswaData['nama_wali'].toString();
+          tglLahirWali = siswaData['tmpt_lahir_wali'].toString();
+          tglLahirWali = siswaData['tgl_lahir_wali'].toString();
+          pendidikanWali = siswaData['pendidikan_wali'].toString();
+          pekerjaanWali = siswaData['pekerjaan_wali'].toString();
+          penghasilanWali = siswaData['penghasilan_wali'].toString();
+          // print(namaIbu);
+        });
+      }
+    } else {
+      // print(idSiswa);
+    }
+    setState(() {
+      loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +103,7 @@ class WaliScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('12182128892811309'),
+                          _buildData('${nikWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -45,7 +113,7 @@ class WaliScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Wali'),
-                          _buildData('Bunga Citra Lestari'),
+                          _buildData('${namaWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -54,8 +122,9 @@ class WaliScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTitleData('Tanggal Lahir'),
-                          _buildData('14 Januari 1992'),
+                          _buildTitleData('Tempat, Tanggal Lahir'),
+                          _buildData(
+                              '${tmptLahirWali ?? 'Loading...'}, ${tglLahirWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -65,7 +134,7 @@ class WaliScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('SMK'),
+                          _buildData('${pendidikanWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -75,7 +144,7 @@ class WaliScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('Ibu Rumah Tangga'),
+                          _buildData('${pekerjaanWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -85,7 +154,7 @@ class WaliScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('-'),
+                          _buildData('${penghasilanWali ?? 'Loading...'}'),
                         ],
                       ),
                     ),

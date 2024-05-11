@@ -1,46 +1,28 @@
 class JadwalHariIni {
-  String mapel;
-  String jamMulai;
-  String jamAkhir;
-  String waktuMulai;
-  String waktuAkhir;
-  String guru;
-  // List<String> imgs;
-  JadwalHariIni(
-    this.mapel,
-    this.jamMulai,
-    this.jamAkhir,
-    this.waktuMulai,
-    this.waktuAkhir,
-    this.guru,
-    // this.imgs,
-  );
-  static List<JadwalHariIni> generateJadwalHariIni() {
-    return [
-      JadwalHariIni(
-        'Bahasa Indonesia',
-        '1',
-        '4',
-        '06.30',
-        '09.30',
-        'Saidah, S.Pd.',
-      ),
-      JadwalHariIni(
-        'Matematika',
-        '5',
-        '8',
-        '10.00',
-        '11.30',
-        'Muhammad Makmur, S.Pd.',
-      ),
-      JadwalHariIni(
-        'Produktif TKJ',
-        '9',
-        '11',
-        '12.30',
-        '14.30',
-        'Deyar Cipta Rizky',
-      ),
-    ];
+  final String namaMapel;
+  final String namaGuru;
+  final String jamAwal;
+  final String jamAkhir;
+  final String waktuAwal;
+  final String waktuAkhir;
+
+  JadwalHariIni({
+    required this.namaMapel,
+    required this.namaGuru,
+    required this.jamAwal,
+    required this.jamAkhir,
+    required this.waktuAwal,
+    required this.waktuAkhir,
+  });
+
+  factory JadwalHariIni.fromJson(Map<String, dynamic> json) {
+    return JadwalHariIni(
+      namaMapel: json['nama_mapel'],
+      namaGuru: json['nama_guru'],
+      jamAwal: json['jam_awal'],
+      jamAkhir: json['jam_akhir'],
+      waktuAwal: json['waktu_awal'],
+      waktuAkhir: json['waktu_akhir'],
+    );
   }
 }

@@ -1,22 +1,54 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-
-// import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/modul/views/detail_modul_view.dart';
 import 'package:siawi_app/app/modules/modul/widget/modul_list.dart';
 import 'package:siawi_app/utils/colors.dart';
-
-// import '../controllers/modul_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class ModulMapelView extends StatefulWidget {
-  const ModulMapelView({super.key});
-  // final List<Map<String, List<Map<String, String>>>> teams;
-  // ModulMapelView({required this.teams});
+  const ModulMapelView({Key? key}) : super(key: key);
 
   @override
   State<ModulMapelView> createState() => _ModulMapelViewState();
 }
 
 class _ModulMapelViewState extends State<ModulMapelView> {
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getIdSiswa().then((idSiswa) {
+      if (idSiswa != null) {
+        _fetchModul(idSiswa);
+      }
+    });
+  }
+
+  List<ModulList> modulList = [];
+  Future<void> _fetchModul(String idSiswa) async {
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/modul/$idSiswa'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final Map<String, dynamic> modulData = responseData['data'];
+      setState(() {
+        modulList.clear();
+        modulData.forEach((key, value) {
+          ModulList module = ModulList.fromJson(value);
+          modulList.add(module);
+        });
+      });
+    } else {
+      print('Failed to load jadwal hari ini');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,14 +73,14 @@ class _ModulMapelViewState extends State<ModulMapelView> {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: ListView.builder(
-          itemCount: teams.length,
+          itemCount: modulList.length,
           itemBuilder: (context, index) {
+            ModulList modul = modulList[index];
             return Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: ListTile(
-                title: Text(teams[index]['name']! as String),
+                title: Text(modul.namaMapel),
                 shape: RoundedRectangleBorder(
-                  // side: BorderSide(width: 1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 tileColor: AppColors.thirdColor,
@@ -63,7 +95,7 @@ class _ModulMapelViewState extends State<ModulMapelView> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          DetailModulView(players: teams[index]['players']!),
+                          DetailModulView(modulItems: modul.modulItems),
                     ),
                   );
                 },
@@ -75,35 +107,3 @@ class _ModulMapelViewState extends State<ModulMapelView> {
     );
   }
 }
-
-
-// class ModulMapelView extends GetView<ModulController> {
-//   const ModulMapelView({Key? key}) : super(key: key);
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('ModulMapelView'),
-//         centerTitle: true,
-//       ),
-//       body: ListView.builder(
-//         itemCount: parentList.length,
-//         itemBuilder: (context, index) {
-//           var parent = parentList[index].keys.first;
-//           return ListTile(
-//             title: Text(parent),
-//             onTap: () {
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (context) =>
-//                       DetailPage(dataList: parentList[index][parent]),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }

@@ -1,122 +1,31 @@
 class Jadwal {
-  String? namaMapel;
-  String? jamMulai;
-  String? jamSelesai;
-  String? namaGuru;
-  String? kodeMatkul;
-  String? awalJam;
-  String? akhirJam;
+  String namaMapel;
+  String namaGuru;
+  String jamAwal;
+  String jamAkhir;
+  String waktuAwal;
+  String waktuAkhir;
+  String hari;
+
   Jadwal({
-    this.namaMapel,
-    this.jamMulai,
-    this.jamSelesai,
-    this.namaGuru,
-    this.kodeMatkul,
-    this.awalJam,
-    this.akhirJam,
+    required this.namaMapel,
+    required this.namaGuru,
+    required this.jamAwal,
+    required this.jamAkhir,
+    required this.waktuAwal,
+    required this.waktuAkhir,
+    required this.hari,
   });
-  static List<Jadwal> generateSenin() {
-    return [
-      Jadwal(
-        namaMapel: 'Matematika',
-        namaGuru: 'Muhammad Makmur, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-      Jadwal(
-        namaMapel: 'Bahasa Indonesia',
-        namaGuru: 'Saidah, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-    ];
-  }
 
-  static List<Jadwal> generateSelasa() {
-    return [
-      Jadwal(
-        namaMapel: 'Produktif TKJ',
-        namaGuru: 'Muhammad Makmur, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-      Jadwal(
-        namaMapel: 'Bahasa Indonesia',
-        namaGuru: 'Saidah, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-    ];
-  }
-
-  static List<Jadwal> generateRabu() {
-    return [
-      Jadwal(
-        namaMapel: 'Bahasa Inggris',
-        namaGuru: 'Muhammad Makmur, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-      Jadwal(
-        namaMapel: 'Bahasa Indonesia',
-        namaGuru: 'Saidah, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-    ];
-  }
-
-  static List<Jadwal> generateKamis() {
-    return [
-      Jadwal(
-        namaMapel: 'Pendidikan Agama Islam',
-        namaGuru: 'Muhammad Makmur, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-      Jadwal(
-        namaMapel: 'Bahasa Indonesia',
-        namaGuru: 'Saidah, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-    ];
-  }
-
-  static List<Jadwal> generateJumat() {
-    return [
-      Jadwal(
-        namaMapel: 'Pendidikan Kewarganegaraan',
-        namaGuru: 'Muhammad Makmur, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-      Jadwal(
-        namaMapel: 'Bahasa Indonesia',
-        namaGuru: 'Saidah, S.Pd',
-        awalJam: '1',
-        akhirJam: '4',
-        jamMulai: '06.30',
-        jamSelesai: '09.30',
-      ),
-    ];
+  factory Jadwal.fromJson(Map<String, dynamic> json) {
+    return Jadwal(
+      namaMapel: json['nama_mapel'] ?? '',
+      namaGuru: json['nama_guru'] ?? '',
+      jamAwal: json['jam_awal'] ?? '',
+      jamAkhir: json['jam_akhir'] ?? '',
+      waktuAwal: json['waktu_awal'] ?? '',
+      waktuAkhir: json['waktu_akhir'] ?? '',
+      hari: json['hari'] ?? '', // Ubah menjadi 'hari'
+    );
   }
 }

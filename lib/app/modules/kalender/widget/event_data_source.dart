@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'dart:ui';
 import 'event.dart';
@@ -24,7 +25,7 @@ class KegiatanDataSource extends CalendarDataSource {
 
   @override
   Color getColor(int index) {
-    return appointments![index].background;
+    return appointments![index].background ?? Colors.blue;
   }
 
   @override

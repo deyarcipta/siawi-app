@@ -1,46 +1,28 @@
 class Informasi {
-  String? title;
-  String? hari;
-  String? tanggal;
-  String? syarat;
+  final String informasi;
+  final String ketInformasi;
+  final String hari;
+  final String tanggalAwal;
+  final String tanggalAkhir;
+  final String file;
 
-  Informasi(this.title, this.hari, this.tanggal, this.syarat);
-  static List<Informasi> informasiData = [
-    Informasi(
-      "Sumatif Tengah Semester",
-      "Senin - Jumat",
-      "12 - 17 Februari 2024",
-      "Melunasi Keuangan Sekolah",
-    ),
-    Informasi(
-      "Sumatif Akhir Semester",
-      "Senin - Jumat",
-      "12 - 17 Februari 2024",
-      "Melunasi Keuangan Sekolah",
-    ),
-    Informasi(
-      "Pembagian Rapot",
-      "Jumat",
-      "20 Juni 2024",
-      "Melunasi Keuangan Sekolah",
-    ),
-    // {
-    //   "title": "Sumatif Tengah Semester",
-    //   "hari": "Senin - Jumat",
-    //   "tanggal": "12 - 17 Februari 2024",
-    //   "syarat": "Melunasi Keuangan Sekolah",
-    // },
-    // {
-    //   "title": "Sumatif Akhir Semester",
-    //   "hari": "Senin - Jumat",
-    //   "tanggal": "12 - 17 Juni 2024",
-    //   "syarat": "Melunasi Keuangan Sekolah",
-    // },
-    // {
-    //   "title": "Pembagian Rapot",
-    //   "hari": "Jumat",
-    //   "tanggal": "20 Juni 2024",
-    //   "syarat": "Melunasi Keuangan Sekolah",
-    // }
-  ];
+  Informasi({
+    required this.informasi,
+    required this.ketInformasi,
+    required this.hari,
+    required this.tanggalAwal,
+    required this.tanggalAkhir,
+    required this.file,
+  });
+
+  factory Informasi.fromJson(Map<String, dynamic> json) {
+    return Informasi(
+      informasi: json['informasi'],
+      ketInformasi: json['ket_informasi'],
+      hari: json['hari'],
+      tanggalAwal: json['tanggal_awal'],
+      tanggalAkhir: json['tanggal_akhir'],
+      file: json['file'],
+    );
+  }
 }

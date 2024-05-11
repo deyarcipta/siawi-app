@@ -1,7 +1,103 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-class ProfileScreen extends StatelessWidget {
-  ProfileScreen({Key? key}) : super(key: key);
+class ProfileScreen extends StatefulWidget {
+  final VoidCallback signOut;
+  const ProfileScreen(this.signOut, {super.key});
+  // final VoidCallback signOut;
+  // const ProfileScreen(this.signOut, {super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil getIdSiswa dan tunggu hasilnya
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _lihatData(idSiswa);
+      }
+    });
+  }
+
+  bool loading = false;
+  String? tmptLahir;
+  String? tglLahir;
+  String? nis;
+  String? nisn;
+  String? agama;
+  String? jenisKelamin;
+  String? jenisKelaminFormatted;
+  String? namaJurusan;
+  String? namaKelas;
+  String? noHp;
+  String? noTlpn;
+  String? alamat;
+  String? noRumah;
+  String? rt;
+  String? rw;
+  String? kel;
+  String? kec;
+  String? prov;
+  String? kota;
+  Future<void> _lihatData(String idSiswa) async {
+    setState(() {
+      loading = true;
+    });
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+    // print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      var datasiswa = json.decode(response.body);
+      var siswaData = datasiswa['data'];
+      var kelasData = siswaData['kelas'];
+      var jurusanData = siswaData['jurusan'];
+      if (siswaData['nis'] != null) {
+        setState(() {
+          tmptLahir = siswaData['tmpt_lahir'].toString();
+          tglLahir = siswaData['tgl_lahir'].toString();
+          nis = siswaData['nis'].toString();
+          nisn = siswaData['nisn'].toString();
+          agama = siswaData['agama'].toString();
+          jenisKelamin = siswaData['jenis_kelamin'].toString();
+          jenisKelaminFormatted =
+              jenisKelamin == 'L' ? 'Laki - Laki' : 'Perempuan';
+          namaKelas = kelasData['nama_kelas'].toString();
+          namaJurusan = jurusanData['nama_jurusan'].toString();
+          noHp = siswaData['no_hp'].toString();
+          noTlpn = siswaData['no_tlpn'].toString();
+          alamat = siswaData['alamat'].toString();
+          rt = siswaData['rt'].toString();
+          rw = siswaData['rw'].toString();
+          noRumah = siswaData['no_rumah'].toString();
+          kel = siswaData['kel'].toString();
+          kec = siswaData['kec'].toString();
+          prov = siswaData['prov'].toString();
+          kota = siswaData['kota'].toString();
+          // print(nama);
+          // print('Nama Kelas: $presentaseKehadiran');
+        });
+      }
+    } else {
+      // print(idSiswa);
+    }
+    setState(() {
+      loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +134,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Tempat, Tanggal Lahir'),
-                                _buildData('Jakarta, 14 Desember 2004'),
+                                _buildData('${tmptLahir}, ${tglLahir}'),
                               ],
                             ),
                           ),
@@ -65,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('NIS'),
-                                _buildData('12901'),
+                                _buildData('${nis}'),
                               ],
                             ),
                           ),
@@ -76,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('NISN'),
-                                _buildData('001268528'),
+                                _buildData('${nisn}'),
                               ],
                             ),
                           ),
@@ -92,7 +188,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Agama'),
-                                _buildData('Islam'),
+                                _buildData('${agama}'),
                               ],
                             ),
                           ),
@@ -103,7 +199,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Jenis Kelamin'),
-                                _buildData('Laki - Laki'),
+                                _buildData('${jenisKelaminFormatted}'),
                               ],
                             ),
                           ),
@@ -119,8 +215,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kompetensi Keahlian'),
-                                _buildData(
-                                    'Teknik Komputer Jaringan & Telekomunikasi'),
+                                _buildData('${namaJurusan}'),
                               ],
                             ),
                           ),
@@ -131,7 +226,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kelas'),
-                                _buildData('XII - TJKT'),
+                                _buildData('${namaKelas}'),
                               ],
                             ),
                           ),
@@ -170,7 +265,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('No. HP'),
-                                _buildData('081382053328'),
+                                _buildData('${noHp}'),
                               ],
                             ),
                           ),
@@ -181,7 +276,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('No. Telepon'),
-                                _buildData('081382053328'),
+                                _buildData('${noTlpn}'),
                               ],
                             ),
                           ),
@@ -197,7 +292,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Alamat'),
-                                _buildData('Jl. Komodor Halim Perdana Kusuma'),
+                                _buildData('${alamat}'),
                               ],
                             ),
                           ),
@@ -224,7 +319,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('RT/RW'),
-                                _buildData('010/019'),
+                                _buildData('${rt}/${rw}'),
                               ],
                             ),
                           ),
@@ -234,8 +329,35 @@ class ProfileScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // _buildTitleData('NISN'),
-                                // _buildData('001268528'),
+                                _buildTitleData('Kelurahan'),
+                                _buildData('${kel}'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildTitleData('Kecamatan'),
+                                _buildData('${kec}'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildTitleData('Provinsi'),
+                                _buildData('$prov'),
                               ],
                             ),
                           ),
@@ -251,7 +373,7 @@ class ProfileScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kota'),
-                                _buildData('Jakarta Timur'),
+                                _buildData('$kota'),
                               ],
                             ),
                           ),
@@ -261,8 +383,8 @@ class ProfileScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildTitleData('Kode Pos'),
-                                _buildData('12921'),
+                                // _buildTitleData('Provinsi'),
+                                // _buildData('${prov}'),
                               ],
                             ),
                           ),

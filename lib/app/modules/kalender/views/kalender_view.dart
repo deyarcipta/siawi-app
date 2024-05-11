@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:siawi_app/app/modules/kalender/widget/event_data_source.dart';
 import 'package:siawi_app/utils/colors.dart';
+import 'package:siawi_app/app/modules/kalender/widget/event_data_source.dart';
 import 'package:siawi_app/app/modules/kalender/widget/event.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class KalenderView extends StatefulWidget {
-  const KalenderView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const KalenderView(this.signOut, {Key? key}) : super(key: key);
 
   @override
   State<KalenderView> createState() => _KalenderViewState();
 }
 
 class _KalenderViewState extends State<KalenderView> {
-  List<Kegiatan> _getDataSource() {
-    final List<Kegiatan> kegiatan = <Kegiatan>[];
-    final DateTime today = DateTime.now();
-    final DateTime startTime =
-        DateTime(today.year, today.month, today.day, 9, 0, 0);
-    final DateTime endTime = startTime.add(const Duration(hours: 2));
-    kegiatan.add(Kegiatan(
-        "Ujian 1", startTime, endTime, const Color(0xFF0f8644), false));
-    kegiatan.add(Kegiatan(
-        "Ujian 2", startTime, endTime, const Color(0xFF0f8644), false));
-    kegiatan.add(Kegiatan("Ujian 3", startTime.add(Duration(days: 2)), endTime,
-        const Color(0xFF0f8644), false));
+  List<Kegiatan> _getDataSource(List<Kegiatan> kegiatanList) {
+    final List<Kegiatan> dataSource = <Kegiatan>[];
+    for (var kegiatan in kegiatanList) {
+      final DateTime startTime = kegiatan.from;
+      final DateTime endTime = kegiatan.to;
+      dataSource.add(Kegiatan(
+        namaKegiatan: kegiatan.namaKegiatan,
+        from: startTime,
+        to: endTime,
+        background: const Color(0xFF0f8644),
+        isAllDay: false,
+      ));
+    }
+    return dataSource;
+  }
 
-    return kegiatan;
+  @override
+  void initState() {
+    super.initState();
+    _fetchKegiatan();
+  }
+
+  List<Kegiatan> kegiatanList = [];
+  Future<void> _fetchKegiatan() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    if (idSiswa != null) {
+      final response =
+          await http.get(Uri.parse('http://203.194.113.46/api/kalender/'));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final List<dynamic> kegiatanData = responseData['data'];
+        setState(() {
+          kegiatanList.clear();
+          for (var item in kegiatanData) {
+            Kegiatan kegiatan = Kegiatan.fromJson(item);
+            kegiatanList.add(kegiatan);
+          }
+        });
+      } else {
+        print('Failed to load jadwal hari ini');
+      }
+    }
   }
 
   @override
@@ -51,30 +84,39 @@ class _KalenderViewState extends State<KalenderView> {
       ),
       body: Padding(
         padding: EdgeInsets.only(top: 5),
-        child: SfCalendar(
-          view: CalendarView.month,
-          headerStyle: const CalendarHeaderStyle(
-            textStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: Colors.black, // Warna teks judul kalender
-            ),
-            textAlign: TextAlign.center,
-          ),
-          showNavigationArrow: true,
-          initialSelectedDate: DateTime.now(),
-          cellBorderColor: Colors.transparent,
-          dataSource: KegiatanDataSource(_getDataSource()),
-          selectionDecoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border.all(color: Colors.red, width: 2),
-            borderRadius: const BorderRadius.all(Radius.circular(4)),
-            shape: BoxShape.rectangle,
-          ),
-          monthViewSettings: const MonthViewSettings(
-            appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
-            showAgenda: true,
-          ),
+        child: FutureBuilder(
+          future: _fetchKegiatan(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else {
+              return SfCalendar(
+                view: CalendarView.month,
+                headerStyle: const CalendarHeaderStyle(
+                  textStyle: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black, // Warna teks judul kalender
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                showNavigationArrow: true,
+                initialSelectedDate: DateTime.now(),
+                cellBorderColor: Colors.transparent,
+                dataSource: KegiatanDataSource(_getDataSource(kegiatanList)),
+                selectionDecoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(color: Colors.red, width: 2),
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  shape: BoxShape.rectangle,
+                ),
+                monthViewSettings: const MonthViewSettings(
+                  appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+                  showAgenda: true,
+                ),
+              );
+            }
+          },
         ),
       ),
     );

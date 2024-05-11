@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_view.dart';
+import 'package:siawi_app/app/modules/modul/widget/modul_list.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class DetailModulView extends StatefulWidget {
-  // const DetailModulView(this.dataList,{super.key});
-  final List<Map<String, dynamic>> players;
+  final List<ModulItem> modulItems;
 
-  DetailModulView({required this.players});
+  DetailModulView({required this.modulItems});
 
   @override
   State<DetailModulView> createState() => _DetailModulViewState();
 }
 
 class _DetailModulViewState extends State<DetailModulView> {
-  List<Map<String, dynamic>> _players = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _players = widget.players;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,14 +37,14 @@ class _DetailModulViewState extends State<DetailModulView> {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: ListView.builder(
-          itemCount: _players.length,
+          itemCount: widget.modulItems.length,
           itemBuilder: (context, index) {
+            var module = widget.modulItems[index];
             return Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: ListTile(
-                title: Text(_players[index]['name']!),
+                title: Text(module.namaModul),
                 shape: RoundedRectangleBorder(
-                  // side: BorderSide(width: 1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 tileColor: AppColors.thirdColor,
@@ -66,7 +58,8 @@ class _DetailModulViewState extends State<DetailModulView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ModulView(player: _players[index]),
+                      builder: (context) =>
+                          ModulView(module), // Pass the module parameter
                     ),
                   );
                 },

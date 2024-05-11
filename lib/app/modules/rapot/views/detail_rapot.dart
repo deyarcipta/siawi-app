@@ -6,7 +6,9 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 class DetailRapot extends StatelessWidget {
   final RapotList rapot;
 
-  DetailRapot(this.rapot);
+  DetailRapot(this.rapot) {
+    rapot.fileRapot = Uri.encodeComponent(rapot.fileRapot);
+  }
   var appBarHeight = AppBar().preferredSize.height;
   @override
   Widget build(BuildContext context) {
@@ -42,20 +44,20 @@ class DetailRapot extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      rapot.judul,
+                      'Semester ${rapot.semester}',
                       style: TextStyle(
                         fontSize: 20,
                         color: AppColors.white,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.download,
-                        size: 20,
-                        color: AppColors.white,
-                      ),
-                      onPressed: null,
-                    ),
+                    // IconButton(
+                    //   icon: Icon(
+                    //     Icons.download,
+                    //     size: 20,
+                    //     color: AppColors.white,
+                    //   ),
+                    //   onPressed: null,
+                    // ),
                   ],
                 ),
               ),
@@ -67,7 +69,7 @@ class DetailRapot extends StatelessWidget {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: SfPdfViewer.network(
-                  rapot.pdf,
+                  'http://203.194.113.46/storage/file_rapot/${rapot.fileRapot}',
                 ),
               ),
             ),

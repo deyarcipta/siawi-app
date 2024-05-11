@@ -1,17 +1,18 @@
-// import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 // import 'package:siawi_app/app/models/api.dart';
 
 // import 'berita_terbaru.dart';
 // import 'menu.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:siawi_app/utils/colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class DataMahasiswa extends StatefulWidget {
-  DataMahasiswa({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const DataMahasiswa(this.signOut, {Key? key}) : super(key: key);
   // final VoidCallback signOut;
   // const DataMahasiswa(this.signOut, {super.key});
 
@@ -20,6 +21,74 @@ class DataMahasiswa extends StatefulWidget {
 }
 
 class _DataMahasiswaState extends State<DataMahasiswa> {
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil getIdSiswa dan tunggu hasilnya
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _lihatData(idSiswa);
+      }
+    });
+  }
+
+  bool loading = false;
+  String? nama;
+  String? namaJurusan;
+  String? nis;
+  String? nisn;
+  String? namaKelas;
+  // String? rataRata;
+  // String? info;
+  int presentaseKehadiran = 0;
+  double kehadiran = 0;
+  Future<void> _lihatData(String idSiswa) async {
+    setState(() {
+      loading = true;
+    });
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+    // print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      var datasiswa = json.decode(response.body);
+      var siswaData = datasiswa['data'];
+      var kelasData = siswaData['kelas'];
+      var jurusanData = siswaData['jurusan'];
+      if (siswaData['nis'] != null) {
+        setState(() {
+          nama = siswaData['nama_siswa'].toString();
+          nis = siswaData['nis'].toString();
+          nisn = siswaData['nisn'].toString();
+          namaKelas = kelasData['nama_kelas'].toString();
+          namaJurusan = jurusanData['nama_jurusan'].toString();
+          // rataRata = datasiswa['rapotTerakhir'].toString();
+          // info = datasiswa['pesan'].toString();
+          presentaseKehadiran =
+              int.tryParse(datasiswa['presentaseKehadiran'].toString()) ?? 0;
+          kehadiran = presentaseKehadiran / 100;
+          if (namaJurusan!.length > 10) {
+            namaJurusan = namaJurusan?.substring(0, 32);
+          }
+          // print(nama);
+          // print('Nama Kelas: $presentaseKehadiran');
+        });
+      }
+    } else {
+      // print(idSiswa);
+    }
+    setState(() {
+      loading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -51,16 +120,19 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
                           children: [
                             SizedBox(height: 5),
                             _buildTitleData('Kompetensi Keahlian'),
-                            _buildData('Teknik Jaringan Komputer & Tel.'),
+                            _buildData(namaJurusan ?? 'Loading...'),
                             _buildTitleData('NIS / NISN'),
-                            _buildData('12901 / 001268528'),
-                            _buildTitleData('Kelas / Semester'),
-                            _buildData('XII - TJKT / 5'),
+                            _buildData(
+                                '${nis ?? 'Loading...'} / ${nisn ?? 'Loading...'}'),
+                            _buildTitleData('Kelas'),
+                            _buildData(namaKelas ?? 'Loading...'),
                             _buildTitleData('Rata-Rata Rapot'),
                             Row(
                               children: [
-                                _buildRata('80'),
-                                _buildIcon(Icons.keyboard_arrow_up)
+                                _buildRata('-'),
+                                // _buildIcon()
+                                // _buildRata('${rataRata ?? 'Loading...'}'),
+                                // _buildIcon(info)
                               ],
                             ),
                           ],
@@ -69,9 +141,9 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
                           animation: true,
                           radius: 70.0,
                           lineWidth: 12.0,
-                          percent: 0.9,
+                          percent: kehadiran,
                           center: new Text(
-                            "90",
+                            '${presentaseKehadiran ?? 'Loading...'}',
                             style: new TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 30.0,

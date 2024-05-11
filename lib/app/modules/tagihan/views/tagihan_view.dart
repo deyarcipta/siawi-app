@@ -1,44 +1,84 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 // import 'package:get/get.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 // import '../controllers/tagihan_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
 class TagihanView extends StatefulWidget {
-  const TagihanView({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const TagihanView(this.signOut, {Key? key}) : super(key: key);
   @override
   _TagihanViewState createState() => _TagihanViewState();
 }
 
 class _TagihanViewState extends State<TagihanView> {
   WebViewController? _controller;
+  String? nis;
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    // String? idSiswa = preferences.getString('idSiswa');
+    String? nis = preferences.getString('nis');
+    return nis;
+  }
+
+  String? linkTagihan;
+  Future<void> _fetchTagihan() async {
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/tagihan'));
+    if (response.statusCode == 200) {
+      var tagihan = json.decode(response.body);
+      var tagihanData = tagihan['data'];
+      setState(() {
+        linkTagihan = tagihanData['link'].toString();
+        // print(nama);
+        // print('Nama Kelas: $presentaseKehadiran');
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Color(0x00000000))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {
-            // Update loading bar.
-          },
-          onPageStarted: (String url) {},
-          onPageFinished: (String url) {},
-          onWebResourceError: (WebResourceError error) {},
-          onNavigationRequest: (NavigationRequest request) {
-            if (request.url.startsWith('https://www.youtube.com/')) {
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(
-          'https://www.infradigital.io/display_tagihan?display=dynamic&bc=10051&bk=233069'));
+    _initController();
+  }
+
+  Future<void> _initController() async {
+    await _fetchTagihan();
+    String? nisValue = await getIdSiswa();
+    setState(() {
+      nis = nisValue; // Menyimpan nilai nis yang diterima
+    });
+
+    if (nis != null) {
+      print('gimana hasilnya : $linkTagihan');
+      // Hanya jika nis tidak null, maka _controller akan diinisialisasi
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(Color(0x00000000))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onProgress: (int progress) {
+              // Update loading bar.
+            },
+            onPageStarted: (String url) {},
+            onPageFinished: (String url) {},
+            onWebResourceError: (WebResourceError error) {},
+            onNavigationRequest: (NavigationRequest request) {
+              if (request.url.startsWith('https://www.youtube.com/')) {
+                return NavigationDecision.prevent;
+              }
+              return NavigationDecision.navigate;
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse('${linkTagihan}${nis}'));
+    }
   }
 
   var appBarHeight = AppBar().preferredSize.height;
@@ -63,7 +103,7 @@ class _TagihanViewState extends State<TagihanView> {
           )
         ],
       ),
-      body: WebViewWidget(controller: _controller!),
+      body: WebViewWidget(controller: _controller ?? WebViewController()),
     );
   }
 }

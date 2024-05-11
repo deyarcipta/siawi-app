@@ -1,17 +1,19 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+// import 'dart:io'; // Import dart:io untuk menggunakan kelas Directory
 
-// import 'package:get/get.dart';
-// import 'package:siawi_app/app/modules/home/views/home_view.dart';
+import 'package:flutter/material.dart';
+// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:siawi_app/app/modules/informasi/widget/informasi.dart';
+import 'package:siawi_app/app/modules/informasi/views/detail_informasi.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:accordion/accordion.dart';
-
-// import '../controllers/informasi_controller.dart';
+import 'package:http/http.dart' as http;
+// import 'package:path_provider/path_provider.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 class InformasiView extends StatefulWidget {
-  const InformasiView({Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const HomeView(this.signOut, {super.key});
+  final VoidCallback signOut;
+  const InformasiView(this.signOut, {Key? key}) : super(key: key);
 
   @override
   State<InformasiView> createState() => _InformasiViewState();
@@ -20,16 +22,48 @@ class InformasiView extends StatefulWidget {
 class _InformasiViewState extends State<InformasiView> {
   var appBarHeight = AppBar().preferredSize.height;
 
-  List<Informasi> display_list = List.from(Informasi.informasiData);
+  List<Informasi> informasiList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInformasi();
+  }
+
+  Future<void> _fetchInformasi() async {
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/informasi'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final List<dynamic> informasiData = responseData['data'];
+      setState(() {
+        informasiList.clear();
+        for (var item in informasiData) {
+          Informasi informasi = Informasi.fromJson(item);
+          informasiList.add(informasi);
+        }
+      });
+    } else {
+      print('Failed to load informasi');
+    }
+  }
 
   void updateList(String value) {
-    // seacrh
     setState(() {
-      display_list = Informasi.informasiData
+      informasiList = informasiList
           .where((element) =>
-              element.title!.toLowerCase().contains(value.toLowerCase()))
+              element.informasi.toLowerCase().contains(value.toLowerCase()))
           .toList();
     });
+  }
+
+  void _openPDFViewer(String fileURL) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailInformasi(fileURL: fileURL),
+      ),
+    );
   }
 
   @override
@@ -70,7 +104,7 @@ class _InformasiViewState extends State<InformasiView> {
                       filled: true,
                       fillColor: AppColors.thirdColor,
                       prefixIcon: const Icon(Icons.search),
-                      hintText: 'Cari Inforsmasi',
+                      hintText: 'Cari Informasi',
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
@@ -84,7 +118,7 @@ class _InformasiViewState extends State<InformasiView> {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const ScrollPhysics(),
-                  itemCount: display_list.length,
+                  itemCount: informasiList.length,
                   itemBuilder: (context, index) {
                     return Container(
                       child: Accordion(
@@ -111,7 +145,7 @@ class _InformasiViewState extends State<InformasiView> {
                             leftIcon: const Icon(Icons.info_outline_rounded,
                                 color: Colors.black),
                             header: Text(
-                              '${display_list[index].title}',
+                              '${informasiList[index].informasi}',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -128,29 +162,27 @@ class _InformasiViewState extends State<InformasiView> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Pelaksanaan ${display_list[index].title} diadakan pada : ",
+                                          "Pelaksanaan ${informasiList[index].informasi} diadakan pada : ",
                                         ),
                                         SizedBox(height: 5),
                                         Text(
-                                          "Hari : ${display_list[index].hari}",
+                                          "Hari : ${informasiList[index].hari}",
                                         ),
                                         Text(
-                                          "Tanggal : ${display_list[index].tanggal}",
+                                          "Tanggal : ${informasiList[index].tanggalAwal}",
                                         ),
                                         Text(
-                                          "Syarat : ${display_list[index].syarat}",
+                                          "Silakan Download File Edaran Untuk Informasi Lebih Lanjut",
                                         ),
                                       ]),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.download),
-                                  tooltip: 'Increase volume by 10',
-                                  onPressed: () {
-                                    setState(() {
-                                      print('berhasil');
-                                    });
+                                InkWell(
+                                  onTap: () {
+                                    _openPDFViewer(informasiList[index].file);
                                   },
+                                  child: Icon(Icons.picture_as_pdf),
                                 ),
+                                // ),
                               ],
                             ),
                           ),

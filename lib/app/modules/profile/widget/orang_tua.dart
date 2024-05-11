@@ -1,7 +1,89 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-class OrangTuaScreen extends StatelessWidget {
-  OrangTuaScreen({Key? key}) : super(key: key);
+class OrangTuaScreen extends StatefulWidget {
+  final VoidCallback signOut;
+  const OrangTuaScreen(this.signOut, {super.key});
+  // final VoidCallback signOut;
+  // const ProfileScreen(this.signOut, {super.key});
+
+  @override
+  State<OrangTuaScreen> createState() => _OrangTuaScreenState();
+}
+
+class _OrangTuaScreenState extends State<OrangTuaScreen> {
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? idSiswa = preferences.getString('idSiswa');
+    return idSiswa;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Panggil getIdSiswa dan tunggu hasilnya
+    getIdSiswa().then((idSiswa) {
+      // Jika idSiswa tidak null, panggil _lihatData
+      if (idSiswa != null) {
+        _lihatData(idSiswa);
+      }
+    });
+  }
+
+  bool loading = false;
+  String? nikAyah;
+  String? namaAyah;
+  String? tmptLahirAyah;
+  String? tglLahirAyah;
+  String? pendidikanAyah;
+  String? pekerjaanAyah;
+  String? penghasilanAyah;
+  String? nikIbu;
+  String? namaIbu;
+  String? tmptLahirIbu;
+  String? tglLahirIbu;
+  String? pendidikanIbu;
+  String? pekerjaanIbu;
+  String? penghasilanIbu;
+  Future<void> _lihatData(String idSiswa) async {
+    setState(() {
+      loading = true;
+    });
+    final response =
+        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+    // print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      var datasiswa = json.decode(response.body);
+      var siswaData = datasiswa['data'];
+      if (siswaData['nis'] != null) {
+        setState(() {
+          nikAyah = siswaData['nik_ayah'].toString();
+          namaAyah = siswaData['nama_ayah'].toString();
+          tglLahirAyah = siswaData['tmpt_lahir_ayah'].toString();
+          tglLahirAyah = siswaData['tgl_lahir_ayah'].toString();
+          pendidikanAyah = siswaData['pendidikan_ayah'].toString();
+          pekerjaanAyah = siswaData['pekerjaan_ayah'].toString();
+          penghasilanAyah = siswaData['penghasilan_ayah'].toString();
+          nikIbu = siswaData['nik_ibu'].toString();
+          namaIbu = siswaData['nama_ibu'].toString();
+          tmptLahirIbu = siswaData['tmpt_lahir_ibu'].toString();
+          tglLahirIbu = siswaData['tgl_lahir_ibu'].toString();
+          pendidikanIbu = siswaData['pendidikan_ibu'].toString();
+          pekerjaanIbu = siswaData['pekerjaan_ibu'].toString();
+          penghasilanIbu = siswaData['penghasilan_ibu'].toString();
+          // print(namaIbu);
+        });
+      }
+    } else {
+      // print(idSiswa);
+    }
+    setState(() {
+      loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +118,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('312093123082313123'),
+                          _buildData('${nikAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -46,7 +128,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Ayah'),
-                          _buildData('Justin Hubner'),
+                          _buildData('${namaAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -55,8 +137,9 @@ class OrangTuaScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTitleData('Tanggal Lahir'),
-                          _buildData('14 Desember 1990'),
+                          _buildTitleData('Tempat, Tanggal Lahir'),
+                          _buildData(
+                              '${tmptLahirAyah ?? 'Loading...'}, ${tglLahirAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -66,7 +149,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('S1'),
+                          _buildData('${pendidikanAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -76,7 +159,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('Wiraswasta'),
+                          _buildData('${pekerjaanAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -86,7 +169,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('Rp. 5.000.000 - Rp. 10.000.000'),
+                          _buildData('${penghasilanAyah ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -120,7 +203,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('12182128892811309'),
+                          _buildData('${nikIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -130,7 +213,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Ibu'),
-                          _buildData('Adele'),
+                          _buildData('${namaIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -139,8 +222,9 @@ class OrangTuaScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTitleData('Tanggal Lahir'),
-                          _buildData('14 Januari 1992'),
+                          _buildTitleData('Tempat, Tanggal Lahir'),
+                          _buildData(
+                              '-${tmptLahirIbu ?? 'Loading...'}, ${tglLahirIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -150,7 +234,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('SMK'),
+                          _buildData('${pendidikanIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -160,7 +244,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('Ibu Rumah Tangga'),
+                          _buildData('${pekerjaanIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
@@ -170,7 +254,7 @@ class OrangTuaScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('-'),
+                          _buildData('${penghasilanIbu ?? 'Loading...'}'),
                         ],
                       ),
                     ),
