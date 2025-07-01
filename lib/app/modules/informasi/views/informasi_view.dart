@@ -31,8 +31,8 @@ class _InformasiViewState extends State<InformasiView> {
   }
 
   Future<void> _fetchInformasi() async {
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/informasi'));
+    final response = await http.get(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/informasi'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> informasiData = responseData['data'];

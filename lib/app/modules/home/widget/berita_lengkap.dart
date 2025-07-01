@@ -37,7 +37,8 @@ class BeritaLengkap extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             CachedNetworkImage(
-              imageUrl: 'http://103.75.209.90/storage/berita/${berita.cover}',
+              imageUrl:
+                  'https://siawi.smkwisataindonesia.sch.id/storage/berita/${berita.cover}',
               placeholder: (context, url) => CircularProgressIndicator(),
               errorWidget: (context, url, error) => Icon(Icons.error),
             ),

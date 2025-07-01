@@ -46,8 +46,8 @@ class _UploadFotoState extends State<UploadFoto> {
     setState(() {
       loading = true;
     });
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
+    final response = await http.get(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
@@ -93,7 +93,8 @@ class _UploadFotoState extends State<UploadFoto> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://103.75.209.90/api/uploadFoto/$idSiswa'),
+      Uri.parse(
+          'https://siawi.smkwisataindonesia.sch.id/api/uploadFoto/$idSiswa'),
     );
     request.files.add(
       await http.MultipartFile.fromPath('foto', _image!.path),
@@ -157,7 +158,7 @@ class _UploadFotoState extends State<UploadFoto> {
                               child: ClipOval(
                                 child: _image == null
                                     ? Image.network(
-                                        'http://103.75.209.90/storage/foto-siswa/$fileFoto',
+                                        'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$fileFoto',
                                         width: 150,
                                         height: 150,
                                         fit: BoxFit.cover,

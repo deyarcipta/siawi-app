@@ -45,8 +45,8 @@ class _KalenderViewState extends State<KalenderView> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
     if (idSiswa != null) {
-      final response =
-          await http.get(Uri.parse('http://103.75.209.90/api/kalender/'));
+      final response = await http.get(
+          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/kalender/'));
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         final List<dynamic> kegiatanData = responseData['data'];

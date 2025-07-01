@@ -35,12 +35,13 @@ class _PasswordViewState extends State<PasswordView> {
   }
 
   void gantiPassword(String idSiswa) async {
-    final response = await http
-        .post(Uri.parse('http://103.75.209.90/api/ubahPassword'), body: {
-      'idSiswa': idSiswa,
-      'password1': password1,
-      'password2': password2,
-    });
+    final response = await http.post(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/ubahPassword'),
+        body: {
+          'idSiswa': idSiswa,
+          'password1': password1,
+          'password2': password2,
+        });
 
     // print('password : ${response.statusCode}');
     if (response.statusCode == 200) {

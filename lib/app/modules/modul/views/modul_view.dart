@@ -76,7 +76,7 @@ class _ModulViewState extends State<ModulView> {
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
               child: SfPdfViewer.network(
-                  'http://103.75.209.90/storage/file_modul/${widget.modul.fileModul}'),
+                  'https://siawi.smkwisataindonesia.sch.id/storage/file_modul/${widget.modul.fileModul}'),
             ),
           ],
         ),

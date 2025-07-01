@@ -86,8 +86,8 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
     setState(() {
       loading = true;
     });
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
+    final response = await http.get(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
@@ -198,7 +198,8 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
       });
 
       final response = await http.post(
-        Uri.parse('http://103.75.209.90/api/updateSiswa/$idSiswa'),
+        Uri.parse(
+            'https://siawi.smkwisataindonesia.sch.id/api/updateSiswa/$idSiswa'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'nis': nis ?? '',

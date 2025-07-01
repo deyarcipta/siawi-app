@@ -43,8 +43,8 @@ class _HeaderState extends State<Header> {
     setState(() {
       loading = true;
     });
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
+    final response = await http.get(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
@@ -108,7 +108,7 @@ class _HeaderState extends State<Header> {
                       ? CircularProgressIndicator() // Indikator loading saat fileFoto null
                       : ClipOval(
                           child: Image.network(
-                            'http://103.75.209.90/storage/foto-siswa/$fileFoto',
+                            'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$fileFoto',
                             fit: BoxFit.cover,
                             width: 40,
                             height: 40,

@@ -130,7 +130,7 @@ class JadwalList extends StatelessWidget {
     String encodedHari = Uri.encodeComponent(hari);
 
     String apiUrl =
-        'http://103.75.209.90/api/jadwal/$encodedIdSiswa/$encodedHari';
+        'https://siawi.smkwisataindonesia.sch.id/api/jadwal/$encodedIdSiswa/$encodedHari';
 
     final response = await http.get(Uri.parse(apiUrl));
 

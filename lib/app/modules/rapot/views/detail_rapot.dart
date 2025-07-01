@@ -70,7 +70,7 @@ class DetailRapot extends StatelessWidget {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: SfPdfViewer.network(
-                  'http://103.75.209.90/storage/file_rapot/${rapot.fileRapot}',
+                  'https://siawi.smkwisataindonesia.sch.id/storage/file_rapot/${rapot.fileRapot}',
                 ),
               ),
             ),

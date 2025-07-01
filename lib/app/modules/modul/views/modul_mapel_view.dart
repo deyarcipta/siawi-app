@@ -32,8 +32,8 @@ class _ModulMapelViewState extends State<ModulMapelView> {
 
   List<ModulList> modulList = [];
   Future<void> _fetchModul(String idSiswa) async {
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/modul/$idSiswa'));
+    final response = await http.get(Uri.parse(
+        'https://siawi.smkwisataindonesia.sch.id/api/modul/$idSiswa'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final Map<String, dynamic> modulData = responseData['data'];

@@ -42,8 +42,8 @@ class _PointSiswaViewState extends State<PointSiswaView> {
 
   Future<void> _fetchPoint(String idSiswa) async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.75.209.90/api/point/$idSiswa'));
+      final response = await http.get(Uri.parse(
+          'https://siawi.smkwisataindonesia.sch.id/api/point/$idSiswa'));
 
       if (response.statusCode == 200) {
         var dataPoint = json.decode(response.body);
@@ -127,7 +127,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                               padding: const EdgeInsets.only(top: 25),
                               child: ClipOval(
                                 child: Image.network(
-                                  'http://103.75.209.90/storage/foto-siswa/$fileFoto',
+                                  'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$fileFoto',
                                   width: 120,
                                   height: 120,
                                   fit: BoxFit.cover,

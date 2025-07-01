@@ -23,8 +23,8 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
   }
 
   Future<void> _fetchBerita() async {
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/berita'));
+    final response = await http
+        .get(Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/berita'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> beritaData = responseData['data'];
@@ -89,7 +89,7 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
                             borderRadius: BorderRadius.circular(15),
                             child: CachedNetworkImage(
                               imageUrl:
-                                  'http://103.75.209.90/storage/berita/${beritaList[index].cover}',
+                                  'https://siawi.smkwisataindonesia.sch.id/storage/berita/${beritaList[index].cover}',
                               placeholder: (context, url) =>
                                   CircularProgressIndicator(),
                               errorWidget: (context, url, error) =>

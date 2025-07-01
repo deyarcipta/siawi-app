@@ -70,11 +70,12 @@ class _LoginSiawiState extends State<LoginSiawi> {
   }
 
   login() async {
-    final response =
-        await http.post(Uri.parse('http://103.75.209.90/api/login'), body: {
-      'nis': nis,
-      'password': password,
-    });
+    final response = await http.post(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/login'),
+        body: {
+          'nis': nis,
+          'password': password,
+        });
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
 

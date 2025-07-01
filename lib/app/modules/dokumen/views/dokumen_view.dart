@@ -2,25 +2,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 // import 'package:get/get.dart';
-import 'package:siawi_app/app/modules/rapot/views/detail_rapot.dart';
+import 'package:siawi_app/app/modules/dokumen/views/detail_dokumen.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-// import '../controllers/rapot_controller.dart';
-import 'package:siawi_app/app/modules/rapot/widget/rapot_list.dart';
+// import '../controllers/dokumen_controller.dart';
+import 'package:siawi_app/app/modules/dokumen/widget/dokumen_list.dart';
 
-class RapotView extends StatefulWidget {
+class DokumenView extends StatefulWidget {
   final VoidCallback signOut;
-  const RapotView(this.signOut, {Key? key}) : super(key: key);
+  const DokumenView(this.signOut, {Key? key}) : super(key: key);
   // final VoidCallback signOut;
-  // const RapotView(this.signOut, {super.key});
+  // const DokumenView(this.signOut, {super.key});
 
   @override
-  State<RapotView> createState() => _RapotViewState();
+  State<DokumenView> createState() => _DokumenViewState();
 }
 
-class _RapotViewState extends State<RapotView> {
+class _DokumenViewState extends State<DokumenView> {
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
@@ -33,23 +33,23 @@ class _RapotViewState extends State<RapotView> {
     getIdSiswa().then((idSiswa) {
       // Jika idSiswa tidak null, panggil _lihatData
       if (idSiswa != null) {
-        _fetchRapot(idSiswa);
+        _fetchdokumen(idSiswa);
       }
     });
   }
 
-  List<RapotList> rapotList = [];
-  Future<void> _fetchRapot(String idSiswa) async {
+  List<DokumenList> dokumenList = [];
+  Future<void> _fetchdokumen(String idSiswa) async {
     final response = await http.get(Uri.parse(
-        'https://siawi.smkwisataindonesia.sch.id/api/rapot/$idSiswa'));
+        'https://siawi.smkwisataindonesia.sch.id/api/dokumen/$idSiswa'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> rapotData = responseData['data'];
+      final List<dynamic> dokumenData = responseData['data'];
       setState(() {
-        rapotList.clear();
-        for (var item in rapotData) {
-          RapotList rapot = RapotList.fromJson(item);
-          rapotList.add(rapot);
+        dokumenList.clear();
+        for (var item in dokumenData) {
+          DokumenList dokumen = DokumenList.fromJson(item);
+          dokumenList.add(dokumen);
         }
       });
     } else {
@@ -84,9 +84,9 @@ class _RapotViewState extends State<RapotView> {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: ListView.builder(
-          itemCount: rapotList.length,
+          itemCount: dokumenList.length,
           itemBuilder: (context, index) {
-            RapotList rapot = rapotList[index];
+            DokumenList dokumen = dokumenList[index];
             return Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: ListTile(
@@ -100,13 +100,14 @@ class _RapotViewState extends State<RapotView> {
                   width: 25,
                   height: 25,
                 ),
-                title: Text('Semester ${rapotList[index].semester}'),
+                title:
+                    Text('Jenis Dokumen ${dokumenList[index].jenis_dokumen}'),
                 trailing: Icon(Icons.arrow_forward_rounded),
                 onTap: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => DetailRapot(rapot)));
+                          builder: (context) => DetailDokumen(dokumen)));
                 },
               ),
             );

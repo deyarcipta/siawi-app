@@ -4,6 +4,10 @@ import '../modules/about/bindings/about_binding.dart';
 import '../modules/about/views/about_view.dart';
 import '../modules/absensi/bindings/absensi_binding.dart';
 import '../modules/absensi/views/absensi_view.dart';
+import '../modules/dokumen/bindings/dokumen_binding.dart';
+import '../modules/dokumen/views/dokumen_view.dart';
+import '../modules/dokumen_gabungan/bindings/dokumen_gabungan_binding.dart';
+import '../modules/dokumen_gabungan/views/dokumen_gabungan_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/MyHomePage.dart';
 import '../modules/informasi/bindings/informasi_binding.dart';
@@ -99,6 +103,16 @@ class AppPages {
       name: _Paths.PASSWORD,
       page: () => PasswordView(signOut != null ? signOut! : () {}),
       binding: PasswordBinding(),
+    ),
+    GetPage(
+      name: _Paths.DOKUMEN_GABUNGAN,
+      page: () => DokumenGabunganView(signOut != null ? signOut! : () {}),
+      binding: DokumenGabunganBinding(),
+    ),
+    GetPage(
+      name: _Paths.DOKUMEN,
+      page: () => DokumenView(signOut != null ? signOut! : () {}),
+      binding: DokumenBinding(),
     ),
   ];
 

@@ -16,6 +16,8 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const ABOUT = _Paths.ABOUT;
   static const PASSWORD = _Paths.PASSWORD;
+  static const DOKUMEN_GABUNGAN = _Paths.DOKUMEN_GABUNGAN;
+  static const DOKUMEN = _Paths.DOKUMEN;
 }
 
 abstract class _Paths {
@@ -33,4 +35,6 @@ abstract class _Paths {
   static const PROFILE = '/profile';
   static const ABOUT = '/about';
   static const PASSWORD = '/password';
+  static const DOKUMEN_GABUNGAN = '/dokumen-gabungan';
+  static const DOKUMEN = '/dokumen';
 }

@@ -28,8 +28,8 @@ class _TagihanViewState extends State<TagihanView> {
 
   String? linkTagihan;
   Future<void> _fetchTagihan() async {
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/tagihan'));
+    final response = await http
+        .get(Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/tagihan'));
     if (response.statusCode == 200) {
       var tagihan = json.decode(response.body);
       var tagihanData = tagihan['data'];

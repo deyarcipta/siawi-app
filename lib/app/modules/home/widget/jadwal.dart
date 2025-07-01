@@ -33,7 +33,8 @@ class _JadwalState extends State<JadwalToday> {
 
   Future<void> _fetchJadwalToday(String idSiswa) async {
     final response = await http.get(
-      Uri.parse('http://103.75.209.90/api/jadwalToday/$idSiswa'),
+      Uri.parse(
+          'https://siawi.smkwisataindonesia.sch.id/api/jadwalToday/$idSiswa'),
     );
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);

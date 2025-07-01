@@ -51,7 +51,7 @@ class DetailInformasi extends StatelessWidget {
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height,
                       child: SfPdfViewer.network(
-                        'http://103.75.209.90/storage/file-informasi/$fileURL',
+                        'https://siawi.smkwisataindonesia.sch.id/storage/file-informasi/$fileURL',
                       ),
                     ),
                   ),
@@ -65,8 +65,8 @@ class DetailInformasi extends StatelessWidget {
   }
 
   Future<void> _checkPdfUrl(String url) async {
-    final response = await http
-        .head(Uri.parse('http://103.75.209.90/storage/file-informasi/$url'));
+    final response = await http.head(Uri.parse(
+        'https://siawi.smkwisataindonesia.sch.id/storage/file-informasi/$url'));
     if (response.statusCode != 200) {
       throw Exception('PDF not found');
     }

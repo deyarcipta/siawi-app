@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/modules/absensi/views/absensi_view.dart';
+import 'package:siawi_app/app/modules/dokumen_gabungan/views/dokumen_gabungan_view.dart';
 import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
 import 'package:siawi_app/app/modules/jadwal/views/jadwal_view.dart';
 import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
-import 'package:siawi_app/app/modules/rapot/views/rapot_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
@@ -62,9 +62,9 @@ class _MenuState extends State<Menu> {
                 width: width,
               ),
               MenuCard(
-                title: "e-rapot",
+                title: "Dokumen",
                 img: "assets/icon/e-rapot.png",
-                tujuan: RapotView(widget.signOut),
+                tujuan: DokumenGabunganView(widget.signOut),
                 width: width,
               ),
               MenuCard(

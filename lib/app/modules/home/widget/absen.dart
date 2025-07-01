@@ -48,8 +48,8 @@ class _AbsenState extends State<Absen> {
     setState(() {
       loading = true;
     });
-    final response =
-        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
+    final response = await http.get(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
     // print(response.statusCode);
 
     if (response.statusCode == 200) {
