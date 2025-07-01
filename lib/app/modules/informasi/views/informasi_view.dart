@@ -32,7 +32,7 @@ class _InformasiViewState extends State<InformasiView> {
 
   Future<void> _fetchInformasi() async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/informasi'));
+        await http.get(Uri.parse('http://103.75.209.90/api/informasi'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> informasiData = responseData['data'];
@@ -172,7 +172,7 @@ class _InformasiViewState extends State<InformasiView> {
                                           "Tanggal : ${informasiList[index].tanggalAwal}",
                                         ),
                                         Text(
-                                          "Silakan Download File Edaran Untuk Informasi Lebih Lanjut",
+                                          "Silakan Lihat File Edaran Untuk Informasi Lebih Lanjut",
                                         ),
                                       ]),
                                 ),

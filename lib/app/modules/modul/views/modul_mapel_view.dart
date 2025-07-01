@@ -33,7 +33,7 @@ class _ModulMapelViewState extends State<ModulMapelView> {
   List<ModulList> modulList = [];
   Future<void> _fetchModul(String idSiswa) async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/modul/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/modul/$idSiswa'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final Map<String, dynamic> modulData = responseData['data'];

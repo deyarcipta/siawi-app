@@ -5,6 +5,7 @@ class JadwalHariIni {
   final String jamAkhir;
   final String waktuAwal;
   final String waktuAkhir;
+  final String statusKehadiran;
 
   JadwalHariIni({
     required this.namaMapel,
@@ -13,6 +14,7 @@ class JadwalHariIni {
     required this.jamAkhir,
     required this.waktuAwal,
     required this.waktuAkhir,
+    required this.statusKehadiran,
   });
 
   factory JadwalHariIni.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class JadwalHariIni {
       jamAkhir: json['jam_akhir'],
       waktuAwal: json['waktu_awal'],
       waktuAkhir: json['waktu_akhir'],
+      statusKehadiran: json['status_kehadiran'],
     );
   }
 }

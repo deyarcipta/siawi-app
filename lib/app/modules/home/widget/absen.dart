@@ -49,7 +49,7 @@ class _AbsenState extends State<Absen> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
     // print(response.statusCode);
 
     if (response.statusCode == 200) {
@@ -94,9 +94,7 @@ class _AbsenState extends State<Absen> {
     return Wrap(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(
-            top: 15,
-          ),
+          padding: EdgeInsets.fromLTRB(15, 10, 15, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

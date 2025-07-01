@@ -1,7 +1,3 @@
-// import 'package:get/get.dart';
-// import 'package:focused_menu/focused_menu.dart';
-// import 'package:siawi_app/app/modules/login/views/login_view.dart';
-// import 'package:siawi_app/app/modules/login/views/login_view.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/models/menu_item.dart';
@@ -14,8 +10,6 @@ import 'package:siawi_app/app/modules/password/views/password_view.dart';
 class Header extends StatefulWidget {
   final VoidCallback signOut;
   const Header(this.signOut, {Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const Header(this.signOut, {super.key});
 
   @override
   State<Header> createState() => _HeaderState();
@@ -25,7 +19,9 @@ class _HeaderState extends State<Header> {
   var appBarHeight = AppBar().preferredSize.height;
 
   String? nama;
+  String? fileFoto;
   String? namaJurusan;
+
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
@@ -35,9 +31,7 @@ class _HeaderState extends State<Header> {
   @override
   void initState() {
     super.initState();
-    // Panggil getIdSiswa dan tunggu hasilnya
     getIdSiswa().then((idSiswa) {
-      // Jika idSiswa tidak null, panggil _lihatData
       if (idSiswa != null) {
         _lihatData(idSiswa);
       }
@@ -50,24 +44,19 @@ class _HeaderState extends State<Header> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
-    // print(response.statusCode);
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
       var siswaData = datasiswa['data'];
-      // var kelasData = siswaData['kelas'];
-      // var jurusanData = siswaData['jurusan'];
       if (siswaData['nis'] != null) {
         setState(() {
           nama = siswaData['nama_siswa'].toString();
-          // namaJurusan = jurusanData['nama_jurusan'];
-          // print(nama);
-          // print('Nama Kelas: $namaJurusan');
+          fileFoto = siswaData['foto'].toString();
         });
       }
     } else {
-      print(idSiswa);
+      print('Error: ${response.statusCode}');
     }
     setState(() {
       loading = false;
@@ -76,7 +65,6 @@ class _HeaderState extends State<Header> {
 
   @override
   Widget build(BuildContext context) {
-    // var size = MediaQuery.of(context).size;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -115,11 +103,42 @@ class _HeaderState extends State<Header> {
                   ...MenuItems.itemSecond.map(buildItem).toList(),
                 ],
                 icon: CircleAvatar(
-                  child: Image.asset(
-                    'assets/images/default.png',
-                    fit: BoxFit.cover,
-                    width: 26,
-                  ),
+                  backgroundColor: Colors.transparent,
+                  child: fileFoto == null
+                      ? CircularProgressIndicator() // Indikator loading saat fileFoto null
+                      : ClipOval(
+                          child: Image.network(
+                            'http://103.75.209.90/storage/foto-siswa/$fileFoto',
+                            fit: BoxFit.cover,
+                            width: 40,
+                            height: 40,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child;
+                              } else {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            (loadingProgress
+                                                    .expectedTotalBytes ??
+                                                1)
+                                        : null,
+                                  ),
+                                );
+                              }
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.error,
+                                color: Colors.red,
+                                size: 26,
+                              );
+                            },
+                          ),
+                        ),
                 ),
                 offset: Offset(0.0, appBarHeight),
                 shape: const RoundedRectangleBorder(

@@ -8,6 +8,7 @@ import 'package:siawi_app/app/modules/jadwal/widget/jadwal_list.dart';
 
 import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/utils/tab_silver_delegate.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class JadwalView extends StatefulWidget {
   final VoidCallback signOut;
@@ -49,7 +50,7 @@ class _JadwalViewState extends State<JadwalView> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
     // print(response.statusCode);
 
     if (response.statusCode == 200) {
@@ -113,6 +114,8 @@ class _JadwalViewState extends State<JadwalView> {
                             padding: EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center, // Menambahkan ini
                               children: [
                                 _buildTitle('Jadwal Mata Pelajaran'),
                                 _buildTitleData('$namaJurusan'),
@@ -142,9 +145,12 @@ class _JadwalViewState extends State<JadwalView> {
                       ),
                       tabs: tabs
                           .map((e) => Tab(
-                                child: Text(
+                                child: AutoSizeText(
                                   e,
                                   style: TextStyle(fontSize: 12),
+                                  maxLines: 1,
+                                  minFontSize: 10,
+                                  maxFontSize: 12,
                                 ),
                               ))
                           .toList(),

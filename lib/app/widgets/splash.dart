@@ -70,24 +70,6 @@ class SplashScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Text(
-                  //   "SISTEM INFORMASI AKADEMIK",
-                  //   style: TextStyle(
-                  //     fontSize: 22,
-                  //     height: 2,
-                  //     color: Colors.white,
-                  //     fontWeight: FontWeight.w400,
-                  //   ),
-                  // ),
-                  // Text(
-                  //   "WISATA INDONESIA",
-                  //   style: TextStyle(
-                  //     fontSize: 22,
-                  //     height: 2,
-                  //     color: Colors.white,
-                  //     fontWeight: FontWeight.w400,
-                  //   ),
-                  // ),
                 ),
                 Container(
                   child: CircularProgressIndicator(

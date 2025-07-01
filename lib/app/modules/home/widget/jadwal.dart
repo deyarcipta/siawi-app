@@ -1,13 +1,9 @@
 import 'dart:convert';
-// import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-// import 'package:siawi_app/app/models/api.dart';
 import 'package:siawi_app/app/models/jadwal_hari_ini.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:siawi_app/utils/colors.dart';
-// import 'package:percent_indicator/percent_indicator.dart';
 
 class JadwalToday extends StatefulWidget {
   final VoidCallback signOut;
@@ -18,36 +14,33 @@ class JadwalToday extends StatefulWidget {
 }
 
 class _JadwalState extends State<JadwalToday> {
-  Future<String?> getIdSiswa() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? idSiswa = preferences.getString('idSiswa');
-    return idSiswa;
-  }
+  List<JadwalHariIni> jadwalHariIniList = [];
 
   @override
   void initState() {
     super.initState();
     getIdSiswa().then((idSiswa) {
-      // Jika idSiswa tidak null, panggil _lihatData
       if (idSiswa != null) {
         _fetchJadwalToday(idSiswa);
       }
     });
   }
 
-  List<JadwalHariIni> jadwalHariIniList = [];
+  Future<String?> getIdSiswa() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    return preferences.getString('idSiswa');
+  }
+
   Future<void> _fetchJadwalToday(String idSiswa) async {
-    final response = await http
-        .get(Uri.parse('http://203.194.113.46/api/jadwalToday/$idSiswa'));
+    final response = await http.get(
+      Uri.parse('http://103.75.209.90/api/jadwalToday/$idSiswa'),
+    );
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> jadwalData = responseData['data'];
       setState(() {
-        jadwalHariIniList.clear();
-        for (var item in jadwalData) {
-          JadwalHariIni jadwal = JadwalHariIni.fromJson(item);
-          jadwalHariIniList.add(jadwal);
-        }
+        jadwalHariIniList =
+            jadwalData.map((item) => JadwalHariIni.fromJson(item)).toList();
       });
     } else {
       print('Failed to load jadwal hari ini');
@@ -60,9 +53,7 @@ class _JadwalState extends State<JadwalToday> {
     return Wrap(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(
-            top: 20,
-          ),
+          padding: const EdgeInsets.only(top: 20),
           child: Column(
             children: [
               Container(
@@ -73,7 +64,7 @@ class _JadwalState extends State<JadwalToday> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(15, 10, 15, 0),
+                  padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -84,129 +75,125 @@ class _JadwalState extends State<JadwalToday> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Container(
-                        child: SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (_, index) => Card(
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
+                      SizedBox(
+                        height: 100,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (_, index) => Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Container(
+                              width: size.width * .44,
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                width: size.width * .44,
-                                // height: size.height * 1,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                        "assets/images/background.jpg"),
-                                    fit: BoxFit.cover,
+                                image: const DecorationImage(
+                                  image: AssetImage(
+                                    "assets/images/background.jpg",
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 2,
-                                      blurRadius: 4,
-                                      offset: Offset(
-                                          0, 3), // changes position of shadow
-                                    ),
-                                  ],
+                                  fit: BoxFit.cover,
                                 ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: ClipRRect(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          jadwalHariIniList[index]
-                                                      .namaMapel
-                                                      .length >
-                                                  20 // Misalnya, Anda ingin membatasi hingga 10 karakter
-                                              ? jadwalHariIniList[index]
-                                                      .namaMapel
-                                                      .substring(0, 20) +
-                                                  '...' // Jika panjang string lebih dari 10 karakter, potong dan tambahkan tanda titik-titik
-                                              : jadwalHariIniList[index]
-                                                  .namaMapel,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        jadwalHariIniList[index]
+                                                    .namaMapel
+                                                    .length >
+                                                20
+                                            ? '${jadwalHariIniList[index].namaMapel.substring(0, 20)}...'
+                                            : jadwalHariIniList[index]
+                                                .namaMapel,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            jadwalHariIniList[index].jamAwal,
+                                            style:
+                                                const TextStyle(fontSize: 10),
                                           ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              jadwalHariIniList[index].jamAwal,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              ' s/d ',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              jadwalHariIniList[index].jamAkhir,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              ' | ',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              jadwalHariIniList[index]
-                                                  .waktuAwal,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              ' s/d ',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            Text(
-                                              jadwalHariIniList[index]
-                                                  .waktuAkhir,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          jadwalHariIniList[index].namaGuru,
-                                          style: TextStyle(
-                                            fontSize: 10,
+                                          const Text(
+                                            ' s/d ',
+                                            style: TextStyle(fontSize: 10),
                                           ),
-                                        ),
-                                      ],
-                                    ),
+                                          Text(
+                                            jadwalHariIniList[index].jamAkhir,
+                                            style:
+                                                const TextStyle(fontSize: 10),
+                                          ),
+                                          const Text(
+                                            ' | ',
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                          Text(
+                                            jadwalHariIniList[index].waktuAwal,
+                                            style:
+                                                const TextStyle(fontSize: 10),
+                                          ),
+                                          const Text(
+                                            ' s/d ',
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                          Text(
+                                            jadwalHariIniList[index].waktuAkhir,
+                                            style:
+                                                const TextStyle(fontSize: 10),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            margin:
+                                                const EdgeInsets.only(right: 5),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: _getColorForStatus(
+                                                  jadwalHariIniList[index]
+                                                      .statusKehadiran),
+                                            ),
+                                          ),
+                                          Text(
+                                            jadwalHariIniList[index].namaGuru,
+                                            style:
+                                                const TextStyle(fontSize: 10),
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                            separatorBuilder: (_, index) =>
-                                const SizedBox(width: 8),
-                            itemCount: jadwalHariIniList.length,
                           ),
+                          separatorBuilder: (_, index) =>
+                              const SizedBox(width: 8),
+                          itemCount: jadwalHariIniList.length,
                         ),
                       ),
                     ],
@@ -218,5 +205,20 @@ class _JadwalState extends State<JadwalToday> {
         ),
       ],
     );
+  }
+}
+
+Color _getColorForStatus(String status) {
+  switch (status.toLowerCase()) {
+    case 'hadir':
+      return Colors.green;
+    case 'sakit':
+    case 'izin':
+      return Colors.yellow;
+    case 'tidak hadir':
+    case 'alfa':
+      return Colors.red;
+    default:
+      return Colors.grey; // Jika status tidak dikenali
   }
 }

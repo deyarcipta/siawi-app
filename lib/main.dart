@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import 'app/routes/app_pages.dart';
 import 'package:siawi_app/app/widgets/splash.dart';
+// import 'package:siawi_app/app/widgets/version_checker.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
 
 void main() async {

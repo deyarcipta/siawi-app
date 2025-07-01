@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-
-// import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Import flutter_svg
+import 'package:siawi_app/app/modules/profile/views/edit_data_diri.dart';
+import 'package:siawi_app/app/modules/profile/views/qrcode_view.dart';
+import 'package:siawi_app/app/modules/profile/views/upload_foto.dart';
 import 'package:siawi_app/app/modules/profile/widget/data_diri.dart';
 import 'package:siawi_app/app/modules/profile/widget/orang_tua.dart';
 import 'package:siawi_app/app/modules/profile/widget/profil.dart';
@@ -11,13 +13,9 @@ import 'package:siawi_app/utils/tab_silver_delegate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-// import '../controllers/profile_controller.dart';
-
 class ProfileView extends StatefulWidget {
   final VoidCallback signOut;
   const ProfileView(this.signOut, {Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const ProfileView(this.signOut, {super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -25,37 +23,44 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   var appBarHeight = AppBar().preferredSize.height;
+
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? idSiswa = preferences.getString('idSiswa');
-    return idSiswa;
+    return preferences.getString('idSiswa');
   }
 
   @override
   void initState() {
     super.initState();
-    // Panggil getIdSiswa dan tunggu hasilnya
     getIdSiswa().then((idSiswa) {
-      // Jika idSiswa tidak null, panggil _lihatData
       if (idSiswa != null) {
         _lihatData(idSiswa);
+        // fetchQRCode();
       }
     });
   }
 
+  void SignOut() {
+    setState(() {
+      widget.signOut();
+    });
+  }
+
+  String idSiswa = "";
+  String? qrCodeSvg; // Store SVG data as a string
   bool loading = false;
   String? namaSiswa;
   String? namaJurusan;
   String? namaKelas;
-  int presentaseKehadiran = 0;
-  double kehadiran = 0;
+  String? nis;
+  String? fileFoto;
+
   Future<void> _lihatData(String idSiswa) async {
     setState(() {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
-    // print(response.statusCode);
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
@@ -67,19 +72,41 @@ class _ProfileViewState extends State<ProfileView> {
           namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
           namaKelas = kelasData['nama_kelas'].toString();
           namaJurusan = jurusanData['nama_jurusan'].toString();
-          // print(nama);
-          // print('Nama Kelas: $presentaseKehadiran');
+          fileFoto = siswaData['foto']?.toString();
+          nis = siswaData['nis']?.toString();
         });
+        fetchQRCode();
       }
     } else {
-      // print(idSiswa);
+      // Handle error
+      print('Error fetching data: ${response.statusCode}');
     }
     setState(() {
       loading = false;
     });
   }
 
+  Future<void> fetchQRCode() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://103.75.209.90/api/generate-qrcode?data=$nis'),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          // Store the SVG data as a string
+          qrCodeSvg = response.body;
+        });
+      } else {
+        print('Failed to load QR Code');
+      }
+    } catch (e) {
+      print('Error fetching QR Code: $e');
+    }
+  }
+
   final tabs = ['Profile', 'Data Diri', 'Orang Tua', 'Wali'];
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -129,37 +156,78 @@ class _ProfileViewState extends State<ProfileView> {
                                 SizedBox(
                                   height: size.height * 0.09,
                                 ),
-                                Wrap(
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        ClipOval(
-                                          child: Image.asset(
-                                            'assets/images/avatar.png',
-                                            width: 90,
-                                            height: 90,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          child: Image.asset(
-                                            'assets/images/qrcode.jpeg',
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ],
-                                    )
+                                    CircleAvatar(
+                                      backgroundColor: Colors.transparent,
+                                      radius: 45,
+                                      child: fileFoto == null
+                                          ? CircularProgressIndicator()
+                                          : ClipOval(
+                                              child: Image.network(
+                                                'http://103.75.209.90/storage/foto-siswa/$fileFoto',
+                                                fit: BoxFit.cover,
+                                                width: 90,
+                                                height: 90,
+                                                loadingBuilder: (context, child,
+                                                    loadingProgress) {
+                                                  if (loadingProgress == null) {
+                                                    return child;
+                                                  } else {
+                                                    return Center(
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        value: loadingProgress
+                                                                    .expectedTotalBytes !=
+                                                                null
+                                                            ? loadingProgress
+                                                                    .cumulativeBytesLoaded /
+                                                                (loadingProgress
+                                                                        .expectedTotalBytes ??
+                                                                    1)
+                                                            : null,
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  return Icon(
+                                                    Icons.error,
+                                                    color: Colors.red,
+                                                    size: 26,
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  QrCode(widget.signOut)),
+                                        );
+                                      },
+                                      child: qrCodeSvg == null
+                                          ? CircularProgressIndicator()
+                                          : SvgPicture.string(
+                                              qrCodeSvg!,
+                                              width:
+                                                  65, // Set your desired width
+                                              height:
+                                                  65, // Set your desired height
+                                              fit: BoxFit.contain,
+                                            ),
+                                    ),
                                   ],
                                 ),
-                                _buildTitle('${namaSiswa}'),
-                                _buildTitleData('${namaJurusan}'),
-                                _buildTitleData('${namaKelas}'),
+                                _buildTitle('${namaSiswa ?? 'Loading...'}'),
+                                _buildTitleData('${namaJurusan ?? ''}'),
+                                _buildTitleData('${namaKelas ?? ''}'),
                                 SizedBox(height: size.height * 0.01),
                                 Row(
                                   mainAxisAlignment:
@@ -167,8 +235,12 @@ class _ProfileViewState extends State<ProfileView> {
                                   children: [
                                     OutlinedButton(
                                       onPressed: () {
-                                        // Aksi yang dilakukan ketika tombol ditekan
-                                        print('Ubah Foto Profil');
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UploadFoto(SignOut)),
+                                        );
                                       },
                                       child: Text('Ubah Foto Profil'),
                                       style: OutlinedButton.styleFrom(
@@ -181,8 +253,13 @@ class _ProfileViewState extends State<ProfileView> {
                                     ),
                                     OutlinedButton(
                                       onPressed: () {
-                                        // Aksi yang dilakukan ketika tombol ditekan
-                                        print('Ubah Data diri');
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UbahDataDiriScreen(
+                                                      widget.signOut)),
+                                        );
                                       },
                                       child: Text('Ubah Data Diri'),
                                       style: OutlinedButton.styleFrom(
@@ -207,11 +284,9 @@ class _ProfileViewState extends State<ProfileView> {
               SliverPersistentHeader(
                 delegate: TabSliverDelegate(
                   TabBar(
-                    // labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                     padding: EdgeInsets.symmetric(vertical: 10),
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.black,
-                    // indicatorColor: Colors.white,
                     isScrollable: false,
                     indicatorSize: TabBarIndicatorSize.tab,
                     indicator: BoxDecoration(
@@ -289,8 +364,6 @@ Widget _buildTitle(String text) {
 
 Widget _buildTitleData(String text) {
   return Container(
-    // padding: const EdgeInsets.only(bottom: 5),
-    // width: double.maxFinite,
     child: Text(
       text,
       style: const TextStyle(

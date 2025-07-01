@@ -1,16 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
 import 'package:siawi_app/app/models/berita.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/modules/home/widget/berita_lengkap.dart';
 
 class BeritaTerbaru extends StatefulWidget {
   final VoidCallback signOut;
   const BeritaTerbaru(this.signOut, {Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const DataMahasiswa(this.signOut, {super.key});
 
   @override
   State<BeritaTerbaru> createState() => _BeritaTerbaruState();
@@ -27,7 +24,7 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
 
   Future<void> _fetchBerita() async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/berita'));
+        await http.get(Uri.parse('http://103.75.209.90/api/berita'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> beritaData = responseData['data'];
@@ -65,27 +62,40 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
                   child: ListView.separated(
                     padding: EdgeInsets.fromLTRB(0, 10, 15, 20),
                     scrollDirection: Axis.horizontal,
-                    itemBuilder: (_, index) => Card(
-                      elevation: 5,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
+                    itemBuilder: (_, index) => GestureDetector(
+                      onTap: () {
+                        // Navigasi ke halaman berita lengkap
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BeritaLengkap(
+                              berita: beritaList[
+                                  index], // Kirim berita ke halaman lain
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                                'http://203.194.113.46/storage/berita/${beritaList[index].cover}',
-                            placeholder: (context, url) =>
-                                CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
                           ),
-                          // Image.asset(beritaList[index].judulBerita),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: CachedNetworkImage(
+                              imageUrl:
+                                  'http://103.75.209.90/storage/berita/${beritaList[index].cover}',
+                              placeholder: (context, url) =>
+                                  CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                          ),
                         ),
                       ),
                     ),

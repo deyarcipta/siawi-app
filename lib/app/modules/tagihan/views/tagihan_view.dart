@@ -1,10 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-
 // import 'package:get/get.dart';
 import 'package:siawi_app/utils/colors.dart';
-
 // import '../controllers/tagihan_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -20,9 +18,10 @@ class TagihanView extends StatefulWidget {
 class _TagihanViewState extends State<TagihanView> {
   WebViewController? _controller;
   String? nis;
+  bool isLoading = true; // Track loading state
+
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    // String? idSiswa = preferences.getString('idSiswa');
     String? nis = preferences.getString('nis');
     return nis;
   }
@@ -30,14 +29,12 @@ class _TagihanViewState extends State<TagihanView> {
   String? linkTagihan;
   Future<void> _fetchTagihan() async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/tagihan'));
+        await http.get(Uri.parse('http://103.75.209.90/api/tagihan'));
     if (response.statusCode == 200) {
       var tagihan = json.decode(response.body);
       var tagihanData = tagihan['data'];
       setState(() {
         linkTagihan = tagihanData['link'].toString();
-        // print(nama);
-        // print('Nama Kelas: $presentaseKehadiran');
       });
     }
   }
@@ -52,22 +49,27 @@ class _TagihanViewState extends State<TagihanView> {
     await _fetchTagihan();
     String? nisValue = await getIdSiswa();
     setState(() {
-      nis = nisValue; // Menyimpan nilai nis yang diterima
+      nis = nisValue;
     });
 
     if (nis != null) {
       print('gimana hasilnya : $linkTagihan');
-      // Hanya jika nis tidak null, maka _controller akan diinisialisasi
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(Color(0x00000000))
         ..setNavigationDelegate(
           NavigationDelegate(
-            onProgress: (int progress) {
-              // Update loading bar.
+            onProgress: (int progress) {},
+            onPageStarted: (String url) {
+              setState(() {
+                isLoading = true;
+              });
             },
-            onPageStarted: (String url) {},
-            onPageFinished: (String url) {},
+            onPageFinished: (String url) {
+              setState(() {
+                isLoading = false;
+              });
+            },
             onWebResourceError: (WebResourceError error) {},
             onNavigationRequest: (NavigationRequest request) {
               if (request.url.startsWith('https://www.youtube.com/')) {
@@ -77,7 +79,7 @@ class _TagihanViewState extends State<TagihanView> {
             },
           ),
         )
-        ..loadRequest(Uri.parse('${linkTagihan}${nis}'));
+        ..loadRequest(Uri.parse('$linkTagihan$nis'));
     }
   }
 
@@ -103,7 +105,15 @@ class _TagihanViewState extends State<TagihanView> {
           )
         ],
       ),
-      body: WebViewWidget(controller: _controller ?? WebViewController()),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller ?? WebViewController()),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
+      ),
     );
   }
 }

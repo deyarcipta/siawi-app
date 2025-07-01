@@ -16,6 +16,9 @@ class KalenderView extends StatefulWidget {
 }
 
 class _KalenderViewState extends State<KalenderView> {
+  List<Kegiatan> kegiatanList = [];
+  bool isLoading = true; // Track loading state
+
   List<Kegiatan> _getDataSource(List<Kegiatan> kegiatanList) {
     final List<Kegiatan> dataSource = <Kegiatan>[];
     for (var kegiatan in kegiatanList) {
@@ -38,13 +41,12 @@ class _KalenderViewState extends State<KalenderView> {
     _fetchKegiatan();
   }
 
-  List<Kegiatan> kegiatanList = [];
   Future<void> _fetchKegiatan() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
     if (idSiswa != null) {
       final response =
-          await http.get(Uri.parse('http://203.194.113.46/api/kalender/'));
+          await http.get(Uri.parse('http://103.75.209.90/api/kalender/'));
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         final List<dynamic> kegiatanData = responseData['data'];
@@ -54,10 +56,18 @@ class _KalenderViewState extends State<KalenderView> {
             Kegiatan kegiatan = Kegiatan.fromJson(item);
             kegiatanList.add(kegiatan);
           }
+          isLoading = false; // Set loading to false when data is fetched
         });
       } else {
         print('Failed to load jadwal hari ini');
+        setState(() {
+          isLoading = false; // Set loading to false even if fetching fails
+        });
       }
+    } else {
+      setState(() {
+        isLoading = false; // Set loading to false if idSiswa is null
+      });
     }
   }
 
@@ -84,13 +94,9 @@ class _KalenderViewState extends State<KalenderView> {
       ),
       body: Padding(
         padding: EdgeInsets.only(top: 5),
-        child: FutureBuilder(
-          future: _fetchKegiatan(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else {
-              return SfCalendar(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SfCalendar(
                 view: CalendarView.month,
                 headerStyle: const CalendarHeaderStyle(
                   textStyle: TextStyle(
@@ -114,10 +120,7 @@ class _KalenderViewState extends State<KalenderView> {
                   appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
                   showAgenda: true,
                 ),
-              );
-            }
-          },
-        ),
+              ),
       ),
     );
   }

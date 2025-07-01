@@ -41,7 +41,7 @@ class _RapotViewState extends State<RapotView> {
   List<RapotList> rapotList = [];
   Future<void> _fetchRapot(String idSiswa) async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/rapot/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/rapot/$idSiswa'));
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> rapotData = responseData['data'];

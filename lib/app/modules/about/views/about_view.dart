@@ -5,8 +5,6 @@ import 'package:siawi_app/utils/colors.dart';
 
 class AboutView extends StatefulWidget {
   const AboutView({Key? key}) : super(key: key);
-  // final VoidCallback signOut;
-  // const AboutView(this.signOut, {super.key});
 
   @override
   State<AboutView> createState() => _AboutViewState();
@@ -17,7 +15,7 @@ class _AboutViewState extends State<AboutView> {
   List<About> display_list = List.from(About.aboutData);
 
   void updateList(String value) {
-    // seacrh
+    // search
     setState(() {
       display_list = About.aboutData
           .where((element) =>
@@ -28,7 +26,6 @@ class _AboutViewState extends State<AboutView> {
 
   @override
   Widget build(BuildContext context) {
-    // var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
@@ -59,6 +56,10 @@ class _AboutViewState extends State<AboutView> {
                   physics: const ScrollPhysics(),
                   itemCount: display_list.length,
                   itemBuilder: (context, index) {
+                    final tentang = display_list[index].tentang!;
+                    final parts = tentang
+                        .split(RegExp(r'(?=(VISI|MISI))|(?<=(VISI|MISI))'));
+
                     return Container(
                       child: Accordion(
                         paddingListTop: 5,
@@ -94,8 +95,23 @@ class _AboutViewState extends State<AboutView> {
                             content: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "${display_list[index].tentang}",
+                                RichText(
+                                  text: TextSpan(
+                                    style: DefaultTextStyle.of(context).style,
+                                    children: [
+                                      for (var i = 0; i < parts.length; i++)
+                                        if (parts[i].trim() == 'VISI' ||
+                                            parts[i].trim() == 'MISI')
+                                          TextSpan(
+                                            text: parts[i],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
+                                        else
+                                          TextSpan(text: parts[i]),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -113,3 +129,7 @@ class _AboutViewState extends State<AboutView> {
     );
   }
 }
+
+// void main() {
+//   runApp(MaterialApp(home: AboutView()));
+// }

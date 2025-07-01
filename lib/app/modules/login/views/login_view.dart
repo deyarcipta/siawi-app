@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/home/views/MyHomePage.dart';
+import 'package:siawi_app/app/modules/login/views/lupa_password_view.dart';
 // import 'package:siawi_app/app/modules/home/views/home_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
@@ -69,39 +71,59 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
   login() async {
     final response =
-        await http.post(Uri.parse('http://203.194.113.46/api/login'), body: {
+        await http.post(Uri.parse('http://103.75.209.90/api/login'), body: {
       'nis': nis,
       'password': password,
     });
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
+
       if (jsonResponse['success']) {
-        // Jika login berhasil, akses data pengguna
-        // Fluttertoast.showToast(
-        //   msg: 'Login Berhasil',
-        //   backgroundColor: Colors.green,
-        //   textColor: Colors.white,
-        //   toastLength: Toast.LENGTH_SHORT,
-        // );
+        Fluttertoast.showToast(
+          msg: 'Login Berhasil',
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          toastLength: Toast.LENGTH_SHORT,
+        );
+
         var userData = jsonResponse['data'];
         int value = 1;
         var idSiswaAPI = userData['id_siswa'].toString();
         var nisApi = userData['nis'].toString();
+
         setState(() {
           _loginStatus = LoginStatus.signIn;
           savePref(value, idSiswaAPI, nisApi);
         });
+
         print('Berhasil login: $nisApi');
-        // Lakukan tindakan setelah login berhasil di sini, seperti navigasi ke halaman beranda
       } else {
-        // Jika login gagal, tampilkan pesan kesalahan
-        var errorMessage = jsonResponse['message'];
+        var errorMessage =
+            jsonResponse['message'] ?? "Terjadi kesalahan saat login";
+
+        Fluttertoast.showToast(
+          msg: errorMessage,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          toastLength: Toast.LENGTH_SHORT,
+        );
+
         print('Gagal login: $errorMessage');
-        // Tampilkan pesan kesalahan kepada pengguna
       }
     } else {
-      print('Gagal mengirim permintaan: ${response.reasonPhrase}');
-      // Tampilkan pesan kesalahan kepada pengguna
+      // Tangani error selain 200, misalnya 401 atau 422
+      var jsonResponse = json.decode(response.body);
+      var errorMessage =
+          jsonResponse['message'] ?? "Terjadi kesalahan pada server";
+
+      Fluttertoast.showToast(
+        msg: errorMessage, // Gunakan pesan dari server jika ada
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        toastLength: Toast.LENGTH_SHORT,
+      );
+
+      print('Error ${response.statusCode}: $errorMessage');
     }
   }
 
@@ -289,7 +311,13 @@ class _LoginSiawiState extends State<LoginSiawi> {
                               color: Colors.black,
                             ),
                           ),
-                          onPressed: _launchURL,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LupaPasswordView()),
+                            );
+                          },
                         ),
                       ),
                     ),

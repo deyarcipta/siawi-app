@@ -52,7 +52,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
     // print(response.statusCode);
 
     if (response.statusCode == 200) {
@@ -62,7 +62,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
         setState(() {
           nikAyah = siswaData['nik_ayah'].toString();
           namaAyah = siswaData['nama_ayah'].toString();
-          tglLahirAyah = siswaData['tmpt_lahir_ayah'].toString();
+          tmptLahirAyah = siswaData['tmpt_lahir_ayah'].toString();
           tglLahirAyah = siswaData['tgl_lahir_ayah'].toString();
           pendidikanAyah = siswaData['pendidikan_ayah'].toString();
           pekerjaanAyah = siswaData['pekerjaan_ayah'].toString();

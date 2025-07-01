@@ -51,7 +51,7 @@ class _AbsensiViewState extends State<AbsensiView> {
   double kehadiran = 0;
   Future<void> _fetchPoint(String idSiswa) async {
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/absensi/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/absensi/$idSiswa'));
     if (response.statusCode == 200) {
       var dataAbsen = json.decode(response.body);
       var siswaData = dataAbsen['dataSiswa'];

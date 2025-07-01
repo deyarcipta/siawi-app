@@ -57,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
     // print(response.statusCode);
 
     if (response.statusCode == 200) {

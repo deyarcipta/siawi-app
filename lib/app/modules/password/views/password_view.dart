@@ -36,7 +36,7 @@ class _PasswordViewState extends State<PasswordView> {
 
   void gantiPassword(String idSiswa) async {
     final response = await http
-        .post(Uri.parse('http://203.194.113.46/api/ubahPassword'), body: {
+        .post(Uri.parse('http://103.75.209.90/api/ubahPassword'), body: {
       'idSiswa': idSiswa,
       'password1': password1,
       'password2': password2,
@@ -47,12 +47,13 @@ class _PasswordViewState extends State<PasswordView> {
       var jsonResponse = json.decode(response.body);
       if (jsonResponse['success']) {
         // Jika login berhasil, akses data pengguna
-        // Fluttertoast.showToast(
-        //   msg: 'Password Berhasil Diganti',
-        //   backgroundColor: Colors.green,
-        //   textColor: Colors.white,
-        //   toastLength: Toast.LENGTH_SHORT,
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password Berhasil Diganti'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
 
         // Navigasi ke halaman lain setelah menampilkan pesan toast
         Navigator.push(
@@ -60,12 +61,13 @@ class _PasswordViewState extends State<PasswordView> {
           MaterialPageRoute(builder: (context) => HomeView(widget.signOut)),
         );
       } else {
-        // Fluttertoast.showToast(
-        //   msg: 'Gagal Mengganti Password',
-        //   backgroundColor: Colors.red,
-        //   textColor: Colors.white,
-        //   toastLength: Toast.LENGTH_SHORT,
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password Gagal Diganti'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     }
   }

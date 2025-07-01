@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-// import 'package:siawi_app/app/modules/informasi/widget/informasi.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:http/http.dart' as http;
 
-// ignore: must_be_immutable
 class DetailInformasi extends StatelessWidget {
   late String fileURL;
 
   DetailInformasi({required this.fileURL}) {
-    // Lakukan encoding URL di sini setelah nilai fileURL diinisialisasi
+    // Encode the URL after initializing the value
     this.fileURL = Uri.encodeComponent(fileURL);
   }
 
   var appBarHeight = AppBar().preferredSize.height;
+
   @override
   Widget build(BuildContext context) {
-    // var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
@@ -35,22 +34,41 @@ class DetailInformasi extends StatelessWidget {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: SfPdfViewer.network(
-                  'http://203.194.113.46/storage/file-informasi/$fileURL',
-                ),
+      body: FutureBuilder<void>(
+        future: _checkPdfUrl(fileURL),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Failed to load PDF'));
+          } else {
+            return SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: SfPdfViewer.network(
+                        'http://103.75.209.90/storage/file-informasi/$fileURL',
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
+  }
+
+  Future<void> _checkPdfUrl(String url) async {
+    final response = await http
+        .head(Uri.parse('http://103.75.209.90/storage/file-informasi/$url'));
+    if (response.statusCode != 200) {
+      throw Exception('PDF not found');
+    }
   }
 }

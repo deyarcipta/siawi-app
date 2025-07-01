@@ -54,8 +54,7 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
       loading = true;
     });
     final response =
-        await http.get(Uri.parse('http://203.194.113.46/api/home/$idSiswa'));
-    // print(response.statusCode);
+        await http.get(Uri.parse('http://103.75.209.90/api/home/$idSiswa'));
 
     if (response.statusCode == 200) {
       var datasiswa = json.decode(response.body);
@@ -64,25 +63,16 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
       var jurusanData = siswaData['jurusan'];
       if (siswaData['nis'] != null) {
         setState(() {
-          nama = siswaData['nama_siswa'].toString();
-          nis = siswaData['nis'].toString();
-          nisn = siswaData['nisn'].toString();
+          nama = siswaData['nama_siswa'].toString().toUpperCase();
           namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan'].toString();
-          // rataRata = datasiswa['rapotTerakhir'].toString();
-          // info = datasiswa['pesan'].toString();
+          namaJurusan = jurusanData['nama_jurusan']?.toString();
+          nis = siswaData['nis']?.toString();
+          nisn = siswaData['nisn']?.toString();
           presentaseKehadiran =
               int.tryParse(datasiswa['presentaseKehadiran'].toString()) ?? 0;
           kehadiran = presentaseKehadiran / 100;
-          if (namaJurusan!.length > 10) {
-            namaJurusan = namaJurusan?.substring(0, 32);
-          }
-          // print(nama);
-          // print('Nama Kelas: $presentaseKehadiran');
         });
       }
-    } else {
-      // print(idSiswa);
     }
     setState(() {
       loading = false;
@@ -97,30 +87,31 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
         Column(
           children: [
             Container(
-              width: double.maxFinite,
+              width: double.infinity, // Use double.infinity for full width
               height: size.height * .25,
               decoration: BoxDecoration(
-                color: AppColors.secondColor,
+                color: AppColors.mainColor,
                 borderRadius: BorderRadius.circular(25),
-                // image: DecorationImage(
-                //   image: AssetImage('assets/images/background2.jpg')
-                //       as ImageProvider,
-                //   fit: BoxFit.cover,
-                // ),
               ),
               child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 10, right: 20),
+                padding: const EdgeInsets.only(left: 20, right: 20),
                 child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Center the column vertically
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment
+                              .center, // Center the column vertically
                           children: [
                             SizedBox(height: 5),
                             _buildTitleData('Kompetensi Keahlian'),
-                            _buildData(namaJurusan ?? 'Loading...'),
+                            _buildData((namaJurusan ?? 'Loading...').length > 32
+                                ? '${(namaJurusan ?? 'Loading...').substring(0, 32)}...'
+                                : (namaJurusan ?? 'Loading...')),
                             _buildTitleData('NIS / NISN'),
                             _buildData(
                                 '${nis ?? 'Loading...'} / ${nisn ?? 'Loading...'}'),
@@ -130,29 +121,30 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
                             Row(
                               children: [
                                 _buildRata('-'),
-                                // _buildIcon()
-                                // _buildRata('${rataRata ?? 'Loading...'}'),
-                                // _buildIcon(info)
                               ],
                             ),
                           ],
                         ),
-                        CircularPercentIndicator(
-                          animation: true,
-                          radius: 70.0,
-                          lineWidth: 12.0,
-                          percent: kehadiran,
-                          center: new Text(
-                            '${presentaseKehadiran}',
-                            style: new TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 30.0,
-                              color: Colors.white,
+                        Flexible(
+                          child: CircularPercentIndicator(
+                            animation: true,
+                            radius:
+                                size.width * 0.18, // 20% of the screen width
+                            lineWidth: 12.0,
+                            percent: kehadiran.clamp(0.0, 1.0),
+                            center: Text(
+                              '$presentaseKehadiran%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize:
+                                    size.width * 0.08, // Scaled to screen width
+                                color: Colors.white,
+                              ),
                             ),
+                            backgroundColor: AppColors.secondColor,
+                            progressColor: AppColors.thirdColor,
+                            circularStrokeCap: CircularStrokeCap.round,
                           ),
-                          backgroundColor: AppColors.mainColor,
-                          progressColor: AppColors.thirdColor,
-                          circularStrokeCap: CircularStrokeCap.round,
                         ),
                       ],
                     ),
@@ -165,71 +157,69 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
       ],
     );
   }
-}
 
-Widget _buildTitleData(String text) {
-  return Container(
-    child: Text(
+  Widget _buildTitleData(String text) {
+    return Text(
       text,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 13,
         color: Colors.white,
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildData(String text) {
-  return Container(
-    padding: const EdgeInsets.only(bottom: 8),
-    // width: double.maxFinite,
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        color: Colors.white,
+  Widget _buildData(String text) {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 8),
+      // width: double.maxFinite,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Colors.white,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildTitle(String text) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 25),
-    // width: double.maxFinite,
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
-        color: Colors.black87,
+  Widget _buildTitle(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 25),
+      // width: double.maxFinite,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          color: Colors.black87,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildRata(String text) {
-  return Container(
-    padding: const EdgeInsets.only(right: 1),
-    // width: double.maxFinite,
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        color: Colors.white,
+  Widget _buildRata(String text) {
+    return Container(
+      padding: const EdgeInsets.only(right: 1),
+      // width: double.maxFinite,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Colors.white,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildIcon(icon) {
-  return Container(
-    padding: const EdgeInsets.only(right: 3),
-    // width: double.maxFinite,
-    child: Icon(
-      icon,
-      color: Colors.red,
-    ),
-  );
+  Widget _buildIcon(icon) {
+    return Container(
+      padding: const EdgeInsets.only(right: 3),
+      // width: double.maxFinite,
+      child: Icon(
+        icon,
+        color: Colors.red,
+      ),
+    );
+  }
 }

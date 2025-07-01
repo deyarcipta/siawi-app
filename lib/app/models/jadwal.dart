@@ -5,6 +5,7 @@ class Jadwal {
   String jamAkhir;
   String waktuAwal;
   String waktuAkhir;
+  final String statusKehadiran;
   String hari;
 
   Jadwal({
@@ -14,6 +15,7 @@ class Jadwal {
     required this.jamAkhir,
     required this.waktuAwal,
     required this.waktuAkhir,
+    required this.statusKehadiran,
     required this.hari,
   });
 
@@ -25,6 +27,7 @@ class Jadwal {
       jamAkhir: json['jam_akhir'] ?? '',
       waktuAwal: json['waktu_awal'] ?? '',
       waktuAkhir: json['waktu_akhir'] ?? '',
+      statusKehadiran: json['status_kehadiran'] ?? '',
       hari: json['hari'] ?? '', // Ubah menjadi 'hari'
     );
   }
