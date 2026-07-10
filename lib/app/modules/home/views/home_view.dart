@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:siawi_app/app/modules/home/widget/kebiasan_anak.dart';
 import 'package:siawi_app/app/modules/home/widget/absen.dart';
 import 'package:siawi_app/app/modules/home/widget/berita_terbaru.dart';
 import 'package:siawi_app/app/modules/home/widget/data_mahasiswa.dart';
@@ -21,7 +22,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final String currentVersion = "1.1.1"; // Versi aplikasi saat ini
+  final String currentVersion = "1.1.2"; // Versi aplikasi saat ini
   final String apiUrl =
       "https://siawi.smkwisataindonesia.sch.id/api/latest-version"; // URL API
 
@@ -77,7 +78,20 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ),
                   ),
-                  Absen(widget.signOut),
+                  // Absen(widget.signOut),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Absen(widget.signOut),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: KebiasanAnakIndonesia(widget.signOut),
+                      ),
+                    ],
+                  ),
                   JadwalToday(widget.signOut),
                   SizedBox(height: 20),
                   Menu(widget.signOut),

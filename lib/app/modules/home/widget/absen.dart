@@ -44,6 +44,7 @@ class _AbsenState extends State<Absen> {
   String? nama;
   String? kehadiran1;
   String? kehadiran2;
+  Color? warna;
   Future<void> _lihatData(String idSiswa) async {
     setState(() {
       loading = true;
@@ -61,24 +62,29 @@ class _AbsenState extends State<Absen> {
           nama = siswaData['nama_siswa'].toString();
           if (datasiswa['kehadiranToday'] != null) {
             if (kehadiranToday['kehadiran'] == 'hadir') {
-              kehadiran1 = "Hari ini kamu masuk sekolah".toString();
-              kehadiran2 = "Semangat menggapai cita-cita mu".toString();
+              kehadiran1 = "Kamu Hadir".toString();
+              kehadiran2 = "Semangat".toString();
+              warna = Colors.greenAccent;
             } else if (kehadiranToday['kehadiran'] == 'sakit') {
-              kehadiran1 = "Hari ini kamu tidak masuk sekolah".toString();
+              kehadiran1 = "Kamu Sedang Sakit".toString();
               kehadiran2 = "Lekas sehat yaa".toString();
+              warna = Colors.orangeAccent;
             } else if (kehadiranToday['kehadiran'] == 'alfa') {
-              kehadiran1 = "Hari ini kamu tidak masuk sekolah".toString();
-              kehadiran2 = "Kamu kemana ko tidak hadir".toString();
+              kehadiran1 = "Kamu Alfa".toString();
+              kehadiran2 = "Ayo Semangat Sekolah".toString();
+              warna = Colors.redAccent;
             } else if (kehadiranToday['kehadiran'] == 'izin') {
-              kehadiran1 = "Hari ini kamu tidak masuk sekolah".toString();
-              kehadiran2 = "Segera dituntaskan yaa urusan mu".toString();
+              kehadiran1 = "Hari Sedang Izin".toString();
+              kehadiran2 = "Segera Masuk Yaa.".toString();
+              warna = Colors.orangeAccent;
             } else {
-              kehadiran1 = "Hari ini belum ada data kehadiran".toString();
-              kehadiran2 = "ditunggu yaa segera diperbarui".toString();
+              kehadiran1 = "Belum Ada Data".toString();
+              kehadiran2 = "ditunggu yaa".toString();
             }
           } else {
-            kehadiran1 = "Hari ini belum ada data kehadiran".toString();
-            kehadiran2 = "ditunggu yaa segera diperbarui".toString();
+            kehadiran1 = "Belum Ada Data".toString();
+            kehadiran2 = "ditunggu yaa".toString();
+            warna = Colors.blueAccent;
           }
         });
       }
@@ -101,7 +107,7 @@ class _AbsenState extends State<Absen> {
               const Text(
                 "Kehadiran Hari Ini",
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -110,7 +116,7 @@ class _AbsenState extends State<Absen> {
                 width: double.maxFinite,
                 height: size.height * .06,
                 decoration: BoxDecoration(
-                  color: Colors.blueAccent,
+                  color: warna,
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Column(

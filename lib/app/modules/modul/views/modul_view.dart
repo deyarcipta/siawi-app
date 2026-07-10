@@ -15,7 +15,6 @@ class ModulView extends StatefulWidget {
 class _ModulViewState extends State<ModulView> {
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
@@ -35,51 +34,37 @@ class _ModulViewState extends State<ModulView> {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        child: Wrap(
-          children: <Widget>[
-            SafeArea(
-              child: Container(
-                height: size.height * .1,
-                width: size.width,
-                decoration: BoxDecoration(
-                  color: AppColors.fiveColor,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${widget.modul.namaModul ?? 'No data available'}',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      // IconButton(
-                      //   icon: Icon(
-                      //     Icons.download,
-                      //     size: 20,
-                      //     color: AppColors.white,
-                      //   ),
-                      //   onPressed: null,
-                      // ),
-                    ],
+      body: Column(
+        children: [
+          Container(
+            height: MediaQuery.of(context).size.height * 0.1,
+            width: double.infinity,
+            color: AppColors.fiveColor,
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${widget.modul.namaModul ?? 'No data available'}',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
+              ],
             ),
-            SizedBox(height: 10),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: SfPdfViewer.network(
-                  'https://siawi.smkwisataindonesia.sch.id/storage/file_modul/${widget.modul.fileModul}'),
+          ),
+          Expanded(
+            child: SfPdfViewer.network(
+              'https://siawi.smkwisataindonesia.sch.id/storage/file_modul/${widget.modul.fileModul}',
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
