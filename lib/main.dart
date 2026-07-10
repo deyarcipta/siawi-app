@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'app/routes/app_pages.dart';
 import 'package:siawi_app/app/widgets/splash.dart';
@@ -8,11 +10,19 @@ import 'package:siawi_app/app/widgets/splash.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await FlutterDownloader.initialize(
-  //     debug:
-  //         true // Setel nilai debug menjadi false saat aplikasi sudah siap untuk produksi
-  //     );
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  
+  try {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+  } catch (e) {
+    print("Error requesting notification permission: $e");
+  }
+
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
   runApp(MyApp());

@@ -1,18 +1,15 @@
-// import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/modules/about/views/about_view.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
-// import 'package:siawi_app/app/modules/login/views/login_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
-// import 'package:get/get.dart';
-// import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
+import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 import 'package:siawi_app/utils/colors.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MyHomePage extends StatefulWidget {
   final VoidCallback signOut;
@@ -39,11 +36,88 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String idSiswa = "";
-  getPref() async {
+  Future<void> getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-      idSiswa = preferences.getString("idSiswa")!;
+      idSiswa = preferences.getString("idSiswa") ?? "";
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getPref().then((_) {
+      if (idSiswa.isNotEmpty) {
+        _initFirebaseMessaging();
+      }
+    });
+  }
+
+  Future<void> _initFirebaseMessaging() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+
+    try {
+      String? token = await messaging.getToken();
+      if (token != null) {
+        print('FCM Token: $token');
+        _sendTokenToServer(token);
+      }
+
+      messaging.onTokenRefresh.listen((newToken) {
+        _sendTokenToServer(newToken);
+      });
+    } catch (e) {
+      print('Error getting FCM Token: $e');
+    }
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        Get.snackbar(
+          message.notification!.title ?? 'Notifikasi',
+          message.notification!.body ?? '',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.mainColor,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+          margin: const EdgeInsets.all(15),
+          borderRadius: 15,
+        );
+      }
+    });
+  }
+
+  Future<void> _sendTokenToServer(String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/update-fcm-token'),
+        body: {
+          'idSiswa': idSiswa,
+          'fcm_token': token,
+        },
+      );
+      if (response.statusCode == 200) {
+        print('FCM Token successfully synced with server');
+      } else {
+        print('Failed to sync FCM Token: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error syncing FCM Token to server: $e');
+    }
   }
 
   int _selectedIndex = 2;

@@ -1,15 +1,9 @@
 import 'dart:convert';
-// import 'dart:ffi';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
-// import 'package:siawi_app/app/models/api.dart';
-
-// import 'berita_terbaru.dart';
-// import 'menu.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-// import 'package:siawi_app/utils/colors.dart';
-// import 'package:percent_indicator/percent_indicator.dart';
+import 'package:get/get.dart';
 
 class Absen extends StatefulWidget {
   final VoidCallback signOut;
@@ -22,6 +16,14 @@ class Absen extends StatefulWidget {
 }
 
 class _AbsenState extends State<Absen> {
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
@@ -45,53 +47,147 @@ class _AbsenState extends State<Absen> {
   String? kehadiran1;
   String? kehadiran2;
   Color? warna;
+  Future<void> _showNotification(String status, Color color) async {
+    Get.snackbar(
+      'Absensi Berhasil',
+      'Kamu telah melakukan absensi hari ini: ${status.toUpperCase()}',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: color.withOpacity(0.9),
+      colorText: Colors.black87,
+      icon: Icon(Icons.check_circle_outline, color: Colors.green[800]),
+      margin: const EdgeInsets.all(15),
+      borderRadius: 15,
+      duration: const Duration(seconds: 4),
+    );
+  }
+
+  Future<void> _checkAndNotify(String status, Color color) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String todayDate = DateTime.now().toString().substring(0, 10);
+    String lastNotifiedDate = preferences.getString('last_notified_date') ?? '';
+    String lastNotifiedStatus = preferences.getString('last_notified_status') ?? '';
+
+    if (lastNotifiedDate != todayDate || lastNotifiedStatus != status) {
+      _showNotification(status, color);
+      await preferences.setString('last_notified_date', todayDate);
+      await preferences.setString('last_notified_status', status);
+    }
+  }
+
+  Future<void> _checkAttendanceSilently(String idSiswa) async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
+      if (response.statusCode == 200) {
+        var datasiswa = json.decode(response.body);
+        var kehadiranToday = datasiswa['kehadiranToday'];
+        if (kehadiranToday != null) {
+          String status = kehadiranToday['kehadiran'].toString();
+          Color activeColor = Colors.blueAccent;
+          String k1 = "Belum Ada Data";
+          String k2 = "ditunggu yaa";
+          
+          if (status == 'hadir') {
+            k1 = "Kamu Hadir";
+            k2 = "Semangat";
+            activeColor = Colors.greenAccent;
+          } else if (status == 'sakit') {
+            k1 = "Kamu Sedang Sakit";
+            k2 = "Lekas sehat yaa";
+            activeColor = Colors.orangeAccent;
+          } else if (status == 'alfa') {
+            k1 = "Kamu Alfa";
+            k2 = "Ayo Semangat Sekolah";
+            activeColor = Colors.redAccent;
+          } else if (status == 'izin') {
+            k1 = "Hari Sedang Izin";
+            k2 = "Segera Masuk Yaa.";
+            activeColor = Colors.orangeAccent;
+          }
+
+          setState(() {
+            kehadiran1 = k1;
+            kehadiran2 = k2;
+            warna = activeColor;
+            _timer?.cancel();
+            _timer = null;
+          });
+          _checkAndNotify(status, activeColor);
+        }
+      }
+    } catch (e) {
+      print('Error checking attendance silently: $e');
+    }
+  }
+
   Future<void> _lihatData(String idSiswa) async {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-    // print(response.statusCode);
+    try {
+      final response = await http.get(
+          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
 
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kehadiranToday = datasiswa['kehadiranToday'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          nama = siswaData['nama_siswa'].toString();
-          if (datasiswa['kehadiranToday'] != null) {
-            if (kehadiranToday['kehadiran'] == 'hadir') {
-              kehadiran1 = "Kamu Hadir".toString();
-              kehadiran2 = "Semangat".toString();
-              warna = Colors.greenAccent;
-            } else if (kehadiranToday['kehadiran'] == 'sakit') {
-              kehadiran1 = "Kamu Sedang Sakit".toString();
-              kehadiran2 = "Lekas sehat yaa".toString();
-              warna = Colors.orangeAccent;
-            } else if (kehadiranToday['kehadiran'] == 'alfa') {
-              kehadiran1 = "Kamu Alfa".toString();
-              kehadiran2 = "Ayo Semangat Sekolah".toString();
-              warna = Colors.redAccent;
-            } else if (kehadiranToday['kehadiran'] == 'izin') {
-              kehadiran1 = "Hari Sedang Izin".toString();
-              kehadiran2 = "Segera Masuk Yaa.".toString();
-              warna = Colors.orangeAccent;
+      if (response.statusCode == 200) {
+        var datasiswa = json.decode(response.body);
+        var siswaData = datasiswa['data'];
+        var kehadiranToday = datasiswa['kehadiranToday'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            nama = siswaData['nama_siswa'].toString();
+            if (kehadiranToday != null) {
+              String status = kehadiranToday['kehadiran'].toString();
+              Color activeColor = Colors.blueAccent;
+              if (status == 'hadir') {
+                kehadiran1 = "Kamu Hadir";
+                kehadiran2 = "Semangat";
+                activeColor = Colors.greenAccent;
+              } else if (status == 'sakit') {
+                kehadiran1 = "Kamu Sedang Sakit";
+                kehadiran2 = "Lekas sehat yaa";
+                activeColor = Colors.orangeAccent;
+              } else if (status == 'alfa') {
+                kehadiran1 = "Kamu Alfa";
+                kehadiran2 = "Ayo Semangat Sekolah";
+                activeColor = Colors.redAccent;
+              } else if (status == 'izin') {
+                kehadiran1 = "Hari Sedang Izin";
+                kehadiran2 = "Segera Masuk Yaa.";
+                activeColor = Colors.orangeAccent;
+              } else {
+                kehadiran1 = "Belum Ada Data";
+                kehadiran2 = "ditunggu yaa";
+              }
+              warna = activeColor;
+              _timer?.cancel();
+              _timer = null;
+              
+              _checkAndNotify(status, activeColor);
             } else {
-              kehadiran1 = "Belum Ada Data".toString();
-              kehadiran2 = "ditunggu yaa".toString();
+              kehadiran1 = "Belum Ada Data";
+              kehadiran2 = "ditunggu yaa";
+              warna = Colors.blueAccent;
+
+              if (_timer == null) {
+                _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+                  getIdSiswa().then((idSiswa) {
+                    if (idSiswa != null) {
+                      _checkAttendanceSilently(idSiswa);
+                    }
+                  });
+                });
+              }
             }
-          } else {
-            kehadiran1 = "Belum Ada Data".toString();
-            kehadiran2 = "ditunggu yaa".toString();
-            warna = Colors.blueAccent;
-          }
-        });
+          });
+        }
       }
+    } catch (e) {
+      print('Error loading attendance: $e');
+    } finally {
+      setState(() {
+        loading = false;
+      });
     }
-    setState(() {
-      loading = false;
-    });
   }
 
   @override

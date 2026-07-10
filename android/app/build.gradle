@@ -42,7 +42,7 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         minSdkVersion 21 
-        targetSdkVersion 31
+        targetSdkVersion 34
     }
 
     buildTypes {
@@ -65,3 +65,5 @@ dependencies {
     // implementation "com.syncfusion:syncfusion_flutter_pdfviewer:25.1.42"
     // ...
 }
+
+apply plugin: 'com.google.gms.google-services'
