@@ -6,6 +6,7 @@ import 'package:siawi_app/app/modules/rapot/views/detail_rapot.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 // import '../controllers/rapot_controller.dart';
 import 'package:siawi_app/app/modules/rapot/widget/rapot_list.dart';
@@ -40,20 +41,20 @@ class _RapotViewState extends State<RapotView> {
 
   List<RapotList> rapotList = [];
   Future<void> _fetchRapot(String idSiswa) async {
-    final response = await http.get(Uri.parse(
-        'https://siawi.smkwisataindonesia.sch.id/api/rapot/$idSiswa'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> rapotData = responseData['data'];
-      setState(() {
-        rapotList.clear();
-        for (var item in rapotData) {
-          RapotList rapot = RapotList.fromJson(item);
-          rapotList.add(rapot);
-        }
-      });
-    } else {
-      print('Failed to load jadwal hari ini');
+    try {
+      final responseData = await ApiService.get('/rapot/$idSiswa');
+      if (responseData != null && responseData['data'] != null) {
+        final List<dynamic> rapotData = responseData['data'];
+        setState(() {
+          rapotList.clear();
+          for (var item in rapotData) {
+            RapotList rapot = RapotList.fromJson(item);
+            rapotList.add(rapot);
+          }
+        });
+      }
+    } catch (e) {
+      print('Failed to load rapot: $e');
     }
   }
 

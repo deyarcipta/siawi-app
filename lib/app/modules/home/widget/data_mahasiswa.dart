@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 // import 'menu.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -53,26 +54,27 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          nama = siswaData['nama_siswa'].toString().toUpperCase();
-          namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan']?.toString();
-          nis = siswaData['nis']?.toString();
-          nisn = siswaData['nisn']?.toString();
-          presentaseKehadiran =
-              int.tryParse(datasiswa['presentaseKehadiran'].toString()) ?? 0;
-          kehadiran = presentaseKehadiran / 100;
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            nama = siswaData['nama_siswa'].toString().toUpperCase();
+            namaKelas = kelasData['nama_kelas'].toString();
+            namaJurusan = jurusanData['nama_jurusan']?.toString();
+            nis = siswaData['nis']?.toString();
+            nisn = siswaData['nisn']?.toString();
+            presentaseKehadiran =
+                int.tryParse(datasiswa['presentaseKehadiran'].toString()) ?? 0;
+            kehadiran = presentaseKehadiran / 100;
+          });
+        }
       }
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;

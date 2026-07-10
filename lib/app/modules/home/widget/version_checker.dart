@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:siawi_app/app/data/api_service.dart';
 
 class VersionChecker {
   final BuildContext context;
@@ -16,18 +15,11 @@ class VersionChecker {
 
   Future<void> checkForUpdate() async {
     try {
-      final response =
-          await http.get(Uri.parse('$apiUrl?current_version=$currentVersion'));
+      final data = await ApiService.get('$apiUrl?current_version=$currentVersion');
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        if (data['update_available'] == true) {
-          String downloadUrl = data['download_url'] ?? "";
-          _showUpdateDialog(downloadUrl);
-        }
-      } else {
-        print("Gagal memeriksa pembaruan. Status code: ${response.statusCode}");
+      if (data != null && data['update_available'] == true) {
+        String downloadUrl = data['download_url'] ?? "";
+        _showUpdateDialog(downloadUrl);
       }
     } catch (e) {
       print("Terjadi kesalahan saat memeriksa versi: $e");
@@ -39,8 +31,8 @@ class VersionChecker {
       context: context,
       barrierDismissible: false, // Mencegah pengguna menutup dialog
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false, // Mencegah tombol back
+        return PopScope(
+          canPop: false, // Mencegah tombol back
           child: AlertDialog(
             title: Text('Update Tersedia'),
             content: Text(

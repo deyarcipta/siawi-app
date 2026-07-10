@@ -6,6 +6,7 @@ import 'package:siawi_app/utils/colors.dart';
 // import '../controllers/tagihan_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class TagihanView extends StatefulWidget {
@@ -28,14 +29,16 @@ class _TagihanViewState extends State<TagihanView> {
 
   String? linkTagihan;
   Future<void> _fetchTagihan() async {
-    final response = await http
-        .get(Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/tagihan'));
-    if (response.statusCode == 200) {
-      var tagihan = json.decode(response.body);
-      var tagihanData = tagihan['data'];
-      setState(() {
-        linkTagihan = tagihanData['link'].toString();
-      });
+    try {
+      final tagihan = await ApiService.get('/tagihan');
+      if (tagihan != null && tagihan['data'] != null) {
+        var tagihanData = tagihan['data'];
+        setState(() {
+          linkTagihan = tagihanData['link'].toString();
+        });
+      }
+    } catch (e) {
+      print('Failed to load tagihan: $e');
     }
   }
 

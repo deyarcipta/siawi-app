@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
 
 class PasswordView extends StatefulWidget {
@@ -35,19 +36,14 @@ class _PasswordViewState extends State<PasswordView> {
   }
 
   void gantiPassword(String idSiswa) async {
-    final response = await http.post(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/ubahPassword'),
-        body: {
-          'idSiswa': idSiswa,
-          'password1': password1,
-          'password2': password2,
-        });
+    try {
+      final jsonResponse = await ApiService.post('/ubahPassword', {
+        'idSiswa': idSiswa,
+        'password1': password1,
+        'password2': password2,
+      });
 
-    // print('password : ${response.statusCode}');
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      if (jsonResponse['success']) {
-        // Jika login berhasil, akses data pengguna
+      if (jsonResponse != null && jsonResponse['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password Berhasil Diganti'),
@@ -70,6 +66,15 @@ class _PasswordViewState extends State<PasswordView> {
           ),
         );
       }
+    } catch (e) {
+      print('Error changing password: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password Gagal Diganti'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 

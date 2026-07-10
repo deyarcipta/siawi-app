@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class QrCode extends StatefulWidget {
@@ -41,11 +42,8 @@ class _QrCodeState extends State<QrCode> {
       loading = true;
     });
     try {
-      final response = await http.get(Uri.parse(
-          'https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-
-      if (response.statusCode == 200) {
-        var datasiswa = json.decode(response.body);
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
         var siswaData = datasiswa['data'];
         var kelasData = siswaData['kelas'];
         var jurusanData = siswaData['jurusan'];
@@ -59,8 +57,6 @@ class _QrCodeState extends State<QrCode> {
 
           fetchQRCode();
         }
-      } else {
-        print('Failed to load student data');
       }
     } catch (e) {
       print('Error fetching student data: $e');
@@ -75,18 +71,10 @@ class _QrCodeState extends State<QrCode> {
     if (nis == null) return;
 
     try {
-      final response = await http.get(
-        Uri.parse(
-            'https://siawi.smkwisataindonesia.sch.id/api/generate-qrcode?data=$nis'),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          qrCodeSvg = response.body;
-        });
-      } else {
-        print('Failed to load QR Code');
-      }
+      final svgData = await ApiService.getRaw('/generate-qrcode?data=$nis');
+      setState(() {
+        qrCodeSvg = svgData;
+      });
     } catch (e) {
       print('Error fetching QR Code: $e');
     }

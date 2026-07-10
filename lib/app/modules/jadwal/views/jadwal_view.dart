@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 // import 'package:siawi_app/app/models/jadwal.dart';
 import 'package:siawi_app/app/modules/jadwal/widget/jadwal_list.dart';
 
@@ -49,26 +50,25 @@ class _JadwalViewState extends State<JadwalView> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-    // print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan'].toString();
-          // print(nama);
-          // print('Nama Kelas: $presentaseKehadiran');
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            namaKelas = kelasData['nama_kelas'].toString();
+            namaJurusan = jurusanData['nama_jurusan'].toString();
+          });
+        }
       }
-    } else {
-      // print(idSiswa);
+    } catch (e) {
+      print('Error fetching data: $e');
     }
+    setState(() {
+      loading = false;
+    });
   }
 
   @override

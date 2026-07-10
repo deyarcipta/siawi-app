@@ -22,9 +22,8 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final String currentVersion = "1.1.2"; // Versi aplikasi saat ini
-  final String apiUrl =
-      "https://siawi.smkwisataindonesia.sch.id/api/latest-version"; // URL API
+  final String currentVersion = "1.1.3"; // Versi aplikasi saat ini
+  final String apiUrl = "/latest-version"; // URL API
 
   @override
   void initState() {

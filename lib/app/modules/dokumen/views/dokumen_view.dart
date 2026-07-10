@@ -6,6 +6,7 @@ import 'package:siawi_app/app/modules/dokumen/views/detail_dokumen.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 // import '../controllers/dokumen_controller.dart';
 import 'package:siawi_app/app/modules/dokumen/widget/dokumen_list.dart';
@@ -40,20 +41,20 @@ class _DokumenViewState extends State<DokumenView> {
 
   List<DokumenList> dokumenList = [];
   Future<void> _fetchdokumen(String idSiswa) async {
-    final response = await http.get(Uri.parse(
-        'https://siawi.smkwisataindonesia.sch.id/api/dokumen/$idSiswa'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> dokumenData = responseData['data'];
-      setState(() {
-        dokumenList.clear();
-        for (var item in dokumenData) {
-          DokumenList dokumen = DokumenList.fromJson(item);
-          dokumenList.add(dokumen);
-        }
-      });
-    } else {
-      print('Failed to load jadwal hari ini');
+    try {
+      final responseData = await ApiService.get('/dokumen/$idSiswa');
+      if (responseData != null && responseData['data'] != null) {
+        final List<dynamic> dokumenData = responseData['data'];
+        setState(() {
+          dokumenList.clear();
+          for (var item in dokumenData) {
+            DokumenList dokumen = DokumenList.fromJson(item);
+            dokumenList.add(dokumen);
+          }
+        });
+      }
+    } catch (e) {
+      print('Failed to load dokumen: $e');
     }
   }
 

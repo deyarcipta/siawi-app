@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 class WaliScreen extends StatefulWidget {
   final VoidCallback signOut;
@@ -44,27 +45,24 @@ class _WaliScreenState extends State<WaliScreen> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-    // print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          nikWali = siswaData['nik_wali'].toString();
-          namaWali = siswaData['nama_wali'].toString();
-          tglLahirWali = siswaData['tmpt_lahir_wali'].toString();
-          tglLahirWali = siswaData['tgl_lahir_wali'].toString();
-          pendidikanWali = siswaData['pendidikan_wali'].toString();
-          pekerjaanWali = siswaData['pekerjaan_wali'].toString();
-          penghasilanWali = siswaData['penghasilan_wali'].toString();
-          // print(namaIbu);
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            nikWali = siswaData['nik_wali'].toString();
+            namaWali = siswaData['nama_wali'].toString();
+            tmptLahirWali = siswaData['tmpt_lahir_wali'].toString();
+            tglLahirWali = siswaData['tgl_lahir_wali'].toString();
+            pendidikanWali = siswaData['pendidikan_wali'].toString();
+            pekerjaanWali = siswaData['pekerjaan_wali'].toString();
+            penghasilanWali = siswaData['penghasilan_wali'].toString();
+          });
+        }
       }
-    } else {
-      // print(idSiswa);
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;

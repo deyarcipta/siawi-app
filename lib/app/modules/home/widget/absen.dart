@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:get/get.dart';
 
 class Absen extends StatefulWidget {
@@ -76,10 +77,8 @@ class _AbsenState extends State<Absen> {
 
   Future<void> _checkAttendanceSilently(String idSiswa) async {
     try {
-      final response = await http.get(
-          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-      if (response.statusCode == 200) {
-        var datasiswa = json.decode(response.body);
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null) {
         var kehadiranToday = datasiswa['kehadiranToday'];
         if (kehadiranToday != null) {
           String status = kehadiranToday['kehadiran'].toString();
@@ -125,11 +124,9 @@ class _AbsenState extends State<Absen> {
       loading = true;
     });
     try {
-      final response = await http.get(
-          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
+      final datasiswa = await ApiService.get('/home/$idSiswa');
 
-      if (response.statusCode == 200) {
-        var datasiswa = json.decode(response.body);
+      if (datasiswa != null && datasiswa['data'] != null) {
         var siswaData = datasiswa['data'];
         var kehadiranToday = datasiswa['kehadiranToday'];
         if (siswaData['nis'] != null) {

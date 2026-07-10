@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:intl/intl.dart';
 
@@ -86,65 +87,64 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
 
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-
-      setState(() {
-        tmptLahir = siswaData['tmpt_lahir']?.toString();
-        tglLahir = siswaData['tgl_lahir']?.toString();
-        namaSiswa = siswaData['nama_siswa']?.toString();
-        nis = siswaData['nis']?.toString();
-        nisn = siswaData['nisn']?.toString();
-        agama = siswaData['agama']?.toString();
-        jenisKelamin = siswaData['jenis_kelamin']?.toString();
-        jenisKelaminFormatted = jenisKelamin == 'L' ? 'L' : 'P';
-        namaKelas = kelasData['nama_kelas']?.toString();
-        namaJurusan = jurusanData['kode_jurusan']?.toString();
-        noHp = siswaData['no_hp']?.toString();
-        noTlpn = siswaData['no_tlpn']?.toString();
-        email = siswaData['email']?.toString();
-        alamat = siswaData['alamat']?.toString();
-        noRumah = siswaData['no_rumah']?.toString();
-        kel = siswaData['kel']?.toString();
-        kec = siswaData['kec']?.toString();
-        kota = siswaData['kota']?.toString();
-        rt = siswaData['rt']?.toString();
-        rw = siswaData['rw']?.toString();
-        prov = siswaData['prov']?.toString();
-        nikAyah = siswaData['nik_ayah']?.toString();
-        namaAyah = siswaData['nama_ayah']?.toString();
-        tmptLahirAyah = siswaData['tmpt_lahir_ayah']?.toString();
-        tglLahirAyah = siswaData['tgl_lahir_ayah']?.toString();
-        pendidikanAyah = siswaData['pendidikan_ayah']?.toString();
-        pekerjaanAyah = siswaData['pekerjaan_ayah']?.toString();
-        penghasilanAyah = siswaData['penghasilan_ayah']?.toString();
-        nikIbu = siswaData['nik_ibu']?.toString();
-        namaIbu = siswaData['nama_ibu']?.toString();
-        tmptLahirIbu = siswaData['tmpt_lahir_ibu']?.toString();
-        tglLahirIbu = siswaData['tgl_lahir_ibu']?.toString();
-        pendidikanIbu = siswaData['pendidikan_ibu']?.toString();
-        pekerjaanIbu = siswaData['pekerjaan_ibu']?.toString();
-        penghasilanIbu = siswaData['penghasilan_ibu']?.toString();
-        nikWali = siswaData['nik_wali']?.toString();
-        namaWali = siswaData['nama_wali']?.toString();
-        tmptLahirWali = siswaData['tmpt_lahir_wali']?.toString();
-        tglLahirWali = siswaData['tgl_lahir_wali']?.toString();
-        pendidikanWali = siswaData['pendidikan_wali']?.toString();
-        pekerjaanWali = siswaData['pekerjaan_wali']?.toString();
-        penghasilanWali = siswaData['penghasilan_wali']?.toString();
-        _tglLahirController.text = tglLahir ?? '';
-        _tglLahirAyahController.text = tglLahirAyah ?? '';
-        _tglLahirIbuController.text = tglLahirIbu ?? '';
-        _tglLahirWaliController.text = tglLahirWali ?? '';
-      });
-    } else {
-      print('Failed to load data');
+        setState(() {
+          tmptLahir = siswaData['tmpt_lahir']?.toString();
+          tglLahir = siswaData['tgl_lahir']?.toString();
+          namaSiswa = siswaData['nama_siswa']?.toString();
+          nis = siswaData['nis']?.toString();
+          nisn = siswaData['nisn']?.toString();
+          agama = siswaData['agama']?.toString();
+          jenisKelamin = siswaData['jenis_kelamin']?.toString();
+          jenisKelaminFormatted = jenisKelamin == 'L' ? 'L' : 'P';
+          namaKelas = kelasData['nama_kelas']?.toString();
+          namaJurusan = jurusanData['kode_jurusan']?.toString();
+          noHp = siswaData['no_hp']?.toString();
+          noTlpn = siswaData['no_tlpn']?.toString();
+          email = siswaData['email']?.toString();
+          alamat = siswaData['alamat']?.toString();
+          noRumah = siswaData['no_rumah']?.toString();
+          kel = siswaData['kel']?.toString();
+          kec = siswaData['kec']?.toString();
+          kota = siswaData['kota']?.toString();
+          rt = siswaData['rt']?.toString();
+          rw = siswaData['rw']?.toString();
+          prov = siswaData['prov']?.toString();
+          nikAyah = siswaData['nik_ayah']?.toString();
+          namaAyah = siswaData['nama_ayah']?.toString();
+          tmptLahirAyah = siswaData['tmpt_lahir_ayah']?.toString();
+          tglLahirAyah = siswaData['tgl_lahir_ayah']?.toString();
+          pendidikanAyah = siswaData['pendidikan_ayah']?.toString();
+          pekerjaanAyah = siswaData['pekerjaan_ayah']?.toString();
+          penghasilanAyah = siswaData['penghasilan_ayah']?.toString();
+          nikIbu = siswaData['nik_ibu']?.toString();
+          namaIbu = siswaData['nama_ibu']?.toString();
+          tmptLahirIbu = siswaData['tmpt_lahir_ibu']?.toString();
+          tglLahirIbu = siswaData['tgl_lahir_ibu']?.toString();
+          pendidikanIbu = siswaData['pendidikan_ibu']?.toString();
+          pekerjaanIbu = siswaData['pekerjaan_ibu']?.toString();
+          penghasilanIbu = siswaData['penghasilan_ibu']?.toString();
+          nikWali = siswaData['nik_wali']?.toString();
+          namaWali = siswaData['nama_wali']?.toString();
+          tmptLahirWali = siswaData['tmpt_lahir_wali']?.toString();
+          tglLahirWali = siswaData['tgl_lahir_wali']?.toString();
+          pendidikanWali = siswaData['pendidikan_wali']?.toString();
+          pekerjaanWali = siswaData['pekerjaan_wali']?.toString();
+          penghasilanWali = siswaData['penghasilan_wali']?.toString();
+          _tglLahirController.text = tglLahir ?? '';
+          _tglLahirAyahController.text = tglLahirAyah ?? '';
+          _tglLahirIbuController.text = tglLahirIbu ?? '';
+          _tglLahirWaliController.text = tglLahirWali ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error fetching student data: $e');
     }
     setState(() {
       loading = false;
@@ -197,57 +197,58 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
         loading = true;
       });
 
-      final response = await http.post(
-        Uri.parse(
-            'https://siawi.smkwisataindonesia.sch.id/api/updateSiswa/$idSiswa'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'nis': nis ?? '',
-          'nisn': nisn ?? '',
-          'nama_siswa': namaSiswa ?? '',
-          'tmpt_lahir': tmptLahir ?? '',
-          'tgl_lahir': _tglLahirController.text,
-          'agama': agama ?? '',
-          'jenis_kelamin': jenisKelaminFormatted ?? '',
-          'no_hp': noHp ?? '',
-          'no_tlpn': noTlpn ?? '',
-          'email': email ?? '',
-          'alamat': alamat ?? '',
-          'rt': rt ?? '',
-          'rw': rw ?? '',
-          'no_rumah': noRumah ?? '',
-          'kel': kel ?? '',
-          'kec': kec ?? '',
-          'kota': kota ?? '',
-          'prov': prov ?? '',
-          'nik_ayah': nikAyah ?? '',
-          'nama_ayah': namaAyah ?? '',
-          'tmpt_lahir_ayah': tmptLahirAyah ?? '',
-          'tgl_lahir_ayah': _tglLahirAyahController.text,
-          'pendidikan_ayah': pendidikanAyah ?? '',
-          'pekerjaan_ayah': pekerjaanAyah ?? '',
-          'penghasilan_ayah': penghasilanAyah ?? '',
-          'nik_ibu': nikIbu ?? '',
-          'nama_ibu': namaIbu ?? '',
-          'tmpt_lahir_ibu': tmptLahirIbu ?? '',
-          'tgl_lahir_ibu': _tglLahirIbuController.text,
-          'pendidikan_ibu': pendidikanIbu ?? '',
-          'pekerjaan_ibu': pekerjaanIbu ?? '',
-          'penghasilan_ibu': penghasilanIbu ?? '',
-          'nik_wali': nikWali ?? '',
-          'nama_wali': namaWali ?? '',
-          'tmpt_lahir_wali': tmptLahirWali ?? '',
-          'tgl_lahir_wali': _tglLahirWaliController.text,
-          'pendidikan_wali': pendidikanWali ?? '',
-          'pekerjaan_wali': pekerjaanWali ?? '',
-          'penghasilan_wali': penghasilanWali ?? '',
-        },
-      );
+      try {
+        final jsonResponse = await ApiService.post(
+          '/updateSiswa/$idSiswa',
+          {
+            'nis': nis ?? '',
+            'nisn': nisn ?? '',
+            'nama_siswa': namaSiswa ?? '',
+            'tmpt_lahir': tmptLahir ?? '',
+            'tgl_lahir': _tglLahirController.text,
+            'agama': agama ?? '',
+            'jenis_kelamin': jenisKelaminFormatted ?? '',
+            'no_hp': noHp ?? '',
+            'no_tlpn': noTlpn ?? '',
+            'email': email ?? '',
+            'alamat': alamat ?? '',
+            'rt': rt ?? '',
+            'rw': rw ?? '',
+            'no_rumah': noRumah ?? '',
+            'kel': kel ?? '',
+            'kec': kec ?? '',
+            'kota': kota ?? '',
+            'prov': prov ?? '',
+            'nik_ayah': nikAyah ?? '',
+            'nama_ayah': namaAyah ?? '',
+            'tmpt_lahir_ayah': tmptLahirAyah ?? '',
+            'tgl_lahir_ayah': _tglLahirAyahController.text,
+            'pendidikan_ayah': pendidikanAyah ?? '',
+            'pekerjaan_ayah': pekerjaanAyah ?? '',
+            'penghasilan_ayah': penghasilanAyah ?? '',
+            'nik_ibu': nikIbu ?? '',
+            'nama_ibu': namaIbu ?? '',
+            'tmpt_lahir_ibu': tmptLahirIbu ?? '',
+            'tgl_lahir_ibu': _tglLahirIbuController.text,
+            'pendidikan_ibu': pendidikanIbu ?? '',
+            'pekerjaan_ibu': pekerjaanIbu ?? '',
+            'penghasilan_ibu': penghasilanIbu ?? '',
+            'nik_wali': nikWali ?? '',
+            'nama_wali': namaWali ?? '',
+            'tmpt_lahir_wali': tmptLahirWali ?? '',
+            'tgl_lahir_wali': _tglLahirWaliController.text,
+            'pendidikan_wali': pendidikanWali ?? '',
+            'pekerjaan_wali': pekerjaanWali ?? '',
+            'penghasilan_wali': penghasilanWali ?? '',
+          },
+        );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Data berhasil diubah')));
-      } else {
+        if (jsonResponse != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Data berhasil diubah')));
+        }
+      } catch (e) {
+        print('Error updating data: $e');
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Gagal mengubah data')));
       }

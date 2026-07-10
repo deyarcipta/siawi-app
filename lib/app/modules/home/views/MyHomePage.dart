@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/modules/about/views/about_view.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
@@ -9,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -103,17 +105,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _sendTokenToServer(String token) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/update-fcm-token'),
-        body: {
-          'idSiswa': idSiswa,
-          'fcm_token': token,
-        },
-      );
-      if (response.statusCode == 200) {
+      final jsonResponse = await ApiService.post('/update-fcm-token', {
+        'idSiswa': idSiswa,
+        'fcm_token': token,
+      });
+      if (jsonResponse != null) {
         print('FCM Token successfully synced with server');
-      } else {
-        print('Failed to sync FCM Token: ${response.statusCode}');
       }
     } catch (e) {
       print('Error syncing FCM Token to server: $e');
@@ -124,9 +121,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         final isFirstRouteInCurrentTab =
             !await _navigatorKey.currentState!.maybePop();
         if (isFirstRouteInCurrentTab) {
@@ -134,10 +132,10 @@ class _MyHomePageState extends State<MyHomePage> {
             setState(() {
               _selectedIndex = 0;
             });
-            return false;
+          } else {
+            await SystemNavigator.pop();
           }
         }
-        return isFirstRouteInCurrentTab;
       },
       child: Scaffold(
         body: Navigator(

@@ -6,6 +6,7 @@ import 'package:siawi_app/app/modules/absensi/widget/absen_list.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 // import 'package:get/get.dart';
 
@@ -76,6 +77,19 @@ class _AbsensiViewState extends State<AbsensiView> {
       });
     } else {
       print('Failed to load absen siswa');
+    }
+  }
+
+  IconData _getAttendanceIcon(String keterangan) {
+    switch (keterangan.toLowerCase()) {
+      case 'sakit':
+        return Icons.medical_services_outlined;
+      case 'izin':
+        return Icons.assignment_turned_in_outlined;
+      case 'alfa':
+        return Icons.cancel_outlined;
+      default:
+        return Icons.check_circle_outline_rounded;
     }
   }
 
@@ -201,39 +215,155 @@ class _AbsensiViewState extends State<AbsensiView> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: absenList.map((item) {
                   return Padding(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      shape: RoundedRectangleBorder(
-                        // side: BorderSide(width: 1),
-                        borderRadius: BorderRadius.circular(20),
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.08),
+                            spreadRadius: 2,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: item.warna.withOpacity(0.15),
+                          width: 1.5,
+                        ),
                       ),
-                      tileColor: AppColors.thirdColor,
-                      leading: Image.asset(
-                        'assets/icon/absen.png',
-                        width: 25,
-                        height: 25,
-                      ),
-                      title: Text('${item.hari}, ${item.tanggal}'),
-                      titleTextStyle: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.sixColor,
-                          fontWeight: FontWeight.w500),
-                      subtitle: Text(item.status),
-                      subtitleTextStyle: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                      trailing: Container(
-                        width: 15, // Lebar lingkaran
-                        height: 15, // Tinggi lingkaran
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle, // Mengatur bentuk lingkaran
-                          color: item.warna, // Mengatur warna lingkaran
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Icon Status Kehadiran
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: item.warna.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _getAttendanceIcon(item.keterangan),
+                                color: item.warna,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Informasi Utama (Tanggal & Status)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${item.hari.toUpperCase()}, ${item.tanggal}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.sixColor,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item.status,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Baris Waktu Absen (Jam Masuk / Jam Pulang)
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.login_rounded,
+                                        size: 13,
+                                        color: Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.jamMasuk,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[800],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Icon(
+                                        Icons.logout_rounded,
+                                        size: 13,
+                                        color: Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.jamPulang,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[800],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Badge Tipe Absen (Kanan)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: item.tipeAbsen.contains('Otomatis')
+                                        ? Colors.green.withOpacity(0.12)
+                                        : Colors.orange.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        item.tipeAbsen.contains('Otomatis')
+                                            ? Icons.face_retouching_natural
+                                            : Icons.person_rounded,
+                                        size: 12,
+                                        color: item.tipeAbsen.contains('Otomatis')
+                                            ? Colors.green[800]
+                                            : Colors.orange[850],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.tipeAbsen.contains('Otomatis')
+                                            ? 'Otomatis'
+                                            : 'Manual',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: item.tipeAbsen.contains('Otomatis')
+                                              ? Colors.green[800]
+                                              : Colors.orange[850],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),

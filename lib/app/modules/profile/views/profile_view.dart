@@ -12,6 +12,7 @@ import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/utils/tab_silver_delegate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 class ProfileView extends StatefulWidget {
   final VoidCallback signOut;
@@ -59,27 +60,25 @@ class _ProfileViewState extends State<ProfileView> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
-          namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan'].toString();
-          fileFoto = siswaData['foto']?.toString();
-          nis = siswaData['nis']?.toString();
-        });
-        fetchQRCode();
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
+            namaKelas = kelasData['nama_kelas'].toString();
+            namaJurusan = jurusanData['nama_jurusan'].toString();
+            fileFoto = siswaData['foto']?.toString();
+            nis = siswaData['nis']?.toString();
+          });
+          fetchQRCode();
+        }
       }
-    } else {
-      // Handle error
-      print('Error fetching data: ${response.statusCode}');
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;
@@ -88,19 +87,10 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> fetchQRCode() async {
     try {
-      final response = await http.get(
-        Uri.parse(
-            'https://siawi.smkwisataindonesia.sch.id/api/generate-qrcode?data=$nis'),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          // Store the SVG data as a string
-          qrCodeSvg = response.body;
-        });
-      } else {
-        print('Failed to load QR Code');
-      }
+      final svgData = await ApiService.getRaw('/generate-qrcode?data=$nis');
+      setState(() {
+        qrCodeSvg = svgData;
+      });
     } catch (e) {
       print('Error fetching QR Code: $e');
     }

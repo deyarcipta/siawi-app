@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/modules/dokumen/views/dokumen_view.dart';
 import 'package:siawi_app/app/modules/rapot/views/rapot_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/rapot/widget/rapot_list.dart';
 
 class DokumenGabunganView extends StatefulWidget {
@@ -36,27 +35,31 @@ class _DokumenGabunganViewState extends State<DokumenGabunganView> {
   }
 
   Future<void> _fetchRapot(String id) async {
-    final response = await http.get(
-      Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/rapot/$id'),
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body)['data'];
-      setState(() {
-        rapotList =
-            data.map<RapotList>((item) => RapotList.fromJson(item)).toList();
-      });
+    try {
+      final responseData = await ApiService.get('/rapot/$id');
+      if (responseData != null && responseData['data'] != null) {
+        final data = responseData['data'];
+        setState(() {
+          rapotList =
+              data.map<RapotList>((item) => RapotList.fromJson(item)).toList();
+        });
+      }
+    } catch (e) {
+      print('Failed to load rapot: $e');
     }
   }
 
   Future<void> _fetchDokumen(String id) async {
-    final response = await http.get(
-      Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/dokumen/$id'),
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body)['data'];
-      setState(() {
-        dokumenList = data;
-      });
+    try {
+      final responseData = await ApiService.get('/dokumen/$id');
+      if (responseData != null && responseData['data'] != null) {
+        final data = responseData['data'];
+        setState(() {
+          dokumenList = data;
+        });
+      }
+    } catch (e) {
+      print('Failed to load dokumen: $e');
     }
   }
 

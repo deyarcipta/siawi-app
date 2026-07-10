@@ -6,12 +6,18 @@ class AbsenList {
   final String tanggal;
   final String hari;
   final Color warna;
+  final String jamMasuk;
+  final String jamPulang;
+  final String tipeAbsen;
 
   AbsenList({
     required this.keterangan,
     required this.tanggal,
     required this.hari,
     required this.warna,
+    required this.jamMasuk,
+    required this.jamPulang,
+    required this.tipeAbsen,
   }) : status = _getStatus(keterangan);
 
   static String _getStatus(String keterangan) {
@@ -42,6 +48,9 @@ class AbsenList {
       tanggal: json['tanggal'],
       hari: json['hari'],
       warna: parseColor(json['warna']),
+      jamMasuk: json['jam_masuk'] ?? '-',
+      jamPulang: json['jam_pulang'] ?? '-',
+      tipeAbsen: json['tipe_absen'] ?? 'Manual oleh Guru',
     );
   }
 }

@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:siawi_app/app/data/api_service.dart';
 
 class LoginView extends GetView<LoginController> {
   // const LoginView({Key? key}) : super(key: key);
@@ -70,16 +71,13 @@ class _LoginSiawiState extends State<LoginSiawi> {
   }
 
   login() async {
-    final response = await http.post(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/login'),
-        body: {
-          'nis': nis,
-          'password': password,
-        });
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
+    try {
+      final jsonResponse = await ApiService.post('/login', {
+        'nis': nis,
+        'password': password,
+      });
 
-      if (jsonResponse['success']) {
+      if (jsonResponse != null && jsonResponse['success'] == true) {
         Fluttertoast.showToast(
           msg: 'Login Berhasil',
           backgroundColor: Colors.green,
@@ -92,15 +90,16 @@ class _LoginSiawiState extends State<LoginSiawi> {
         var idSiswaAPI = userData['id_siswa'].toString();
         var nisApi = userData['nis'].toString();
 
+        await savePref(value, idSiswaAPI, nisApi);
+
         setState(() {
           _loginStatus = LoginStatus.signIn;
-          savePref(value, idSiswaAPI, nisApi);
         });
 
         print('Berhasil login: $nisApi');
       } else {
         var errorMessage =
-            jsonResponse['message'] ?? "Terjadi kesalahan saat login";
+            jsonResponse?['message'] ?? "Terjadi kesalahan saat login";
 
         Fluttertoast.showToast(
           msg: errorMessage,
@@ -111,32 +110,16 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
         print('Gagal login: $errorMessage');
       }
-    } else {
-      // Tangani error selain 200, misalnya 401 atau 422
-      var jsonResponse = json.decode(response.body);
-      var errorMessage =
-          jsonResponse['message'] ?? "Terjadi kesalahan pada server";
-
-      Fluttertoast.showToast(
-        msg: errorMessage, // Gunakan pesan dari server jika ada
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        toastLength: Toast.LENGTH_SHORT,
-      );
-
-      print('Error ${response.statusCode}: $errorMessage');
+    } catch (e) {
+      print('Exception during login: $e');
     }
   }
 
   savePref(int value, String idSiswa, String nis) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      preferences.setInt('value', value);
-      preferences.setString('idSiswa', idSiswa);
-      preferences.setString('nis', nis);
-      // ignore: deprecated_member_use
-      preferences.commit();
-    });
+    await preferences.setInt('value', value);
+    await preferences.setString('idSiswa', idSiswa);
+    await preferences.setString('nis', nis);
   }
 
   // ignore: prefer_typing_uninitialized_variables
@@ -153,10 +136,8 @@ class _LoginSiawiState extends State<LoginSiawi> {
   // ignore: non_constant_identifier_names
   SignOut() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setInt("value", 0);
     setState(() {
-      preferences.setInt("value", 0);
-      // ignore: deprecated_member_use
-      preferences.commit();
       _loginStatus = LoginStatus.notSignIn;
     });
   }

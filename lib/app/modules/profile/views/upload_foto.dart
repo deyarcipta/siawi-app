@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
@@ -46,24 +47,23 @@ class _UploadFotoState extends State<UploadFoto> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
-          namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan'].toString();
-          fileFoto = siswaData['foto'].toString();
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            namaSiswa = siswaData['nama_siswa'].toString().toUpperCase();
+            namaKelas = kelasData['nama_kelas'].toString();
+            namaJurusan = jurusanData['nama_jurusan'].toString();
+            fileFoto = siswaData['foto'].toString();
+          });
+        }
       }
-    } else {
-      // Handle error
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;
@@ -91,22 +91,25 @@ class _UploadFotoState extends State<UploadFoto> {
       loading = true;
     });
 
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse(
-          'https://siawi.smkwisataindonesia.sch.id/api/uploadFoto/$idSiswa'),
-    );
-    request.files.add(
-      await http.MultipartFile.fromPath('foto', _image!.path),
-    );
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiService.baseUrl}/uploadFoto/$idSiswa'),
+      );
+      request.files.add(
+        await http.MultipartFile.fromPath('foto', _image!.path),
+      );
 
-    var response = await request.send();
+      var response = await request.send();
 
-    if (response.statusCode == 200) {
-      print('Image uploaded');
-      _lihatData(idSiswa); // Refresh data
-    } else {
-      print('Image upload failed');
+      if (response.statusCode == 200) {
+        print('Image uploaded');
+        _lihatData(idSiswa); // Refresh data
+      } else {
+        print('Image upload failed');
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
     }
 
     setState(() {

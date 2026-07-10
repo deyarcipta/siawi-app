@@ -3,6 +3,7 @@ import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/app/modules/kalender/widget/event_data_source.dart';
 import 'package:siawi_app/app/modules/kalender/widget/event.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -45,25 +46,24 @@ class _KalenderViewState extends State<KalenderView> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
     if (idSiswa != null) {
-      final response = await http.get(
-          Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/kalender/'));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        final List<dynamic> kegiatanData = responseData['data'];
-        setState(() {
-          kegiatanList.clear();
-          for (var item in kegiatanData) {
-            Kegiatan kegiatan = Kegiatan.fromJson(item);
-            kegiatanList.add(kegiatan);
-          }
-          isLoading = false; // Set loading to false when data is fetched
-        });
-      } else {
-        print('Failed to load jadwal hari ini');
-        setState(() {
-          isLoading = false; // Set loading to false even if fetching fails
-        });
+      try {
+        final responseData = await ApiService.get('/kalender/');
+        if (responseData != null && responseData['data'] != null) {
+          final List<dynamic> kegiatanData = responseData['data'];
+          setState(() {
+            kegiatanList.clear();
+            for (var item in kegiatanData) {
+              Kegiatan kegiatan = Kegiatan.fromJson(item);
+              kegiatanList.add(kegiatan);
+            }
+          });
+        }
+      } catch (e) {
+        print('Failed to load kegiatan: $e');
       }
+      setState(() {
+        isLoading = false; // Set loading to false when data is fetched/fails
+      });
     } else {
       setState(() {
         isLoading = false; // Set loading to false if idSiswa is null

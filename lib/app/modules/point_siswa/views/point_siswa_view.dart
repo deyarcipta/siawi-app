@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/point_siswa/widget/point_list.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,15 +43,12 @@ class _PointSiswaViewState extends State<PointSiswaView> {
 
   Future<void> _fetchPoint(String idSiswa) async {
     try {
-      final response = await http.get(Uri.parse(
-          'https://siawi.smkwisataindonesia.sch.id/api/point/$idSiswa'));
-
-      if (response.statusCode == 200) {
-        var dataPoint = json.decode(response.body);
+      final dataPoint = await ApiService.get('/point/$idSiswa');
+      if (dataPoint != null) {
         var siswaData = dataPoint['dataSiswa'];
         var kelasData = siswaData['kelas'];
         var jurusanData = siswaData['jurusan'];
-        final List<dynamic> pointData = dataPoint['data'];
+        final List<dynamic> pointData = dataPoint['data'] ?? [];
 
         setState(() {
           namaSiswa = siswaData['nama_siswa'].toString();
@@ -65,8 +63,6 @@ class _PointSiswaViewState extends State<PointSiswaView> {
           }
           _isLoading = false; // Set loading selesai
         });
-      } else {
-        throw Exception('Failed to load data');
       }
     } catch (e) {
       print('Error: $e');

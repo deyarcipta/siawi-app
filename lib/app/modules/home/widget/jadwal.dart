@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:siawi_app/app/models/jadwal_hari_ini.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class JadwalToday extends StatefulWidget {
@@ -32,19 +33,17 @@ class _JadwalState extends State<JadwalToday> {
   }
 
   Future<void> _fetchJadwalToday(String idSiswa) async {
-    final response = await http.get(
-      Uri.parse(
-          'https://siawi.smkwisataindonesia.sch.id/api/jadwalToday/$idSiswa'),
-    );
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> jadwalData = responseData['data'];
-      setState(() {
-        jadwalHariIniList =
-            jadwalData.map((item) => JadwalHariIni.fromJson(item)).toList();
-      });
-    } else {
-      print('Failed to load jadwal hari ini');
+    try {
+      final responseData = await ApiService.get('/jadwalToday/$idSiswa');
+      if (responseData != null && responseData['data'] != null) {
+        final List<dynamic> jadwalData = responseData['data'];
+        setState(() {
+          jadwalHariIniList =
+              jadwalData.map((item) => JadwalHariIni.fromJson(item)).toList();
+        });
+      }
+    } catch (e) {
+      print('Failed to load jadwal hari ini: $e');
     }
   }
 

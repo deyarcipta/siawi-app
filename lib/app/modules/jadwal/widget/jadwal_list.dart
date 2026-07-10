@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'dart:convert';
 import 'package:siawi_app/app/models/jadwal.dart';
 import 'package:siawi_app/utils/colors.dart';
@@ -129,23 +130,21 @@ class JadwalList extends StatelessWidget {
     String encodedIdSiswa = Uri.encodeComponent(idSiswa);
     String encodedHari = Uri.encodeComponent(hari);
 
-    String apiUrl =
-        'https://siawi.smkwisataindonesia.sch.id/api/jadwal/$encodedIdSiswa/$encodedHari';
+    try {
+      final responseData = await ApiService.get('/jadwal/$encodedIdSiswa/$encodedHari');
+      if (responseData != null && responseData['data'] != null && responseData['data'][hari] != null) {
+        // Ambil data jadwal berdasarkan hari dari respons
+        List<dynamic> jadwalsByDay = responseData['data'][hari];
 
-    final response = await http.get(Uri.parse(apiUrl));
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseData = json.decode(response.body);
-
-      // Ambil data jadwal berdasarkan hari dari respons
-      List<dynamic> jadwalsByDay = responseData['data'][hari];
-
-      // Ubah data jadwal menjadi model Jadwal
-      List<Jadwal> jadwals =
-          jadwalsByDay.map((data) => Jadwal.fromJson(data)).toList();
-      return jadwals;
-    } else {
-      throw Exception('Failed to load data from API: ${response.statusCode}');
+        // Ubah data jadwal menjadi model Jadwal
+        List<Jadwal> jadwals =
+            jadwalsByDay.map((data) => Jadwal.fromJson(data)).toList();
+        return jadwals;
+      } else {
+        throw Exception('Data jadwal tidak lengkap');
+      }
+    } catch (e) {
+      throw Exception('Failed to load data from API: $e');
     }
   }
 }

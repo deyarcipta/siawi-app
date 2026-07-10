@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 class OrangTuaScreen extends StatefulWidget {
   final VoidCallback signOut;
@@ -51,34 +52,31 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-    // print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          nikAyah = siswaData['nik_ayah'].toString();
-          namaAyah = siswaData['nama_ayah'].toString();
-          tmptLahirAyah = siswaData['tmpt_lahir_ayah'].toString();
-          tglLahirAyah = siswaData['tgl_lahir_ayah'].toString();
-          pendidikanAyah = siswaData['pendidikan_ayah'].toString();
-          pekerjaanAyah = siswaData['pekerjaan_ayah'].toString();
-          penghasilanAyah = siswaData['penghasilan_ayah'].toString();
-          nikIbu = siswaData['nik_ibu'].toString();
-          namaIbu = siswaData['nama_ibu'].toString();
-          tmptLahirIbu = siswaData['tmpt_lahir_ibu'].toString();
-          tglLahirIbu = siswaData['tgl_lahir_ibu'].toString();
-          pendidikanIbu = siswaData['pendidikan_ibu'].toString();
-          pekerjaanIbu = siswaData['pekerjaan_ibu'].toString();
-          penghasilanIbu = siswaData['penghasilan_ibu'].toString();
-          // print(namaIbu);
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            nikAyah = siswaData['nik_ayah'].toString();
+            namaAyah = siswaData['nama_ayah'].toString();
+            tmptLahirAyah = siswaData['tmpt_lahir_ayah'].toString();
+            tglLahirAyah = siswaData['tgl_lahir_ayah'].toString();
+            pendidikanAyah = siswaData['pendidikan_ayah'].toString();
+            pekerjaanAyah = siswaData['pekerjaan_ayah'].toString();
+            penghasilanAyah = siswaData['penghasilan_ayah'].toString();
+            nikIbu = siswaData['nik_ibu'].toString();
+            namaIbu = siswaData['nama_ibu'].toString();
+            tmptLahirIbu = siswaData['tmpt_lahir_ibu'].toString();
+            tglLahirIbu = siswaData['tgl_lahir_ibu'].toString();
+            pendidikanIbu = siswaData['pendidikan_ibu'].toString();
+            pekerjaanIbu = siswaData['pekerjaan_ibu'].toString();
+            penghasilanIbu = siswaData['penghasilan_ibu'].toString();
+          });
+        }
       }
-    } else {
-      // print(idSiswa);
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;

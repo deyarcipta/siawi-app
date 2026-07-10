@@ -5,6 +5,7 @@ import 'package:siawi_app/app/modules/modul/widget/modul_list.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 class ModulMapelView extends StatefulWidget {
   const ModulMapelView({Key? key}) : super(key: key);
@@ -32,20 +33,20 @@ class _ModulMapelViewState extends State<ModulMapelView> {
 
   List<ModulList> modulList = [];
   Future<void> _fetchModul(String idSiswa) async {
-    final response = await http.get(Uri.parse(
-        'https://siawi.smkwisataindonesia.sch.id/api/modul/$idSiswa'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final Map<String, dynamic> modulData = responseData['data'];
-      setState(() {
-        modulList.clear();
-        modulData.forEach((key, value) {
-          ModulList module = ModulList.fromJson(value);
-          modulList.add(module);
+    try {
+      final responseData = await ApiService.get('/modul/$idSiswa');
+      if (responseData != null && responseData['data'] != null) {
+        final Map<String, dynamic> modulData = responseData['data'];
+        setState(() {
+          modulList.clear();
+          modulData.forEach((key, value) {
+            ModulList module = ModulList.fromJson(value);
+            modulList.add(module);
+          });
         });
-      });
-    } else {
-      print('Failed to load jadwal hari ini');
+      }
+    } catch (e) {
+      print('Failed to load modul: $e');
     }
   }
 

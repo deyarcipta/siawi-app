@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback signOut;
@@ -56,43 +57,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-    // print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      var kelasData = siswaData['kelas'];
-      var jurusanData = siswaData['jurusan'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          tmptLahir = siswaData['tmpt_lahir'].toString();
-          tglLahir = siswaData['tgl_lahir'].toString();
-          nis = siswaData['nis'].toString();
-          nisn = siswaData['nisn'].toString();
-          agama = siswaData['agama'].toString();
-          jenisKelamin = siswaData['jenis_kelamin'].toString();
-          jenisKelaminFormatted =
-              jenisKelamin == 'L' ? 'Laki - Laki' : 'Perempuan';
-          namaKelas = kelasData['nama_kelas'].toString();
-          namaJurusan = jurusanData['nama_jurusan'].toString();
-          noHp = siswaData['no_hp'].toString();
-          noTlpn = siswaData['no_tlpn'].toString();
-          alamat = siswaData['alamat'].toString();
-          rt = siswaData['rt'].toString();
-          rw = siswaData['rw'].toString();
-          noRumah = siswaData['no_rumah'].toString();
-          kel = siswaData['kel'].toString();
-          kec = siswaData['kec'].toString();
-          prov = siswaData['prov'].toString();
-          kota = siswaData['kota'].toString();
-          // print(nama);
-          // print('Nama Kelas: $presentaseKehadiran');
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        var kelasData = siswaData['kelas'];
+        var jurusanData = siswaData['jurusan'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            tmptLahir = siswaData['tmpt_lahir'].toString();
+            tglLahir = siswaData['tgl_lahir'].toString();
+            nis = siswaData['nis'].toString();
+            nisn = siswaData['nisn'].toString();
+            agama = siswaData['agama'].toString();
+            jenisKelamin = siswaData['jenis_kelamin'].toString();
+            jenisKelaminFormatted =
+                jenisKelamin == 'L' ? 'Laki - Laki' : 'Perempuan';
+            namaKelas = kelasData['nama_kelas'].toString();
+            namaJurusan = jurusanData['nama_jurusan'].toString();
+            noHp = siswaData['no_hp'].toString();
+            noTlpn = siswaData['no_tlpn'].toString();
+            alamat = siswaData['alamat'].toString();
+            rt = siswaData['rt'].toString();
+            rw = siswaData['rw'].toString();
+            noRumah = siswaData['no_rumah'].toString();
+            kel = siswaData['kel'].toString();
+            kec = siswaData['kec'].toString();
+            prov = siswaData['prov'].toString();
+            kota = siswaData['kota'].toString();
+          });
+        }
       }
-    } else {
-      // print(idSiswa);
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:siawi_app/app/models/berita.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/home/widget/berita_lengkap.dart';
 
 class BeritaTerbaru extends StatefulWidget {
@@ -23,20 +24,20 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
   }
 
   Future<void> _fetchBerita() async {
-    final response = await http
-        .get(Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/berita'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> beritaData = responseData['data'];
-      setState(() {
-        beritaList.clear();
-        for (var item in beritaData) {
-          Berita berita = Berita.fromJson(item);
-          beritaList.add(berita);
-        }
-      });
-    } else {
-      print('Failed to load berita');
+    try {
+      final responseData = await ApiService.get('/berita');
+      if (responseData != null && responseData['data'] != null) {
+        final List<dynamic> beritaData = responseData['data'];
+        setState(() {
+          beritaList.clear();
+          for (var item in beritaData) {
+            Berita berita = Berita.fromJson(item);
+            beritaList.add(berita);
+          }
+        });
+      }
+    } catch (e) {
+      print('Failed to load berita: $e');
     }
   }
 

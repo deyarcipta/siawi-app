@@ -8,6 +8,7 @@ import 'package:siawi_app/app/modules/informasi/views/detail_informasi.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:accordion/accordion.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 // import 'package:path_provider/path_provider.dart';
 // import 'package:flutter_pdfview/flutter_pdfview.dart';
 
@@ -31,20 +32,20 @@ class _InformasiViewState extends State<InformasiView> {
   }
 
   Future<void> _fetchInformasi() async {
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/informasi'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List<dynamic> informasiData = responseData['data'];
-      setState(() {
-        informasiList.clear();
-        for (var item in informasiData) {
-          Informasi informasi = Informasi.fromJson(item);
-          informasiList.add(informasi);
-        }
-      });
-    } else {
-      print('Failed to load informasi');
+    try {
+      final responseData = await ApiService.get('/informasi');
+      if (responseData != null && responseData['data'] != null) {
+        final List<dynamic> informasiData = responseData['data'];
+        setState(() {
+          informasiList.clear();
+          for (var item in informasiData) {
+            Informasi informasi = Informasi.fromJson(item);
+            informasiList.add(informasi);
+          }
+        });
+      }
+    } catch (e) {
+      print('Failed to load informasi: $e');
     }
   }
 

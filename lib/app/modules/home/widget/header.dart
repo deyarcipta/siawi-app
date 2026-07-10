@@ -5,6 +5,7 @@ import 'package:siawi_app/app/models/menu_items.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/password/views/password_view.dart';
 
 class Header extends StatefulWidget {
@@ -43,20 +44,19 @@ class _HeaderState extends State<Header> {
     setState(() {
       loading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://siawi.smkwisataindonesia.sch.id/api/home/$idSiswa'));
-
-    if (response.statusCode == 200) {
-      var datasiswa = json.decode(response.body);
-      var siswaData = datasiswa['data'];
-      if (siswaData['nis'] != null) {
-        setState(() {
-          nama = siswaData['nama_siswa'].toString();
-          fileFoto = siswaData['foto'].toString();
-        });
+    try {
+      final datasiswa = await ApiService.get('/home/$idSiswa');
+      if (datasiswa != null && datasiswa['data'] != null) {
+        var siswaData = datasiswa['data'];
+        if (siswaData['nis'] != null) {
+          setState(() {
+            nama = siswaData['nama_siswa'].toString();
+            fileFoto = siswaData['foto'].toString();
+          });
+        }
       }
-    } else {
-      print('Error: ${response.statusCode}');
+    } catch (e) {
+      print('Error fetching data: $e');
     }
     setState(() {
       loading = false;
