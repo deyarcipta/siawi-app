@@ -41,3 +41,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Private signing key properties
+/android/key.properties
+*.jks
+*.keystore
+
+*.tmp
