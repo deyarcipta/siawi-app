@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 
 class KebiasanAnakIndonesia extends StatefulWidget {
   final VoidCallback signOut;
-  const KebiasanAnakIndonesia(this.signOut, {Key? key}) : super(key: key);
+  const KebiasanAnakIndonesia(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const DataMahasiswa(this.signOut, {super.key});
 

@@ -9,7 +9,7 @@ import 'package:siawi_app/utils/colors.dart';
 
 class _BottomViewState extends StatefulWidget {
   final VoidCallback signOut;
-  const _BottomViewState(this.signOut, {super.key});
+  const _BottomViewState(this.signOut);
   // final VoidCallback signOut;
   // const _BottomViewState(this.signOut, {super.key});
 
@@ -18,7 +18,7 @@ class _BottomViewState extends StatefulWidget {
 }
 
 class __BottomViewStateState extends State<_BottomViewState> {
-  SignOut() {
+  void SignOut() {
     setState(() {
       widget.signOut();
     });
@@ -36,14 +36,14 @@ class __BottomViewStateState extends State<_BottomViewState> {
 
   @override
   Widget build(BuildContext context) {
-    final _listPage = <Widget>[
+    final listPage = <Widget>[
       const Text('test1'),
       const Text('test2'),
       // const HomeView(),
       const Text('test3'),
       const Text('test3'),
     ];
-    final _BottomNavBarItems = <BottomNavigationBarItem>[
+    final BottomNavBarItems = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(
         icon: Icon(Icons.person_outlined),
         label: "Profile",
@@ -66,10 +66,10 @@ class __BottomViewStateState extends State<_BottomViewState> {
       )
     ];
 
-    final _bottomNavBar = BottomNavigationBar(
+    final bottomNavBar = BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       backgroundColor: AppColors.secondColor,
-      items: _BottomNavBarItems,
+      items: BottomNavBarItems,
       currentIndex: _selectedTabIndex,
       unselectedItemColor: Colors.white54,
       selectedItemColor: Colors.white,
@@ -78,9 +78,9 @@ class __BottomViewStateState extends State<_BottomViewState> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Center(
-        child: _listPage[_selectedTabIndex],
+        child: listPage[_selectedTabIndex],
       ),
-      bottomNavigationBar: _bottomNavBar,
+      bottomNavigationBar: bottomNavBar,
     );
   }
 }

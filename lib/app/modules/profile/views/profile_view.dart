@@ -16,7 +16,7 @@ import 'package:siawi_app/app/data/api_service.dart';
 
 class ProfileView extends StatefulWidget {
   final VoidCallback signOut;
-  const ProfileView(this.signOut, {Key? key}) : super(key: key);
+  const ProfileView(this.signOut, {super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -216,9 +216,9 @@ class _ProfileViewState extends State<ProfileView> {
                                     ),
                                   ],
                                 ),
-                                _buildTitle('${namaSiswa ?? 'Loading...'}'),
-                                _buildTitleData('${namaJurusan ?? ''}'),
-                                _buildTitleData('${namaKelas ?? ''}'),
+                                _buildTitle(namaSiswa ?? 'Loading...'),
+                                _buildTitleData(namaJurusan ?? ''),
+                                _buildTitleData(namaKelas ?? ''),
                                 SizedBox(height: size.height * 0.01),
                                 Row(
                                   mainAxisAlignment:
@@ -233,7 +233,6 @@ class _ProfileViewState extends State<ProfileView> {
                                                   UploadFoto(SignOut)),
                                         );
                                       },
-                                      child: Text('Ubah Foto Profil'),
                                       style: OutlinedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
@@ -241,6 +240,7 @@ class _ProfileViewState extends State<ProfileView> {
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 30, vertical: 2),
                                       ),
+                                      child: Text('Ubah Foto Profil'),
                                     ),
                                     OutlinedButton(
                                       onPressed: () {
@@ -252,7 +252,6 @@ class _ProfileViewState extends State<ProfileView> {
                                                       widget.signOut)),
                                         );
                                       },
-                                      child: Text('Ubah Data Diri'),
                                       style: OutlinedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
@@ -260,6 +259,7 @@ class _ProfileViewState extends State<ProfileView> {
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 30, vertical: 2),
                                       ),
+                                      child: Text('Ubah Data Diri'),
                                     ),
                                   ],
                                 ),

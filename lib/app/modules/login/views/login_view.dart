@@ -18,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/data/api_service.dart';
 
 class LoginView extends GetView<LoginController> {
+  const LoginView({super.key});
+
   // const LoginView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class LoginSiawi extends StatefulWidget {
   State<LoginSiawi> createState() => _LoginSiawiState();
 }
 
-_launchURL() async {
+Future<void> _launchURL() async {
   final url = Uri.parse(
     'https://wa.me/6285172331507?text=Halo%20nama%20saya%20ilham%20kelas%20XII-TJKT%20saya%20lupa%20password%20login%20sistem%20informasi%20akademik%20wisata%20indonesia.',
   );
@@ -55,13 +57,13 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
   bool _secureText = true;
 
-  showHide() {
+  void showHide() {
     setState(() {
       _secureText = !_secureText;
     });
   }
 
-  check() {
+  void check() {
     final form = _key.currentState;
     if (form != null && form.validate()) {
       form.save();
@@ -70,7 +72,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
     }
   }
 
-  login() async {
+  Future<void> login() async {
     try {
       final jsonResponse = await ApiService.post('/login', {
         'nis': nis,
@@ -115,7 +117,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
     }
   }
 
-  savePref(int value, String idSiswa, String nis) async {
+  Future<void> savePref(int value, String idSiswa, String nis) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setInt('value', value);
     await preferences.setString('idSiswa', idSiswa);
@@ -124,7 +126,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
   // ignore: prefer_typing_uninitialized_variables
   var value;
-  getPref() async {
+  Future<void> getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       value = preferences.getInt("value");
@@ -134,7 +136,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
   }
 
   // ignore: non_constant_identifier_names
-  SignOut() async {
+  Future<void> SignOut() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setInt("value", 0);
     setState(() {

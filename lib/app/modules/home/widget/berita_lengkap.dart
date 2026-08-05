@@ -7,7 +7,7 @@ class BeritaLengkap extends StatelessWidget {
   final Berita berita;
 
   // Constructor untuk menerima data berita
-  const BeritaLengkap({Key? key, required this.berita}) : super(key: key);
+  const BeritaLengkap({super.key, required this.berita});
 
   @override
   Widget build(BuildContext context) {

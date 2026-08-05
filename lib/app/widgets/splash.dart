@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,7 +22,7 @@ class SplashScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Container(
+                        SizedBox(
                           width: 100,
                           height: 100,
                           child: Image.asset(
@@ -72,10 +72,10 @@ class SplashScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
+                  padding: EdgeInsets.only(bottom: 30),
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation(Colors.white),
                   ),
-                  padding: EdgeInsets.only(bottom: 30),
                 )
               ],
             ),

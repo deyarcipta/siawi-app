@@ -4,7 +4,7 @@ import 'package:siawi_app/app/modules/about/widget/about.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class AboutView extends StatefulWidget {
-  const AboutView({Key? key}) : super(key: key);
+  const AboutView({super.key});
 
   @override
   State<AboutView> createState() => _AboutViewState();

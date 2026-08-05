@@ -6,7 +6,7 @@ import 'package:siawi_app/utils/colors.dart';
 class DetailModulView extends StatefulWidget {
   final List<ModulItem> modulItems;
 
-  DetailModulView({required this.modulItems});
+  const DetailModulView({super.key, required this.modulItems});
 
   @override
   State<DetailModulView> createState() => _DetailModulViewState();

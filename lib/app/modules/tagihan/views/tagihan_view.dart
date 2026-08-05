@@ -11,7 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class TagihanView extends StatefulWidget {
   final VoidCallback signOut;
-  const TagihanView(this.signOut, {Key? key}) : super(key: key);
+  const TagihanView(this.signOut, {super.key});
   @override
   _TagihanViewState createState() => _TagihanViewState();
 }

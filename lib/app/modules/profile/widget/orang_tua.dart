@@ -91,7 +91,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -116,7 +116,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('${nikAyah ?? 'Loading...'}'),
+                          _buildData(nikAyah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -126,7 +126,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Ayah'),
-                          _buildData('${namaAyah ?? 'Loading...'}'),
+                          _buildData(namaAyah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -147,7 +147,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('${pendidikanAyah ?? 'Loading...'}'),
+                          _buildData(pendidikanAyah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -157,7 +157,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('${pekerjaanAyah ?? 'Loading...'}'),
+                          _buildData(pekerjaanAyah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -167,7 +167,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('${penghasilanAyah ?? 'Loading...'}'),
+                          _buildData(penghasilanAyah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -176,7 +176,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
               ),
             ),
             SizedBox(height: 30),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -201,7 +201,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('${nikIbu ?? 'Loading...'}'),
+                          _buildData(nikIbu ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -211,7 +211,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Ibu'),
-                          _buildData('${namaIbu ?? 'Loading...'}'),
+                          _buildData(namaIbu ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -232,7 +232,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('${pendidikanIbu ?? 'Loading...'}'),
+                          _buildData(pendidikanIbu ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -242,7 +242,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('${pekerjaanIbu ?? 'Loading...'}'),
+                          _buildData(pekerjaanIbu ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -252,7 +252,7 @@ class _OrangTuaScreenState extends State<OrangTuaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('${penghasilanIbu ?? 'Loading...'}'),
+                          _buildData(penghasilanIbu ?? 'Loading...'),
                         ],
                       ),
                     ),

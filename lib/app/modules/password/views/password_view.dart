@@ -10,7 +10,7 @@ import 'package:siawi_app/app/data/api_service.dart';
 
 class PasswordView extends StatefulWidget {
   final VoidCallback signOut;
-  const PasswordView(this.signOut, {Key? key}) : super(key: key);
+  const PasswordView(this.signOut, {super.key});
 
   @override
   State<PasswordView> createState() => _PasswordViewState();
@@ -109,7 +109,7 @@ class _PasswordViewState extends State<PasswordView> {
               // const SizedBox(
               //   height: 50,
               // ),
-              Container(
+              SizedBox(
                 width: 125,
                 height: 125,
                 child: Image.asset(

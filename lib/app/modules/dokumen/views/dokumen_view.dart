@@ -13,7 +13,7 @@ import 'package:siawi_app/app/modules/dokumen/widget/dokumen_list.dart';
 
 class DokumenView extends StatefulWidget {
   final VoidCallback signOut;
-  const DokumenView(this.signOut, {Key? key}) : super(key: key);
+  const DokumenView(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const DokumenView(this.signOut, {super.key});
 

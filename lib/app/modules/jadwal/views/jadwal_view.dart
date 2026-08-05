@@ -14,7 +14,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 class JadwalView extends StatefulWidget {
   final VoidCallback signOut;
 
-  const JadwalView(this.signOut, {Key? key}) : super(key: key);
+  const JadwalView(this.signOut, {super.key});
 
   @override
   State<JadwalView> createState() => _JadwalViewState();

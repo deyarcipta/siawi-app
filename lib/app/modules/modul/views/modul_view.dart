@@ -6,7 +6,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 class ModulView extends StatefulWidget {
   final ModulItem modul;
 
-  ModulView(this.modul);
+  const ModulView(this.modul, {super.key});
 
   @override
   State<ModulView> createState() => _ModulViewState();
@@ -47,7 +47,7 @@ class _ModulViewState extends State<ModulView> {
               children: [
                 Expanded(
                   child: Text(
-                    '${widget.modul.namaModul ?? 'No data available'}',
+                    widget.modul.namaModul ?? 'No data available',
                     style: TextStyle(
                       color: AppColors.white,
                       fontSize: 18,

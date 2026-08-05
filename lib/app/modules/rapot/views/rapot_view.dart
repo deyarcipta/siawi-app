@@ -13,7 +13,7 @@ import 'package:siawi_app/app/modules/rapot/widget/rapot_list.dart';
 
 class RapotView extends StatefulWidget {
   final VoidCallback signOut;
-  const RapotView(this.signOut, {Key? key}) : super(key: key);
+  const RapotView(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const RapotView(this.signOut, {super.key});
 

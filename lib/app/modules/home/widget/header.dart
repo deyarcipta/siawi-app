@@ -10,7 +10,7 @@ import 'package:siawi_app/app/modules/password/views/password_view.dart';
 
 class Header extends StatefulWidget {
   final VoidCallback signOut;
-  const Header(this.signOut, {Key? key}) : super(key: key);
+  const Header(this.signOut, {super.key});
 
   @override
   State<Header> createState() => _HeaderState();
@@ -68,7 +68,7 @@ class _HeaderState extends State<Header> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
+        SizedBox(
           width: 250,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,8 +99,8 @@ class _HeaderState extends State<Header> {
               PopupMenuButton<MenuKu>(
                 onSelected: (item) => onSelected(context, item),
                 itemBuilder: (context) => [
-                  ...MenuItems.itemFirst.map(buildItem).toList(),
-                  ...MenuItems.itemSecond.map(buildItem).toList(),
+                  ...MenuItems.itemFirst.map(buildItem),
+                  ...MenuItems.itemSecond.map(buildItem),
                 ],
                 icon: CircleAvatar(
                   backgroundColor: Colors.transparent,

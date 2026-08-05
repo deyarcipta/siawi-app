@@ -10,7 +10,7 @@ import 'package:siawi_app/utils/colors.dart';
 
 class UploadFoto extends StatefulWidget {
   final VoidCallback signOut;
-  const UploadFoto(this.signOut, {Key? key}) : super(key: key);
+  const UploadFoto(this.signOut, {super.key});
 
   @override
   State<UploadFoto> createState() => _UploadFotoState();

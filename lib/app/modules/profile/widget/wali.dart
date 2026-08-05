@@ -77,7 +77,7 @@ class _WaliScreenState extends State<WaliScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -101,7 +101,7 @@ class _WaliScreenState extends State<WaliScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIK'),
-                          _buildData('${nikWali ?? 'Loading...'}'),
+                          _buildData(nikWali ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -111,7 +111,7 @@ class _WaliScreenState extends State<WaliScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama Wali'),
-                          _buildData('${namaWali ?? 'Loading...'}'),
+                          _buildData(namaWali ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -132,7 +132,7 @@ class _WaliScreenState extends State<WaliScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pendidikan'),
-                          _buildData('${pendidikanWali ?? 'Loading...'}'),
+                          _buildData(pendidikanWali ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -142,7 +142,7 @@ class _WaliScreenState extends State<WaliScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Pekerjaan'),
-                          _buildData('${pekerjaanWali ?? 'Loading...'}'),
+                          _buildData(pekerjaanWali ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -152,7 +152,7 @@ class _WaliScreenState extends State<WaliScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Penghasilan'),
-                          _buildData('${penghasilanWali ?? 'Loading...'}'),
+                          _buildData(penghasilanWali ?? 'Loading...'),
                         ],
                       ),
                     ),

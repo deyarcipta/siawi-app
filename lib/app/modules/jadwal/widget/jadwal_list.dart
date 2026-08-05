@@ -11,8 +11,8 @@ class JadwalList extends StatelessWidget {
   final String scrollKey;
   final String hari;
 
-  JadwalList(
-      {required this.scrollKey, required this.hari, required this.signOut});
+  const JadwalList(
+      {super.key, required this.scrollKey, required this.hari, required this.signOut});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,7 @@ class JadwalList extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "${jadwals[index].namaMapel.length > 25 ? jadwals[index].namaMapel.substring(0, 25) + '...' : jadwals[index].namaMapel}",
+                                  jadwals[index].namaMapel.length > 25 ? '${jadwals[index].namaMapel.substring(0, 25)}...' : jadwals[index].namaMapel,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -83,7 +83,7 @@ class JadwalList extends StatelessWidget {
                                   maxLines: 1,
                                 ),
                                 Text(
-                                  "${jadwals[index].namaGuru}",
+                                  jadwals[index].namaGuru,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.black,

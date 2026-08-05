@@ -108,7 +108,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -133,7 +133,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NIS'),
-                          _buildData('${nis ?? 'Loading...'}'),
+                          _buildData(nis ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -143,7 +143,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('NISN'),
-                          _buildData('${nisn ?? 'Loading...'}'),
+                          _buildData(nisn ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -153,7 +153,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Nama'),
-                          _buildData('${namaSiswa ?? 'Loading...'}'),
+                          _buildData(namaSiswa ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -174,7 +174,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Agama'),
-                          _buildData('${agama ?? 'Loading...'}'),
+                          _buildData(agama ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -185,7 +185,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         children: [
                           _buildTitleData('Jenis Kelamin'),
                           _buildData(
-                              '${jenisKelaminFormatted ?? 'Loading...'}'),
+                              jenisKelaminFormatted ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -194,7 +194,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
               ),
             ),
             SizedBox(height: 30),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -219,7 +219,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('No. HP'),
-                          _buildData('${noHp ?? 'Loading...'}'),
+                          _buildData(noHp ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -229,7 +229,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('No. Telepon'),
-                          _buildData('${noTlpn ?? 'Loading...'}'),
+                          _buildData(noTlpn ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -239,7 +239,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Email'),
-                          _buildData('${email ?? 'Loading...'}'),
+                          _buildData(email ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -248,7 +248,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
               ),
             ),
             SizedBox(height: 30),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -273,7 +273,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Alamat'),
-                          _buildData('${alamat ?? 'Loading...'}'),
+                          _buildData(alamat ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -283,7 +283,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('No. Rumah'),
-                          _buildData('${noRumah ?? 'Loading...'}'),
+                          _buildData(noRumah ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -304,7 +304,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Kelurahan'),
-                          _buildData('${kel ?? 'Loading...'}'),
+                          _buildData(kel ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -314,7 +314,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Kecamatan'),
-                          _buildData('${kec ?? 'Loading...'}'),
+                          _buildData(kec ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -324,7 +324,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Kota'),
-                          _buildData('${kota ?? 'Loading...'}'),
+                          _buildData(kota ?? 'Loading...'),
                         ],
                       ),
                     ),
@@ -334,7 +334,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTitleData('Provinsi'),
-                          _buildData('${prov ?? 'Loading...'}'),
+                          _buildData(prov ?? 'Loading...'),
                         ],
                       ),
                     ),

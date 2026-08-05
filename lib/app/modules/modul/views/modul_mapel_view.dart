@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 
 class ModulMapelView extends StatefulWidget {
-  const ModulMapelView({Key? key}) : super(key: key);
+  const ModulMapelView({super.key});
 
   @override
   State<ModulMapelView> createState() => _ModulMapelViewState();

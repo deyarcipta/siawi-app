@@ -41,7 +41,7 @@ class AppPages {
   static final routes = [
     GetPage(
       name: _Paths.HOME,
-      page: () => MyHomePage(signOut != null ? signOut! : () {}),
+      page: () => MyHomePage(() {}),
       binding: HomeBinding(),
     ),
     GetPage(
@@ -51,37 +51,37 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.INFORMASI,
-      page: () => InformasiView(signOut != null ? signOut! : () {}),
+      page: () => InformasiView(() {}),
       binding: InformasiBinding(),
     ),
     GetPage(
       name: _Paths.TAGIHAN,
-      page: () => TagihanView(signOut != null ? signOut! : () {}),
+      page: () => TagihanView(() {}),
       binding: TagihanBinding(),
     ),
     GetPage(
       name: _Paths.KALENDER,
-      page: () => KalenderView(signOut != null ? signOut! : () {}),
+      page: () => KalenderView(() {}),
       binding: KalenderBinding(),
     ),
     GetPage(
       name: _Paths.ABSENSI,
-      page: () => AbsensiView(signOut != null ? signOut! : () {}),
+      page: () => AbsensiView(() {}),
       binding: AbsensiBinding(),
     ),
     GetPage(
       name: _Paths.JADWAL,
-      page: () => JadwalView(signOut != null ? signOut! : () {}),
+      page: () => JadwalView(() {}),
       binding: JadwalBinding(),
     ),
     GetPage(
       name: _Paths.RAPOT,
-      page: () => RapotView(signOut != null ? signOut! : () {}),
+      page: () => RapotView(() {}),
       binding: RapotBinding(),
     ),
     GetPage(
       name: _Paths.POINT_SISWA,
-      page: () => PointSiswaView(signOut != null ? signOut! : () {}),
+      page: () => PointSiswaView(() {}),
       binding: PointSiswaBinding(),
     ),
     GetPage(
@@ -91,7 +91,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.PROFILE,
-      page: () => ProfileView(signOut != null ? signOut! : () {}),
+      page: () => ProfileView(() {}),
       binding: ProfileBinding(),
     ),
     GetPage(
@@ -101,20 +101,18 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.PASSWORD,
-      page: () => PasswordView(signOut != null ? signOut! : () {}),
+      page: () => PasswordView(() {}),
       binding: PasswordBinding(),
     ),
     GetPage(
       name: _Paths.DOKUMEN_GABUNGAN,
-      page: () => DokumenGabunganView(signOut != null ? signOut! : () {}),
+      page: () => DokumenGabunganView(() {}),
       binding: DokumenGabunganBinding(),
     ),
     GetPage(
       name: _Paths.DOKUMEN,
-      page: () => DokumenView(signOut != null ? signOut! : () {}),
+      page: () => DokumenView(() {}),
       binding: DokumenBinding(),
     ),
   ];
-
-  static get signOut => null;
 }

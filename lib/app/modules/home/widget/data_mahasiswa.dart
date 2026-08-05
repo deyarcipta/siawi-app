@@ -13,7 +13,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 
 class DataMahasiswa extends StatefulWidget {
   final VoidCallback signOut;
-  const DataMahasiswa(this.signOut, {Key? key}) : super(key: key);
+  const DataMahasiswa(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const DataMahasiswa(this.signOut, {super.key});
 

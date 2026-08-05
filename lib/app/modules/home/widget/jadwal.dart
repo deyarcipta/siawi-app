@@ -8,7 +8,7 @@ import 'package:siawi_app/utils/colors.dart';
 
 class JadwalToday extends StatefulWidget {
   final VoidCallback signOut;
-  const JadwalToday(this.signOut, {Key? key}) : super(key: key);
+  const JadwalToday(this.signOut, {super.key});
 
   @override
   State<JadwalToday> createState() => _JadwalState();
@@ -98,7 +98,7 @@ class _JadwalState extends State<JadwalToday> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
+                                    color: Colors.grey.withValues(alpha: 0.5),
                                     spreadRadius: 2,
                                     blurRadius: 4,
                                     offset: const Offset(0, 3),

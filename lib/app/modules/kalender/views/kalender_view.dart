@@ -10,7 +10,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class KalenderView extends StatefulWidget {
   final VoidCallback signOut;
-  const KalenderView(this.signOut, {Key? key}) : super(key: key);
+  const KalenderView(this.signOut, {super.key});
 
   @override
   State<KalenderView> createState() => _KalenderViewState();

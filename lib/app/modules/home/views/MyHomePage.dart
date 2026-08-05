@@ -30,7 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  SignOut() {
+  void SignOut() {
     setState(() {
       _showBottomNavBar = false;
       widget.signOut();

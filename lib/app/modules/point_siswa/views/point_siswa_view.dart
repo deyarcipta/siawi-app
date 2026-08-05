@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class PointSiswaView extends StatefulWidget {
   final VoidCallback signOut;
-  const PointSiswaView(this.signOut, {Key? key}) : super(key: key);
+  const PointSiswaView(this.signOut, {super.key});
 
   @override
   State<PointSiswaView> createState() => _PointSiswaViewState();
@@ -162,7 +162,7 @@ class _PointSiswaViewState extends State<PointSiswaView> {
                                 children: <TextSpan>[
                                   TextSpan(text: 'Total Point : '),
                                   TextSpan(
-                                    text: '${totalSkor}',
+                                    text: '$totalSkor',
                                     style: TextStyle(color: Colors.red),
                                   ),
                                 ],

@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 class Absen extends StatefulWidget {
   final VoidCallback signOut;
-  const Absen(this.signOut, {Key? key}) : super(key: key);
+  const Absen(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const DataMahasiswa(this.signOut, {super.key});
 
@@ -53,7 +53,7 @@ class _AbsenState extends State<Absen> {
       'Absensi Berhasil',
       'Kamu telah melakukan absensi hari ini: ${status.toUpperCase()}',
       snackPosition: SnackPosition.TOP,
-      backgroundColor: color.withOpacity(0.9),
+      backgroundColor: color.withValues(alpha: 0.9),
       colorText: Colors.black87,
       icon: Icon(Icons.check_circle_outline, color: Colors.green[800]),
       margin: const EdgeInsets.all(15),
@@ -165,15 +165,13 @@ class _AbsenState extends State<Absen> {
               kehadiran2 = "ditunggu yaa";
               warna = Colors.blueAccent;
 
-              if (_timer == null) {
-                _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+              _timer ??= Timer.periodic(const Duration(seconds: 10), (timer) {
                   getIdSiswa().then((idSiswa) {
                     if (idSiswa != null) {
                       _checkAttendanceSilently(idSiswa);
                     }
                   });
                 });
-              }
             }
           });
         }

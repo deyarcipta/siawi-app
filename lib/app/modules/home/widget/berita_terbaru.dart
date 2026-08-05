@@ -8,7 +8,7 @@ import 'package:siawi_app/app/modules/home/widget/berita_lengkap.dart';
 
 class BeritaTerbaru extends StatefulWidget {
   final VoidCallback signOut;
-  const BeritaTerbaru(this.signOut, {Key? key}) : super(key: key);
+  const BeritaTerbaru(this.signOut, {super.key});
 
   @override
   State<BeritaTerbaru> createState() => _BeritaTerbaruState();

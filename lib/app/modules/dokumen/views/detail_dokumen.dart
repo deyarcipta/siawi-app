@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 class DetailDokumen extends StatelessWidget {
   final DokumenList dokumen;
 
-  DetailDokumen(this.dokumen, {Key? key}) : super(key: key) {
+  DetailDokumen(this.dokumen, {super.key}) {
     dokumen.fileDokumen = Uri.encodeComponent(dokumen.fileDokumen);
   }
 

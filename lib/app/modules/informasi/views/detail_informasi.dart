@@ -6,9 +6,9 @@ import 'package:http/http.dart' as http;
 class DetailInformasi extends StatelessWidget {
   late String fileURL;
 
-  DetailInformasi({required this.fileURL}) {
+  DetailInformasi({super.key, required this.fileURL}) {
     // Encode the URL after initializing the value
-    this.fileURL = Uri.encodeComponent(fileURL);
+    fileURL = Uri.encodeComponent(fileURL);
   }
 
   var appBarHeight = AppBar().preferredSize.height;

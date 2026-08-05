@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'dart:ui';
 import 'event.dart';
 
 class KegiatanDataSource extends CalendarDataSource {

@@ -8,7 +8,7 @@ import 'package:siawi_app/utils/colors.dart';
 
 class QrCode extends StatefulWidget {
   final VoidCallback signOut;
-  const QrCode(this.signOut, {Key? key}) : super(key: key);
+  const QrCode(this.signOut, {super.key});
 
   @override
   State<QrCode> createState() => _QrCodeState();

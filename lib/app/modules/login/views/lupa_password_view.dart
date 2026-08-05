@@ -3,6 +3,8 @@ import 'package:siawi_app/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LupaPasswordView extends StatefulWidget {
+  const LupaPasswordView({super.key});
+
   @override
   _LupaPasswordViewState createState() => _LupaPasswordViewState();
 }
@@ -27,12 +29,13 @@ class _LupaPasswordViewState extends State<LupaPasswordView> {
     String message =
         "Halo Admin,\nSaya ingin reset password akun saya.\n\nNIS: $nis\nNama: $nama";
 
-    String url =
-        "https://wa.me/$adminPhoneNumber?text=${Uri.encodeFull(message)}";
+    final Uri url =
+        Uri.parse("https://wa.me/$adminPhoneNumber?text=${Uri.encodeFull(message)}");
 
-    if (await canLaunch(url)) {
-      await launch(url);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Gagal membuka WhatsApp")),
       );

@@ -17,6 +17,8 @@ class VersionChecker {
     try {
       final data = await ApiService.get('$apiUrl?current_version=$currentVersion');
 
+      if (!context.mounted) return;
+
       if (data != null && data['update_available'] == true) {
         String downloadUrl = data['download_url'] ?? "";
         _showUpdateDialog(downloadUrl);
@@ -46,6 +48,7 @@ class VersionChecker {
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   } else {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text("Gagal membuka link: $downloadUrl")),

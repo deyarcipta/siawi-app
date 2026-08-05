@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -131,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Tempat, Tanggal Lahir'),
-                                _buildData('${tmptLahir}, ${tglLahir}'),
+                                _buildData('$tmptLahir, $tglLahir'),
                               ],
                             ),
                           ),
@@ -158,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('NIS'),
-                                _buildData('${nis}'),
+                                _buildData('$nis'),
                               ],
                             ),
                           ),
@@ -169,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('NISN'),
-                                _buildData('${nisn}'),
+                                _buildData('$nisn'),
                               ],
                             ),
                           ),
@@ -185,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Agama'),
-                                _buildData('${agama}'),
+                                _buildData('$agama'),
                               ],
                             ),
                           ),
@@ -196,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Jenis Kelamin'),
-                                _buildData('${jenisKelaminFormatted}'),
+                                _buildData('$jenisKelaminFormatted'),
                               ],
                             ),
                           ),
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kompetensi Keahlian'),
-                                _buildData('${namaJurusan}'),
+                                _buildData('$namaJurusan'),
                               ],
                             ),
                           ),
@@ -223,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kelas'),
-                                _buildData('${namaKelas}'),
+                                _buildData('$namaKelas'),
                               ],
                             ),
                           ),
@@ -235,7 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             SizedBox(height: 30),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -262,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('No. HP'),
-                                _buildData('${noHp}'),
+                                _buildData('$noHp'),
                               ],
                             ),
                           ),
@@ -273,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('No. Telepon'),
-                                _buildData('${noTlpn}'),
+                                _buildData('$noTlpn'),
                               ],
                             ),
                           ),
@@ -289,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Alamat'),
-                                _buildData('${alamat}'),
+                                _buildData('$alamat'),
                               ],
                             ),
                           ),
@@ -316,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('RT/RW'),
-                                _buildData('${rt}/${rw}'),
+                                _buildData('$rt/$rw'),
                               ],
                             ),
                           ),
@@ -327,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kelurahan'),
-                                _buildData('${kel}'),
+                                _buildData('$kel'),
                               ],
                             ),
                           ),
@@ -343,7 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTitleData('Kecamatan'),
-                                _buildData('${kec}'),
+                                _buildData('$kec'),
                               ],
                             ),
                           ),

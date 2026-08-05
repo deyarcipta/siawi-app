@@ -14,7 +14,7 @@ import 'package:siawi_app/app/data/api_service.dart';
 
 class InformasiView extends StatefulWidget {
   final VoidCallback signOut;
-  const InformasiView(this.signOut, {Key? key}) : super(key: key);
+  const InformasiView(this.signOut, {super.key});
 
   @override
   State<InformasiView> createState() => _InformasiViewState();
@@ -146,7 +146,7 @@ class _InformasiViewState extends State<InformasiView> {
                             leftIcon: const Icon(Icons.info_outline_rounded,
                                 color: Colors.black),
                             header: Text(
-                              '${informasiList[index].informasi}',
+                              informasiList[index].informasi,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -156,7 +156,7 @@ class _InformasiViewState extends State<InformasiView> {
                             content: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
+                                SizedBox(
                                   width: size.width * 0.7,
                                   child: Column(
                                       crossAxisAlignment:

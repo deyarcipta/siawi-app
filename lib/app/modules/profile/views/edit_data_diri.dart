@@ -15,10 +15,10 @@ class UbahDataDiriScreen extends StatefulWidget {
 }
 
 class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
-  TextEditingController _tglLahirController = TextEditingController();
-  TextEditingController _tglLahirAyahController = TextEditingController();
-  TextEditingController _tglLahirIbuController = TextEditingController();
-  TextEditingController _tglLahirWaliController = TextEditingController();
+  final TextEditingController _tglLahirController = TextEditingController();
+  final TextEditingController _tglLahirAyahController = TextEditingController();
+  final TextEditingController _tglLahirIbuController = TextEditingController();
+  final TextEditingController _tglLahirWaliController = TextEditingController();
 
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -335,7 +335,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           onTap: () => _selectDate(_tglLahirController),
                         ),
                         DropdownButtonFormField<String>(
-                          value: agama,
+                          initialValue: agama,
                           decoration: const InputDecoration(labelText: 'Agama'),
                           items: const [
                             DropdownMenuItem(
@@ -354,7 +354,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: jenisKelaminFormatted,
+                          initialValue: jenisKelaminFormatted,
                           decoration:
                               const InputDecoration(labelText: 'Jenis Kelamin'),
                           items: const [
@@ -525,7 +525,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           onTap: () => _selectDate(_tglLahirAyahController),
                         ),
                         DropdownButtonFormField<String>(
-                          value: pendidikanAyah,
+                          initialValue: pendidikanAyah,
                           decoration: const InputDecoration(
                               labelText: 'Pendidikan Ayah'),
                           items: const [
@@ -543,7 +543,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: pekerjaanAyah,
+                          initialValue: pekerjaanAyah,
                           decoration: const InputDecoration(
                               labelText: 'Pekerjaan Ayah'),
                           items: const [
@@ -568,7 +568,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: penghasilanAyah,
+                          initialValue: penghasilanAyah,
                           decoration: const InputDecoration(
                               labelText: 'Penghasilan Ayah'),
                           items: const [
@@ -628,7 +628,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           onTap: () => _selectDate(_tglLahirIbuController),
                         ),
                         DropdownButtonFormField<String>(
-                          value: pendidikanIbu,
+                          initialValue: pendidikanIbu,
                           decoration: const InputDecoration(
                               labelText: 'Pendidikan Ibu'),
                           items: const [
@@ -646,7 +646,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: pekerjaanIbu,
+                          initialValue: pekerjaanIbu,
                           decoration:
                               const InputDecoration(labelText: 'Pekerjaan Ibu'),
                           items: const [
@@ -671,7 +671,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: penghasilanIbu,
+                          initialValue: penghasilanIbu,
                           decoration: const InputDecoration(
                               labelText: 'Penghasilan Ibu'),
                           items: const [
@@ -738,7 +738,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           onTap: () => _selectDate(_tglLahirWaliController),
                         ),
                         DropdownButtonFormField<String>(
-                          value: pendidikanWali,
+                          initialValue: pendidikanWali,
                           decoration: const InputDecoration(
                               labelText: 'Pendidikan Wali'),
                           items: const [
@@ -756,7 +756,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: pekerjaanWali,
+                          initialValue: pekerjaanWali,
                           decoration: const InputDecoration(
                               labelText: 'Pekerjaan Wali'),
                           items: const [
@@ -781,7 +781,7 @@ class _UbahDataDiriScreenState extends State<UbahDataDiriScreen> {
                           },
                         ),
                         DropdownButtonFormField<String>(
-                          value: penghasilanWali,
+                          initialValue: penghasilanWali,
                           decoration: const InputDecoration(
                               labelText: 'Penghasilan Wali'),
                           items: const [

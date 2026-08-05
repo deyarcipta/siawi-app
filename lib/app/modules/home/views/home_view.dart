@@ -14,8 +14,7 @@ class HomeView extends StatefulWidget {
   final VoidCallback signOut;
   final void Function(bool show)? toggleBottomNavBar;
 
-  const HomeView(this.signOut, {Key? key, this.toggleBottomNavBar})
-      : super(key: key);
+  const HomeView(this.signOut, {super.key, this.toggleBottomNavBar});
 
   @override
   State<HomeView> createState() => _HomeViewState();

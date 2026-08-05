@@ -14,7 +14,7 @@ import 'package:siawi_app/app/data/api_service.dart';
 
 class AbsensiView extends StatefulWidget {
   final VoidCallback signOut;
-  const AbsensiView(this.signOut, {Key? key}) : super(key: key);
+  const AbsensiView(this.signOut, {super.key});
   // final VoidCallback signOut;
   // const AbsensiView(this.signOut, {super.key});
 
@@ -134,9 +134,9 @@ class _AbsensiViewState extends State<AbsensiView> {
                         radius: 60.0,
                         lineWidth: 10.0,
                         percent: kehadiran,
-                        center: new Text(
-                          "${presentaseKehadiran}",
-                          style: new TextStyle(
+                        center: Text(
+                          "$presentaseKehadiran",
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 26.0,
                             color: Colors.white,
@@ -151,8 +151,8 @@ class _AbsensiViewState extends State<AbsensiView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 5),
-                          _buildTitle('${namaSiswa}'),
-                          Container(
+                          _buildTitle('$namaSiswa'),
+                          SizedBox(
                             width: size.width * 0.5,
                             // child: Padding(
                             // padding: EdgeInsets.only(right: 100),
@@ -161,31 +161,31 @@ class _AbsensiViewState extends State<AbsensiView> {
                                 Row(
                                   children: [
                                     _buildTitleData('Hadir'),
-                                    _buildData(': ${jumlahHadir}'),
+                                    _buildData(': $jumlahHadir'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Sakit'),
-                                    _buildData(': ${jumlahSakit}'),
+                                    _buildData(': $jumlahSakit'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Izin'),
-                                    _buildData(': ${jumlahIzin}'),
+                                    _buildData(': $jumlahIzin'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Alfa'),
-                                    _buildData(': ${jumlahAlfa}'),
+                                    _buildData(': $jumlahAlfa'),
                                   ],
                                 ),
                                 Row(
                                   children: [
                                     _buildTitleData('Tidak Hadir'),
-                                    _buildData(': ${jumlahTidakHadir}'),
+                                    _buildData(': $jumlahTidakHadir'),
                                   ],
                                 ),
                               ],
@@ -226,14 +226,14 @@ class _AbsensiViewState extends State<AbsensiView> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.08),
+                            color: Colors.grey.withValues(alpha: 0.08),
                             spreadRadius: 2,
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                         border: Border.all(
-                          color: item.warna.withOpacity(0.15),
+                          color: item.warna.withValues(alpha: 0.15),
                           width: 1.5,
                         ),
                       ),
@@ -246,7 +246,7 @@ class _AbsensiViewState extends State<AbsensiView> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: item.warna.withOpacity(0.1),
+                                color: item.warna.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -329,8 +329,8 @@ class _AbsensiViewState extends State<AbsensiView> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: item.tipeAbsen.contains('Otomatis')
-                                        ? Colors.green.withOpacity(0.12)
-                                        : Colors.orange.withOpacity(0.12),
+                                        ? Colors.green.withValues(alpha: 0.12)
+                                        : Colors.orange.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(

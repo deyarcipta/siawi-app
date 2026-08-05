@@ -11,7 +11,7 @@ import 'package:siawi_app/utils/colors.dart';
 
 class Menu extends StatefulWidget {
   final VoidCallback signOut;
-  const Menu(this.signOut, {Key? key}) : super(key: key);
+  const Menu(this.signOut, {super.key});
 
   @override
   State<Menu> createState() => _MenuState();
@@ -100,12 +100,12 @@ class MenuCard extends StatelessWidget {
   final double width;
 
   const MenuCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.img,
     required this.tujuan,
     required this.width,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

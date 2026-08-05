@@ -7,7 +7,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 class DetailRapot extends StatelessWidget {
   final RapotList rapot;
 
-  DetailRapot(this.rapot) {
+  DetailRapot(this.rapot, {super.key}) {
     rapot.fileRapot = Uri.encodeComponent(rapot.fileRapot);
   }
   var appBarHeight = AppBar().preferredSize.height;
@@ -66,7 +66,7 @@ class DetailRapot extends StatelessWidget {
             SizedBox(height: 10),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 child: SfPdfViewer.network(
