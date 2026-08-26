@@ -15,6 +15,8 @@ class ModulMapelView extends StatefulWidget {
 }
 
 class _ModulMapelViewState extends State<ModulMapelView> {
+  bool isLoading = true;
+
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? idSiswa = preferences.getString('idSiswa');
@@ -27,6 +29,10 @@ class _ModulMapelViewState extends State<ModulMapelView> {
     getIdSiswa().then((idSiswa) {
       if (idSiswa != null) {
         _fetchModul(idSiswa);
+      } else {
+        setState(() {
+          isLoading = false;
+        });
       }
     });
   }
@@ -36,17 +42,25 @@ class _ModulMapelViewState extends State<ModulMapelView> {
     try {
       final responseData = await ApiService.get('/modul/$idSiswa');
       if (responseData != null && responseData['data'] != null) {
-        final Map<String, dynamic> modulData = responseData['data'];
+        final List<dynamic> modulData = responseData['data'];
         setState(() {
           modulList.clear();
-          modulData.forEach((key, value) {
+          for (var value in modulData) {
             ModulList module = ModulList.fromJson(value);
             modulList.add(module);
-          });
+          }
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
         });
       }
     } catch (e) {
       print('Failed to load modul: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -73,37 +87,66 @@ class _ModulMapelViewState extends State<ModulMapelView> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        child: ListView.builder(
-          itemCount: modulList.length,
-          itemBuilder: (context, index) {
-            ModulList modul = modulList[index];
-            return Padding(
-              padding: EdgeInsets.only(bottom: 10),
-              child: ListTile(
-                title: Text(modul.namaMapel),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+        child: isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.mainColor,
                 ),
-                tileColor: AppColors.thirdColor,
-                leading: Image.asset(
-                  "assets/icon/modul.png",
-                  width: 25,
-                  height: 25,
-                ),
-                trailing: Icon(Icons.arrow_forward_rounded),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DetailModulView(modulItems: modul.modulItems),
+              )
+            : modulList.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.menu_book_rounded,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Belum ada modul yang ditambahkan oleh guru',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            );
-          },
-        ),
+                  )
+                : ListView.builder(
+                    itemCount: modulList.length,
+                    itemBuilder: (context, index) {
+                      ModulList modul = modulList[index];
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 10),
+                        child: ListTile(
+                          title: Text(modul.namaMapel),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          tileColor: AppColors.thirdColor,
+                          leading: Image.asset(
+                            "assets/icon/modul.png",
+                            width: 25,
+                            height: 25,
+                          ),
+                          trailing: Icon(Icons.arrow_forward_rounded),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailModulView(
+                                    modulItems: modul.modulItems),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }

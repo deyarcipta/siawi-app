@@ -112,7 +112,7 @@ class ApiService {
     // 2. Check Coalescing (pending request)
     if (_pendingRawRequests.containsKey(endpoint)) {
       debugPrint('ApiService: Coalescing concurrent GET RAW request for $endpoint');
-      return _pendingRawRequests[endpoint];
+      return _pendingRawRequests[endpoint]!;
     }
 
     // 3. Make HTTP request
