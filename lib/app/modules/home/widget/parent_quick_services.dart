@@ -1435,14 +1435,10 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
         }
       } else {
         // Semua sesi telah lewat
-        if (sortedList.length > 1) {
-          completedList = sortedList.sublist(0, sortedList.length - 1);
-          activeItem = sortedList.last;
-          isActuallyOngoing = false;
-        } else {
-          activeItem = sortedList.first;
-          isActuallyOngoing = false;
-        }
+        completedList = List.from(sortedList);
+        activeItem = null;
+        isActuallyOngoing = false;
+        upcomingList = [];
       }
     }
 
@@ -1467,19 +1463,91 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
           _buildJadwalTodayHeader(),
           const SizedBox(height: 16),
 
-          // Sesi Selesai (Horizontal Carousel jika ada)
-          if (completedList.isNotEmpty) ...[
-            _buildCompletedSessionsSection(completedList),
-            const SizedBox(height: 16),
+          // Jika semua sesi telah berakhir (lewat jam kepulangan / sesi terakhir)
+          if (activeItem == null) ...[
+            _buildAllSessionsCompletedBanner(
+              sortedList.isNotEmpty ? sortedList.last.waktuAkhir : '15:00',
+            ),
+            if (completedList.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildCompletedSessionsSection(completedList),
+            ],
+          ] else ...[
+            // Sesi Selesai (Horizontal Carousel jika ada)
+            if (completedList.isNotEmpty) ...[
+              _buildCompletedSessionsSection(completedList),
+              const SizedBox(height: 16),
+            ],
+
+            // Kartu Utama (Active / Highlight)
+            _buildActiveSessionCard(activeItem,
+                isActuallyOngoing: isActuallyOngoing),
+
+            // Sesi Berikutnya Hari Ini (Horizontal Carousel jika ada)
+            if (upcomingList.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              _buildUpcomingSessionsSection(upcomingList),
+            ],
           ],
+        ],
+      ),
+    );
+  }
 
-          // Kartu Utama (Active / Highlight)
-          _buildActiveSessionCard(activeItem, isActuallyOngoing: isActuallyOngoing),
-          const SizedBox(height: 18),
-
-          // Sesi Berikutnya Hari Ini (Horizontal Carousel jika ada)
-          if (upcomingList.isNotEmpty)
-            _buildUpcomingSessionsSection(upcomingList),
+  Widget _buildAllSessionsCompletedBanner(String jamSelesai) {
+    String waktuTeks = jamSelesai.isNotEmpty ? '$jamSelesai WIB' : '15:00 WIB';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFFBBF7D0),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFF16A34A),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pembelajaran Hari Ini Selesai',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF14532D),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Semua sesi pelajaran telah berakhir pada $waktuTeks.',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF166534),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

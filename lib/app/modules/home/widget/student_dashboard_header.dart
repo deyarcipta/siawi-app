@@ -289,6 +289,11 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
           attendanceStatus = rawStatus;
           attendanceJam = rawJam;
           attendanceType = rawType;
+          if (res['streak_biometrik'] != null) {
+            attendanceStreak =
+                int.tryParse(res['streak_biometrik'].toString()) ??
+                    attendanceStreak;
+          }
         });
 
         // Save Cache
@@ -983,7 +988,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
   // 4. KARTU PRESENSI BIOMETRIK (PERSIS SEPERTI GAMBAR)
   //    DENGAN SKENARIO: HADIR, PIKET, TERLAMBAT, SAKIT, IZIN, ALFA
   // ========================================================
-  String _getFormattedTodayDate() {
+  String _getFormattedShortDate() {
     final now = DateTime.now();
     const days = [
       'Senin',
@@ -995,22 +1000,22 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
       'Minggu'
     ];
     const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
       'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember'
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
     ];
     String dayName = days[now.weekday - 1];
     String monthName = months[now.month - 1];
-    return "$dayName, ${now.day} $monthName ${now.year}";
+    return "$dayName, ${now.day} $monthName";
   }
 
   Widget _buildBiometricAttendanceCard(BuildContext context) {
@@ -1037,32 +1042,21 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
     Color badgeBorder = const Color(0xFFA7F3D0);
     Color badgeTextColor = const Color(0xFF047857);
 
-    String tagText = 'Hari Efektif';
-    String jamLabel = 'JAM MASUK TERCATAT';
-    String jamValue = attendanceJam.isNotEmpty ? attendanceJam : '06:45';
-    String jamUnit = 'WIB';
-    Color jamColor = const Color(0xFF0F172A);
+    String labelCol1 = 'MASUK';
+    String valueCol1 = attendanceJam.isNotEmpty ? attendanceJam : '06:45';
+    String unitCol1 = 'WIB';
+    Color valueCol1Color = const Color(0xFF0F172A);
 
+    String streakText = '$attendanceStreak Hari Streak';
     String streakIcon = '🔥';
-    String streakNum = '$attendanceStreak';
-    String streakLabel = 'HARI BERUNTUN';
-    String streakSub = 'Streak Presensi';
     List<Color> streakGradient = [
-      const Color(0xFFFF8A00),
-      const Color(0xFFFF3D00)
+      const Color(0xFFFF9800),
+      const Color(0xFFFF5722)
     ];
-    Color streakShadow = const Color(0xFFFF5722);
-
-    IconData bannerIcon = Icons.auto_awesome;
-    Color bannerIconColor = const Color(0xFF6366F1);
-    String bannerBold = 'Semangat Belajar! ';
-    Color bannerBoldColor = const Color(0xFF4338CA);
-    String bannerNormal =
-        'Raih kompetensi terbaik dan buktikan prestasimu hari ini.';
 
     switch (activeScenario) {
       case 'piket':
-        headerTitle = 'Presensi Piket';
+        headerTitle = 'Presensi Biometrik';
         headerSubtitle = 'Diinput Manual oleh Guru Piket';
         dotColor = const Color(0xFF6366F1);
         iconData = Icons.assignment_ind_rounded;
@@ -1075,29 +1069,18 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFC7D2FE);
         badgeTextColor = const Color(0xFF4338CA);
 
-        tagText = 'Hari Efektif';
-        jamLabel = 'JAM MASUK DICATAT PIKET';
-        jamValue = attendanceJam.isNotEmpty ? attendanceJam : '06:52';
-        jamUnit = 'WIB';
-        jamColor = const Color(0xFF1E1B4B);
+        labelCol1 = 'MASUK';
+        valueCol1 = attendanceJam.isNotEmpty ? attendanceJam : '06:52';
+        unitCol1 = 'WIB';
+        valueCol1Color = const Color(0xFF1E1B4B);
 
-        streakIcon = '🔥';
-        streakNum = '$attendanceStreak';
-        streakLabel = 'HARI BERUNTUN';
-        streakSub = 'Streak Presensi';
-        streakGradient = [const Color(0xFFFF8A00), const Color(0xFFFF3D00)];
-        streakShadow = const Color(0xFFFF5722);
-
-        bannerIcon = Icons.fact_check_rounded;
-        bannerIconColor = const Color(0xFF4F46E5);
-        bannerBold = 'Tercatat oleh Guru Piket. ';
-        bannerBoldColor = const Color(0xFF4338CA);
-        bannerNormal =
-            'Kehadiran fisik telah divalidasi manual di pos piket gerbang.';
+        streakText = 'Putus (Input Piket)';
+        streakIcon = '⚡';
+        streakGradient = [const Color(0xFF64748B), const Color(0xFF475569)];
         break;
 
       case 'terlambat':
-        headerTitle = 'Presensi Terlambat';
+        headerTitle = 'Presensi Biometrik';
         headerSubtitle = 'Melebihi Batas 07.00 WIB';
         dotColor = const Color(0xFFF59E0B);
         iconData = Icons.access_time_filled_rounded;
@@ -1110,27 +1093,16 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFFDE68A);
         badgeTextColor = const Color(0xFFB45309);
 
-        tagText = 'Hari Efektif';
-        jamLabel = 'JAM MASUK TERCATAT';
-        jamValue = attendanceJam.isNotEmpty && attendanceJam != '06:45'
+        labelCol1 = 'MASUK';
+        valueCol1 = attendanceJam.isNotEmpty && attendanceJam != '06:45'
             ? attendanceJam
             : '07:18';
-        jamUnit = 'WIB';
-        jamColor = const Color(0xFFC2410C);
+        unitCol1 = 'WIB';
+        valueCol1Color = const Color(0xFFC2410C);
 
+        streakText = 'Terlambat';
         streakIcon = '⚠️';
-        streakNum = '0';
-        streakLabel = 'TERLAMBAT';
-        streakSub = 'Evaluasi Disiplin';
         streakGradient = [const Color(0xFFF97316), const Color(0xFFEA580C)];
-        streakShadow = const Color(0xFFEA580C);
-
-        bannerIcon = Icons.warning_amber_rounded;
-        bannerIconColor = const Color(0xFFD97706);
-        bannerBold = 'Tingkatkan Kedisiplinan! ';
-        bannerBoldColor = const Color(0xFFB45309);
-        bannerNormal =
-            'Usahakan tiba sebelum pukul 07.00 WIB agar tidak tertinggal materi.';
         break;
 
       case 'sakit':
@@ -1147,25 +1119,14 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFBAE6FD);
         badgeTextColor = const Color(0xFF0369A1);
 
-        tagText = 'Izin Medis';
-        jamLabel = 'STATUS HARI INI';
-        jamValue = 'ISTIRAHAT';
-        jamUnit = '';
-        jamColor = const Color(0xFF0284C7);
+        labelCol1 = 'STATUS';
+        valueCol1 = 'Istirahat';
+        unitCol1 = '';
+        valueCol1Color = const Color(0xFF0284C7);
 
+        streakText = 'Surat Medis';
         streakIcon = '🏥';
-        streakNum = '+';
-        streakLabel = 'PEMULIHAN MEDIS';
-        streakSub = 'Keterangan Dokter';
         streakGradient = [const Color(0xFF0284C7), const Color(0xFF0369A1)];
-        streakShadow = const Color(0xFF0369A1);
-
-        bannerIcon = Icons.favorite_rounded;
-        bannerIconColor = const Color(0xFFE11D48);
-        bannerBold = 'Lekas Sembuh! ';
-        bannerBoldColor = const Color(0xFF0284C7);
-        bannerNormal =
-            'Istirahatlah dengan cukup agar segera pulih dan dapat kembali belajar.';
         break;
 
       case 'izin':
@@ -1182,25 +1143,14 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFE9D5FF);
         badgeTextColor = const Color(0xFF7E22CE);
 
-        tagText = 'Dispensasi';
-        jamLabel = 'STATUS HARI INI';
-        jamValue = 'DISPENSASI';
-        jamUnit = '';
-        jamColor = const Color(0xFF7E22CE);
+        labelCol1 = 'STATUS';
+        valueCol1 = 'Dispensasi';
+        unitCol1 = '';
+        valueCol1Color = const Color(0xFF7E22CE);
 
+        streakText = 'Izin Resmi';
         streakIcon = '📋';
-        streakNum = 'OK';
-        streakLabel = 'SURAT RESMI';
-        streakSub = 'Disetujui Sekolah';
         streakGradient = [const Color(0xFF9333EA), const Color(0xFF6B21A8)];
-        streakShadow = const Color(0xFF6B21A8);
-
-        bannerIcon = Icons.menu_book_rounded;
-        bannerIconColor = const Color(0xFF9333EA);
-        bannerBold = 'Semoga Urusan Lancar! ';
-        bannerBoldColor = const Color(0xFF7E22CE);
-        bannerNormal =
-            'Jangan lupa mengecek materi dan tugas hari ini dari teman sekelas.';
         break;
 
       case 'alfa':
@@ -1218,30 +1168,19 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFFECDD3);
         badgeTextColor = const Color(0xFFBE123C);
 
-        tagText = 'Perlu Konfirmasi';
-        jamLabel = 'STATUS PRESENSI';
-        jamValue = 'TIDAK HADIR';
-        jamUnit = '';
-        jamColor = const Color(0xFFBE123C);
+        labelCol1 = 'STATUS';
+        valueCol1 = 'Tidak Hadir';
+        unitCol1 = '';
+        valueCol1Color = const Color(0xFFBE123C);
 
-        streakIcon = '⚠️';
-        streakNum = '0';
-        streakLabel = 'STREAK TERHENTI';
-        streakSub = 'Poin Berkurang';
+        streakText = 'Alfa (0 Hari)';
+        streakIcon = '❌';
         streakGradient = [const Color(0xFFE11D48), const Color(0xFF9F1239)];
-        streakShadow = const Color(0xFF9F1239);
-
-        bannerIcon = Icons.report_problem_rounded;
-        bannerIconColor = const Color(0xFFE11D48);
-        bannerBold = 'Peringatan Presensi! ';
-        bannerBoldColor = const Color(0xFFBE123C);
-        bannerNormal =
-            'Segera hubungi wali kelas atau guru piket untuk konfirmasi kehadiran.';
         break;
 
       case 'belum':
         headerTitle = 'Presensi Biometrik';
-        headerSubtitle = 'Silakan Tap RFID / Wajah di Gerbang';
+        headerSubtitle = 'RFID & Face ID Terverifikasi';
         dotColor = const Color(0xFF94A3B8);
         iconData = Icons.fingerprint_rounded;
         iconGradient = [const Color(0xFF94A3B8), const Color(0xFF64748B)];
@@ -1253,39 +1192,28 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         badgeBorder = const Color(0xFFCBD5E1);
         badgeTextColor = const Color(0xFF475569);
 
-        tagText = 'Hari Efektif';
-        jamLabel = 'MENUNGGU SCAN GERBANG';
-        jamValue = '-- : --';
-        jamUnit = 'WIB';
-        jamColor = const Color(0xFF64748B);
+        labelCol1 = 'MASUK';
+        valueCol1 = '-- : --';
+        unitCol1 = 'WIB';
+        valueCol1Color = const Color(0xFF64748B);
 
+        streakText = '$attendanceStreak Hari Streak';
         streakIcon = '🔥';
-        streakNum = '$attendanceStreak';
-        streakLabel = 'HARI BERUNTUN';
-        streakSub = 'Streak Aktif';
-        streakGradient = [const Color(0xFFFF8A00), const Color(0xFFFF3D00)];
-        streakShadow = const Color(0xFFFF5722);
-
-        bannerIcon = Icons.alarm_rounded;
-        bannerIconColor = const Color(0xFF6366F1);
-        bannerBold = 'Selamat Pagi! ';
-        bannerBoldColor = const Color(0xFF4338CA);
-        bannerNormal =
-            'Pintu gerbang dibuka pukul 06.30 WIB. Jangan lupa scan kehadiran ya.';
+        streakGradient = [const Color(0xFFFF9800), const Color(0xFFFF5722)];
         break;
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4F46E5).withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: const Color(0xFF4F46E5).withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -1301,8 +1229,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
@@ -1312,9 +1240,9 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: iconShadow.withValues(alpha: 0.35),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: iconShadow.withValues(alpha: 0.32),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -1322,11 +1250,11 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                       child: Icon(
                         iconData,
                         color: Colors.white,
-                        size: 27,
+                        size: 25,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1335,7 +1263,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                           Text(
                             headerTitle,
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 14.5,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF0F172A),
                               letterSpacing: -0.2,
@@ -1343,8 +1271,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            width: 6.5,
-                            height: 6.5,
+                            width: 6,
+                            height: 6,
                             decoration: BoxDecoration(
                               color: dotColor,
                               shape: BoxShape.circle,
@@ -1352,7 +1280,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         headerSubtitle,
                         style: const TextStyle(
@@ -1372,8 +1300,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                   borderRadius: BorderRadius.circular(20),
                   onTap: () => _showScenarioSelectorModal(context),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5.5),
                     decoration: BoxDecoration(
                       color: badgeBg,
                       borderRadius: BorderRadius.circular(20),
@@ -1388,9 +1316,9 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                         Icon(
                           badgeIcon,
                           color: badgeTextColor,
-                          size: 15,
+                          size: 14,
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 4),
                         Text(
                           badgeText,
                           style: TextStyle(
@@ -1407,99 +1335,56 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
-          // 2. ROW TANGGAL: KALENDER & HARI EFEKTIF
+          // 2. INNER PILL CONTAINER: MASUK | TANGGAL | STREAK PILL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
+                width: 1,
+              ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 17,
-                      color: Color(0xFF4F46E5),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _getFormattedTodayDate(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    tagText,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF4F46E5),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // 3. ROW JAM MASUK TERCATAT vs STREAK PRESENSI
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Kiri: Jam Masuk
-              Expanded(
-                child: Column(
+                // KOLOM 1: MASUK
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      jamLabel,
+                      labelCol1,
                       style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF4F46E5),
-                        letterSpacing: 0.6,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF64748B),
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          jamValue,
+                          valueCol1,
                           style: TextStyle(
-                            fontSize: jamValue.length > 5 ? 20 : 32,
+                            fontSize: valueCol1.length > 5 ? 14 : 17,
                             fontWeight: FontWeight.w900,
-                            color: jamColor,
-                            letterSpacing: -0.5,
+                            color: valueCol1Color,
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        if (jamUnit.isNotEmpty) ...[
-                          const SizedBox(width: 6),
+                        if (unitCol1.isNotEmpty) ...[
+                          const SizedBox(width: 4),
                           Text(
-                            jamUnit,
+                            unitCol1,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF4338CA),
+                              color: Color(0xFF4F46E5),
                             ),
                           ),
                         ],
@@ -1507,119 +1392,85 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Kanan: Card Gradient Streak Oranye-Merah
-              Container(
-                width: 142,
-                height: 76,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: streakGradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: streakShadow.withValues(alpha: 0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          streakIcon,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          streakNum,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      streakLabel,
-                      style: const TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    Text(
-                      streakSub,
-                      style: TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
 
-          const SizedBox(height: 14),
+                const SizedBox(width: 14),
 
-          // 4. MOTIVATIONAL BANNER
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1.2,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  bannerIcon,
-                  color: bannerIconColor,
-                  size: 18,
+                // DIVIDER VERTIKAL HALUS
+                Container(
+                  height: 26,
+                  width: 1,
+                  color: const Color(0xFFCBD5E1),
                 ),
-                const SizedBox(width: 10),
+
+                const SizedBox(width: 14),
+
+                // KOLOM 2: TANGGAL
                 Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: bannerBold,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: bannerBoldColor,
-                            fontSize: 11.5,
-                          ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'TANGGAL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF64748B),
+                          letterSpacing: 0.5,
                         ),
-                        TextSpan(
-                          text: bannerNormal,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF334155),
-                            fontSize: 11.5,
-                            height: 1.3,
-                          ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _getFormattedShortDate(),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
                         ),
-                      ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // KOLOM 3: STREAK PILL ORANYE
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: streakGradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: streakGradient.first.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        streakIcon,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        streakText,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

@@ -108,14 +108,14 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ),
                   ),
-                  if (role != 'orang_tua') ...[
-                    JadwalToday(widget.signOut),
-                  ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   if (role == 'orang_tua')
                     ParentQuickServices(widget.signOut, childId: _activeChildId)
-                  else
+                  else ...[
                     Menu(widget.signOut),
+                    const SizedBox(height: 20),
+                    JadwalToday(widget.signOut),
+                  ],
                   const SizedBox(height: 20),
                   BeritaTerbaru(widget.signOut),
                   const SizedBox(height: 12),
