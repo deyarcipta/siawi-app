@@ -104,6 +104,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             pklPeriode = cMap['pklPeriode'];
             pklGuru = cMap['pklGuru'];
           });
+          await preferences.setBool('is_pkl_level', isPklLevel);
         } catch (_) {}
       }
 
@@ -299,6 +300,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         // Save Cache
         try {
           SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('is_pkl_level', isPklLevel);
+          await prefs.setString('namaKelas', namaKelas);
           await prefs.setString(
             'cached_student_header_$studentId',
             jsonEncode({

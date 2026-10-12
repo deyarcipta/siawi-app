@@ -18,7 +18,7 @@ class ApiService {
   static final Map<String, _RawCacheEntry> _rawCache = {};
 
   // Helper to handle response status and potential non-JSON formats
-  static dynamic _processResponse(http.Response response) {
+  static dynamic _processResponse(http.Response response, {bool silent = false}) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       try {
         return json.decode(response.body);
@@ -26,8 +26,10 @@ class ApiService {
         throw const FormatException('Format respons dari server tidak valid (bukan JSON).');
       }
     } else {
-      debugPrint('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
-      debugPrint('API Response Body: ${response.body}');
+      if (!silent) {
+        debugPrint('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
+        debugPrint('API Response Body: ${response.body}');
+      }
       // Try to parse error message from JSON, default to status code info
       String errorMsg = 'Error ${response.statusCode}';
       try {
@@ -42,7 +44,7 @@ class ApiService {
   }
 
   // GET request wrapper with caching and request coalescing
-  static Future<dynamic> get(String endpoint, {bool forceRefresh = false}) async {
+  static Future<dynamic> get(String endpoint, {bool forceRefresh = false, bool silent = false}) async {
     final now = DateTime.now();
 
     // 1. Check Cache
@@ -68,22 +70,22 @@ class ApiService {
         final response = await http
             .get(Uri.parse('$baseUrl$endpoint'))
             .timeout(timeoutDuration);
-        final processed = _processResponse(response);
+        final processed = _processResponse(response, silent: silent);
         
         // Cache successful response
         _cache[endpoint] = _CacheEntry(processed, DateTime.now());
         return processed;
       } on SocketException {
-        _showToast('Koneksi internet bermasalah. Periksa koneksi Anda.');
+        if (!silent) _showToast('Koneksi internet bermasalah. Periksa koneksi Anda.');
         throw const SocketException('Koneksi internet terputus.');
       } on TimeoutException {
-        _showToast('Koneksi ke server habis (Timeout). Coba lagi nanti.');
+        if (!silent) _showToast('Koneksi ke server habis (Timeout). Coba lagi nanti.');
         throw TimeoutException('Request timeout.');
       } on HttpException catch (e) {
-        _showToast(e.message);
+        if (!silent) _showToast(e.message);
         rethrow;
       } catch (e) {
-        _showToast('Terjadi kesalahan: ${e.toString()}');
+        if (!silent) _showToast('Terjadi kesalahan: ${e.toString()}');
         rethrow;
       } finally {
         _pendingRequests.remove(endpoint);
@@ -155,6 +157,35 @@ class ApiService {
     try {
       final response = await http
           .post(Uri.parse('$baseUrl$endpoint'), body: body)
+          .timeout(timeoutDuration);
+      return _processResponse(response);
+    } on SocketException {
+      _showToast('Koneksi internet bermasalah. Periksa koneksi Anda.');
+      throw const SocketException('Koneksi internet terputus.');
+    } on TimeoutException {
+      _showToast('Koneksi ke server habis (Timeout). Coba lagi nanti.');
+      throw TimeoutException('Request timeout.');
+    } on HttpException catch (e) {
+      _showToast(e.message);
+      rethrow;
+    } catch (e) {
+      _showToast('Terjadi kesalahan: ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  // POST JSON request wrapper
+  static Future<dynamic> postJson(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode(body),
+          )
           .timeout(timeoutDuration);
       return _processResponse(response);
     } on SocketException {

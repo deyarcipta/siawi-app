@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/absensi/views/absensi_view.dart';
 import 'package:siawi_app/app/modules/dokumen_gabungan/views/dokumen_gabungan_view.dart';
 import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
@@ -8,6 +8,7 @@ import 'package:siawi_app/app/modules/jadwal/views/jadwal_view.dart';
 import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
+import 'package:siawi_app/app/modules/pengajuan_pkl/views/pengajuan_pkl_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 
 class Menu extends StatefulWidget {
@@ -24,7 +25,6 @@ class _MenuItemData {
   final Color bgColor;
   final Color iconColor;
   final Widget? destination;
-  final VoidCallback? onTap;
 
   const _MenuItemData({
     required this.title,
@@ -32,12 +32,12 @@ class _MenuItemData {
     required this.bgColor,
     required this.iconColor,
     this.destination,
-    this.onTap,
   });
 }
 
 class _MenuState extends State<Menu> {
   String role = "siswa";
+  bool isPklLevel = true;
 
   @override
   void initState() {
@@ -47,251 +47,34 @@ class _MenuState extends State<Menu> {
 
   Future<void> _loadRole() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
+    String currentRole = preferences.getString('role') ?? 'siswa';
+    String? idSiswa = preferences.getString('idSiswa');
+
+    bool pklLevel = true;
+    if (preferences.containsKey('is_pkl_level')) {
+      pklLevel = preferences.getBool('is_pkl_level') ?? true;
+    } else if (idSiswa != null) {
+      String? cacheRaw =
+          preferences.getString('cached_student_header_$idSiswa');
+      if (cacheRaw != null && cacheRaw.isNotEmpty) {
+        try {
+          var cMap = jsonDecode(cacheRaw);
+          if (cMap['isPklLevel'] != null) {
+            pklLevel = cMap['isPklLevel'] == true;
+          } else if (cMap['namaKelas'] != null) {
+            String nk = cMap['namaKelas'].toString().toUpperCase();
+            pklLevel = !nk.startsWith('X-') && !nk.startsWith('X ');
+          }
+        } catch (_) {}
+      }
+    }
+
     if (mounted) {
       setState(() {
-        role = preferences.getString('role') ?? 'siswa';
+        role = currentRole;
+        isPklLevel = pklLevel;
       });
     }
-  }
-
-  void _showSuratPklModal() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? idSiswa = prefs.getString('idSiswa');
-
-    if (!mounted) return;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-              20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE6FAF5),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.work_outline_rounded,
-                      color: Color(0xFF0F766E),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Layanan Surat PKL",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          "Pengajuan & Monitoring Surat PKL Siswa",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              FutureBuilder<dynamic>(
-                future: idSiswa != null
-                    ? ApiService.get('/pengajuan-pkl/$idSiswa')
-                    : Future.value(null),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF0F766E),
-                          strokeWidth: 2.5,
-                        ),
-                      ),
-                    );
-                  }
-
-                  List<dynamic> items = [];
-                  if (snapshot.hasData && snapshot.data != null) {
-                    items = snapshot.data['data'] ?? [];
-                  }
-
-                  if (items.isEmpty) {
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Column(
-                        children: const [
-                          Icon(Icons.assignment_late_outlined,
-                              color: Color(0xFF94A3B8), size: 36),
-                          SizedBox(height: 8),
-                          Text(
-                            "Belum Ada Pengajuan Surat PKL",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: Color(0xFF334155),
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Pengajuan surat permohonan PKL dapat dikoordinasikan langsung ke pihak BKK & Hubin Sekolah.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: items.take(3).map((item) {
-                      String status =
-                          (item['status'] ?? 'pending').toString().toLowerCase();
-                      Color statusColor;
-                      String statusText;
-
-                      if (status == 'acc' || status == 'disetujui') {
-                        statusColor = const Color(0xFF10B981);
-                        statusText = 'Disetujui (ACC)';
-                      } else if (status == 'ditolak') {
-                        statusColor = const Color(0xFFEF4444);
-                        statusText = 'Ditolak';
-                      } else {
-                        statusColor = const Color(0xFFF59E0B);
-                        statusText = 'Menunggu Proses';
-                      }
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item['nama_perusahaan'] ??
-                                        item['perusahaan']?['nama_perusahaan'] ??
-                                        'Instansi / Perusahaan',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13.5,
-                                      color: Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    "No: ${item['kode_pengajuan'] ?? '-'}",
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                statusText,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F766E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "Tutup",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   List<_MenuItemData> _getSiswaMenuItems() {
@@ -358,7 +141,7 @@ class _MenuState extends State<Menu> {
         icon: Icons.work_outline_rounded,
         bgColor: const Color(0xFFE6FAF5),
         iconColor: const Color(0xFF0F766E),
-        onTap: _showSuratPklModal,
+        destination: PengajuanPklView(widget.signOut),
       ),
     ];
   }
@@ -543,15 +326,31 @@ class _MenuState extends State<Menu> {
   }
 
   Widget _buildMenuItem(_MenuItemData item) {
+    bool isPklMenu = item.title == "Surat PKL";
+    bool isLocked = isPklMenu && !isPklLevel;
+
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        if (isPklMenu) {
+          // Validasi secara realtime dengan preferences terkini
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          bool allowed = isPklLevel;
+          if (prefs.containsKey('is_pkl_level')) {
+            allowed = prefs.getBool('is_pkl_level') ?? allowed;
+          }
+          if (!allowed) {
+            if (!mounted) return;
+            _showPklRestrictedDialog(context);
+            return;
+          }
+        }
+
         if (item.destination != null) {
+          if (!mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => item.destination!),
           );
-        } else if (item.onTap != null) {
-          item.onTap!();
         }
       },
       behavior: HitTestBehavior.opaque,
@@ -569,20 +368,50 @@ class _MenuState extends State<Menu> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Squircle container warna pastel dengan icon berwarna
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: item.bgColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                item.icon,
-                color: item.iconColor,
-                size: 24,
-              ),
+            // Squircle container warna pastel dengan icon berwarna & badge lock jika tidak aktif
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isLocked ? const Color(0xFFF1F5F9) : item.bgColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    item.icon,
+                    color: isLocked ? const Color(0xFF94A3B8) : item.iconColor,
+                    size: 24,
+                  ),
+                ),
+                if (isLocked)
+                  Positioned(
+                    top: -3,
+                    right: -3,
+                    child: Container(
+                      padding: const EdgeInsets.all(3.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF64748B),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        size: 10,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             // Jarak icon dan teks dibuat rapat/dekat sesuai permintaan user
             const SizedBox(height: 5),
@@ -600,10 +429,12 @@ class _MenuState extends State<Menu> {
                       item.title,
                       textAlign: TextAlign.center,
                       maxLines: 2,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
+                        color: isLocked
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF1E293B),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -614,6 +445,144 @@ class _MenuState extends State<Menu> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPklRestrictedDialog(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "PklRestrictedDialog",
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      transitionDuration: const Duration(milliseconds: 250),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: FadeTransition(opacity: anim1, child: child),
+        );
+      },
+      pageBuilder: (context, anim1, anim2) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 25,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon Header Lingkaran
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.2),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.lock_person_rounded,
+                      color: Color(0xFFD97706),
+                      size: 34,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Badge Layanan BKK & Hubin
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    "Layanan BKK & Hubin",
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF4F46E5),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Judul
+                const Text(
+                  "Khusus Tingkat Aktif PKL",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Deskripsi Penjelasan
+                Text(
+                  "Menu Surat PKL hanya dapat diakses oleh siswa pada tingkat yang sedang aktif mengikuti program PKL.\n\nTingkat kelas Anda saat ini belum memasuki masa aktif PKL yang ditetapkan oleh sekolah. Silakan berkoordinasi dengan wali kelas atau pihak BKK & Hubin jika ada pertanyaan.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // Tombol Aksi "Saya Mengerti"
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      "Saya Mengerti",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
