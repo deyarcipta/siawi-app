@@ -7,6 +7,7 @@ import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class Menu extends StatefulWidget {
@@ -18,6 +19,21 @@ class Menu extends StatefulWidget {
 }
 
 class _MenuState extends State<Menu> {
+  String role = "siswa";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      role = preferences.getString('role') ?? 'siswa';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -36,56 +52,101 @@ class _MenuState extends State<Menu> {
           child: Wrap(
             spacing: 5.0,
             runSpacing: 5.0,
-            children: <Widget>[
-              MenuCard(
-                title: "Informasi Sekolah",
-                img: "assets/icon/informasi.png",
-                tujuan: InformasiView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Kalender Sekolah",
-                img: "assets/icon/kalender-sekolah.png",
-                tujuan: KalenderView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Absensi",
-                img: "assets/icon/absen.png",
-                tujuan: AbsensiView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Jadwal Mata Pelajaran",
-                img: "assets/icon/jadwal.png",
-                tujuan: JadwalView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Dokumen",
-                img: "assets/icon/e-rapot.png",
-                tujuan: DokumenGabunganView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Tagihan",
-                img: "assets/icon/tagihan.png",
-                tujuan: TagihanView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Point Siswa",
-                img: "assets/icon/point.png",
-                tujuan: PointSiswaView(widget.signOut),
-                width: width,
-              ),
-              MenuCard(
-                title: "Modul",
-                img: "assets/icon/modul.png",
-                tujuan: ModulMapelView(),
-                width: width,
-              ),
-            ],
+            children: role == "orang_tua"
+                ? <Widget>[
+                    MenuCard(
+                      title: "Tagihan",
+                      img: "assets/icon/tagihan.png",
+                      tujuan: TagihanView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Absensi",
+                      img: "assets/icon/absen.png",
+                      tujuan: AbsensiView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Point Siswa",
+                      img: "assets/icon/point.png",
+                      tujuan: PointSiswaView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Dokumen",
+                      img: "assets/icon/e-rapot.png",
+                      tujuan: DokumenGabunganView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Jadwal Pelajaran",
+                      img: "assets/icon/jadwal.png",
+                      tujuan: JadwalView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Kalender Sekolah",
+                      img: "assets/icon/kalender-sekolah.png",
+                      tujuan: KalenderView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Informasi Sekolah",
+                      img: "assets/icon/informasi.png",
+                      tujuan: InformasiView(widget.signOut),
+                      width: width,
+                    ),
+                  ]
+                : <Widget>[
+                    MenuCard(
+                      title: "Jadwal Pelajaran",
+                      img: "assets/icon/jadwal.png",
+                      tujuan: JadwalView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Modul",
+                      img: "assets/icon/modul.png",
+                      tujuan: ModulMapelView(),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Absensi",
+                      img: "assets/icon/absen.png",
+                      tujuan: AbsensiView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Dokumen",
+                      img: "assets/icon/e-rapot.png",
+                      tujuan: DokumenGabunganView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Point Siswa",
+                      img: "assets/icon/point.png",
+                      tujuan: PointSiswaView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Kalender Sekolah",
+                      img: "assets/icon/kalender-sekolah.png",
+                      tujuan: KalenderView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Informasi Sekolah",
+                      img: "assets/icon/informasi.png",
+                      tujuan: InformasiView(widget.signOut),
+                      width: width,
+                    ),
+                    MenuCard(
+                      title: "Tagihan",
+                      img: "assets/icon/tagihan.png",
+                      tujuan: TagihanView(widget.signOut),
+                      width: width,
+                    ),
+                  ],
           ),
         );
       },

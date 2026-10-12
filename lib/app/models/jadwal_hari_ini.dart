@@ -19,13 +19,13 @@ class JadwalHariIni {
 
   factory JadwalHariIni.fromJson(Map<String, dynamic> json) {
     return JadwalHariIni(
-      namaMapel: json['nama_mapel'],
-      namaGuru: json['nama_guru'],
-      jamAwal: json['jam_awal'],
-      jamAkhir: json['jam_akhir'],
-      waktuAwal: json['waktu_awal'],
-      waktuAkhir: json['waktu_akhir'],
-      statusKehadiran: json['status_kehadiran'],
+      namaMapel: json['nama_mapel']?.toString() ?? '',
+      namaGuru: json['nama_guru']?.toString() ?? '',
+      jamAwal: json['jam_awal']?.toString() ?? '',
+      jamAkhir: json['jam_akhir']?.toString() ?? '',
+      waktuAwal: json['waktu_awal']?.toString() ?? '',
+      waktuAkhir: json['waktu_akhir']?.toString() ?? '',
+      statusKehadiran: json['status_kehadiran']?.toString() ?? '',
     );
   }
 }

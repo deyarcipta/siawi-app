@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/models/jadwal_hari_ini.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 
@@ -127,41 +125,45 @@ class _JadwalState extends State<JadwalToday> {
                                         ),
                                       ),
                                       const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            jadwalHariIniList[index].jamAwal,
-                                            style:
-                                                const TextStyle(fontSize: 10),
-                                          ),
-                                          const Text(
-                                            ' s/d ',
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                          Text(
-                                            jadwalHariIniList[index].jamAkhir,
-                                            style:
-                                                const TextStyle(fontSize: 10),
-                                          ),
-                                          const Text(
-                                            ' | ',
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                          Text(
-                                            jadwalHariIniList[index].waktuAwal,
-                                            style:
-                                                const TextStyle(fontSize: 10),
-                                          ),
-                                          const Text(
-                                            ' s/d ',
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                          Text(
-                                            jadwalHariIniList[index].waktuAkhir,
-                                            style:
-                                                const TextStyle(fontSize: 10),
-                                          ),
-                                        ],
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              jadwalHariIniList[index].jamAwal,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
+                                            ),
+                                            const Text(
+                                              ' s/d ',
+                                              style: TextStyle(fontSize: 10),
+                                            ),
+                                            Text(
+                                              jadwalHariIniList[index].jamAkhir,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
+                                            ),
+                                            const Text(
+                                              ' | ',
+                                              style: TextStyle(fontSize: 10),
+                                            ),
+                                            Text(
+                                              jadwalHariIniList[index].waktuAwal,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
+                                            ),
+                                            const Text(
+                                              ' s/d ',
+                                              style: TextStyle(fontSize: 10),
+                                            ),
+                                            Text(
+                                              jadwalHariIniList[index].waktuAkhir,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       const SizedBox(height: 2),
                                       Row(
@@ -178,13 +180,17 @@ class _JadwalState extends State<JadwalToday> {
                                                       .statusKehadiran),
                                             ),
                                           ),
-                                          Text(
-                                            jadwalHariIniList[index].namaGuru,
-                                            style:
-                                                const TextStyle(fontSize: 10),
+                                          Expanded(
+                                            child: Text(
+                                              jadwalHariIniList[index].namaGuru,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
                                         ],
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),

@@ -26,8 +26,8 @@ class ApiService {
         throw const FormatException('Format respons dari server tidak valid (bukan JSON).');
       }
     } else {
-      print('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
-      print('API Response Body: ${response.body}');
+      debugPrint('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
+      debugPrint('API Response Body: ${response.body}');
       // Try to parse error message from JSON, default to status code info
       String errorMsg = 'Error ${response.statusCode}';
       try {
@@ -126,7 +126,7 @@ class ApiService {
           _rawCache[endpoint] = _RawCacheEntry(body, DateTime.now());
           return body;
         } else {
-          print('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
+          debugPrint('API Failure on: ${response.request?.url} with status code ${response.statusCode}');
           throw HttpException('Error ${response.statusCode}');
         }
       } on SocketException {

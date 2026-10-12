@@ -22,9 +22,15 @@ class _HeaderState extends State<Header> {
   String? nama;
   String? fileFoto;
   String? namaJurusan;
+  String role = "siswa";
+  String? namaOrtu;
 
   Future<String?> getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      role = preferences.getString('role') ?? 'siswa';
+      namaOrtu = preferences.getString('namaOrtu');
+    });
     String? idSiswa = preferences.getString('idSiswa');
     return idSiswa;
   }
@@ -74,16 +80,19 @@ class _HeaderState extends State<Header> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Welcome,',
-                style: TextStyle(
+                role == 'orang_tua' ? 'Portal Orang Tua,' : 'Welcome,',
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white,
                 ),
               ),
               Text(
-                nama ?? 'Loading...',
+                role == 'orang_tua' && namaOrtu != null && namaOrtu!.isNotEmpty
+                    ? namaOrtu!
+                    : (nama ?? 'Loading...'),
                 maxLines: 1,
-                style: TextStyle(
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

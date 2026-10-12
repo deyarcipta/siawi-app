@@ -3,19 +3,23 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:siawi_app/app/data/api_service.dart';
 
 class VersionChecker {
+  // Versi aplikasi saat ini (disinkronkan dengan pubspec.yaml dan splash screen)
+  static const String appVersion = "1.1.4";
+
   final BuildContext context;
   final String currentVersion;
   final String apiUrl;
 
   VersionChecker({
     required this.context,
-    required this.currentVersion,
-    required this.apiUrl,
+    this.currentVersion = appVersion,
+    this.apiUrl = "/latest-version",
   });
 
   Future<void> checkForUpdate() async {
     try {
-      final data = await ApiService.get('$apiUrl?current_version=$currentVersion');
+      final data =
+          await ApiService.get('$apiUrl?current_version=$currentVersion');
 
       if (!context.mounted) return;
 
@@ -24,7 +28,7 @@ class VersionChecker {
         _showUpdateDialog(downloadUrl);
       }
     } catch (e) {
-      print("Terjadi kesalahan saat memeriksa versi: $e");
+      debugPrint("Terjadi kesalahan saat memeriksa versi: $e");
     }
   }
 

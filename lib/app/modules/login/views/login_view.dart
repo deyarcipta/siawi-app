@@ -48,10 +48,10 @@ Future<void> _launchURL() async {
   }
 }
 
-enum LoginStatus { notSignIn, signIn }
+enum LoginStatus { notSignIn, signIn, loading }
 
 class _LoginSiawiState extends State<LoginSiawi> {
-  LoginStatus _loginStatus = LoginStatus.notSignIn;
+  LoginStatus _loginStatus = LoginStatus.loading;
   late String nis, password;
   final _key = GlobalKey<FormState>();
 
@@ -81,7 +81,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
       if (jsonResponse != null && jsonResponse['success'] == true) {
         Fluttertoast.showToast(
-          msg: 'Login Berhasil',
+          msg: jsonResponse['message'] ?? 'Login Berhasil',
           backgroundColor: Colors.green,
           textColor: Colors.white,
           toastLength: Toast.LENGTH_SHORT,
@@ -89,16 +89,39 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
         var userData = jsonResponse['data'];
         int value = 1;
-        var idSiswaAPI = userData['id_siswa'].toString();
-        var nisApi = userData['nis'].toString();
+        var role =
+            (jsonResponse['role'] ?? userData['role'] ?? 'siswa').toString();
+        var idSiswaAPI = (userData['id_siswa'] ?? '').toString();
+        var nisApi = (userData['nis'] ?? userData['username'] ?? '').toString();
+        var namaOrtu = (userData['nama_lengkap'] ?? '').toString();
+        var idOrangTua = (userData['id_orang_tua'] ?? '').toString();
+        var childrenList =
+            jsonResponse['children'] ?? userData['children'] ?? [];
+        String childrenJson = jsonEncode(childrenList);
 
-        await savePref(value, idSiswaAPI, nisApi);
+        // Jika orang tua dan memiliki anak, gunakan anak pertama jika idSiswaAPI kosong
+        if (role == 'orang_tua' &&
+            idSiswaAPI.isEmpty &&
+            childrenList is List &&
+            childrenList.isNotEmpty) {
+          idSiswaAPI = (childrenList[0]['id_siswa'] ?? '').toString();
+        }
+
+        await savePref(
+          value: value,
+          idSiswa: idSiswaAPI,
+          nis: nisApi,
+          role: role,
+          namaOrtu: namaOrtu,
+          idOrangTua: idOrangTua,
+          childrenJson: childrenJson,
+        );
 
         setState(() {
           _loginStatus = LoginStatus.signIn;
         });
 
-        print('Berhasil login: $nisApi');
+        print('Berhasil login sebagai $role: $nisApi');
       } else {
         var errorMessage =
             jsonResponse?['message'] ?? "Terjadi kesalahan saat login";
@@ -117,11 +140,29 @@ class _LoginSiawiState extends State<LoginSiawi> {
     }
   }
 
-  Future<void> savePref(int value, String idSiswa, String nis) async {
+  Future<void> savePref({
+    required int value,
+    required String idSiswa,
+    required String nis,
+    required String role,
+    String? namaOrtu,
+    String? idOrangTua,
+    String? childrenJson,
+  }) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setInt('value', value);
     await preferences.setString('idSiswa', idSiswa);
     await preferences.setString('nis', nis);
+    await preferences.setString('role', role);
+    if (namaOrtu != null && namaOrtu.isNotEmpty) {
+      await preferences.setString('namaOrtu', namaOrtu);
+    }
+    if (idOrangTua != null && idOrangTua.isNotEmpty) {
+      await preferences.setString('idOrangTua', idOrangTua);
+    }
+    if (childrenJson != null && childrenJson.isNotEmpty) {
+      await preferences.setString('childrenJson', childrenJson);
+    }
   }
 
   // ignore: prefer_typing_uninitialized_variables
@@ -139,6 +180,10 @@ class _LoginSiawiState extends State<LoginSiawi> {
   Future<void> SignOut() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setInt("value", 0);
+    await preferences.remove("role");
+    await preferences.remove("namaOrtu");
+    await preferences.remove("idOrangTua");
+    await preferences.remove("childrenJson");
     setState(() {
       _loginStatus = LoginStatus.notSignIn;
     });
@@ -153,6 +198,11 @@ class _LoginSiawiState extends State<LoginSiawi> {
   @override
   Widget build(BuildContext context) {
     switch (_loginStatus) {
+      case LoginStatus.loading:
+        return Scaffold(
+          backgroundColor: AppColors.backgroundColor,
+          body: const SizedBox.shrink(),
+        );
       case LoginStatus.notSignIn:
         return Scaffold(
           backgroundColor: AppColors.backgroundColor,
@@ -209,7 +259,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
                         child: TextFormField(
                           validator: (e) {
                             if (e != null && e.isEmpty) {
-                              return "Please insert nis";
+                              return "Silakan masukkan username";
                             }
                             return null;
                           },
@@ -218,12 +268,12 @@ class _LoginSiawiState extends State<LoginSiawi> {
                             filled: true,
                             fillColor: AppColors.white,
                             contentPadding: const EdgeInsets.all(0),
-                            hintText: "NIS",
+                            hintText: "Username (NIS / ortu_nis)",
                             prefixIcon: Container(
                               padding:
                                   const EdgeInsets.only(left: 20, right: 15),
                               child: const Icon(
-                                Icons.email,
+                                Icons.person,
                               ),
                             ),
                             border: OutlineInputBorder(

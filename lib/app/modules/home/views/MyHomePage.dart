@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/modules/about/views/about_view.dart';
 import 'package:siawi_app/app/modules/home/views/home_view.dart';
+import 'package:siawi_app/app/modules/jadwal/views/jadwal_view.dart';
+import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
 import 'package:get/get.dart';
@@ -12,10 +14,13 @@ import 'package:siawi_app/utils/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:siawi_app/app/routes/app_pages.dart';
 
 class MyHomePage extends StatefulWidget {
   final VoidCallback signOut;
-  const MyHomePage(this.signOut, {super.key});
+  final String? initialRole;
+  static String activeRole = 'siswa';
+  const MyHomePage(this.signOut, {super.key, this.initialRole});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -30,24 +35,39 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void SignOut() {
+  Future<void> SignOut() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setInt("value", 0);
+    await preferences.remove("role");
+    await preferences.remove("namaOrtu");
+    await preferences.remove("idOrangTua");
+    await preferences.remove("childrenJson");
+    MyHomePage.activeRole = 'siswa';
     setState(() {
       _showBottomNavBar = false;
       widget.signOut();
     });
+    Get.offAllNamed(Routes.LOGIN);
   }
 
   String idSiswa = "";
+  late String role;
+
   Future<void> getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      idSiswa = preferences.getString("idSiswa") ?? "";
-    });
+    if (mounted) {
+      setState(() {
+        idSiswa = preferences.getString("idSiswa") ?? "";
+        role = preferences.getString("role") ?? "siswa";
+        MyHomePage.activeRole = role;
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    role = widget.initialRole ?? MyHomePage.activeRole;
     getPref().then((_) {
       if (idSiswa.isNotEmpty) {
         _initFirebaseMessaging();
@@ -149,9 +169,15 @@ class _MyHomePageState extends State<MyHomePage> {
               case '/tagihan':
                 builder = (BuildContext context) => TagihanView(SignOut);
                 break;
+              case '/jadwal':
+                builder = (BuildContext context) => JadwalView(SignOut);
+                break;
+              case '/modul':
+                builder = (BuildContext context) => ModulMapelView();
+                break;
               case '/':
                 builder = (BuildContext context) =>
-                    HomeView(SignOut, toggleBottomNavBar: _toggleBottomNavBar);
+                    HomeView(SignOut, toggleBottomNavBar: _toggleBottomNavBar, initialRole: role);
                 break;
               case '/point':
                 builder = (BuildContext context) => PointSiswaView(SignOut);
@@ -167,28 +193,51 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         bottomNavigationBar: _showBottomNavBar
             ? BottomNavigationBar(
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outlined),
-                    label: "Profile",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.book),
-                    label: "Tagihan",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home),
-                    label: "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.balance),
-                    label: "Point",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.info),
-                    label: "About",
-                  )
-                ],
+                items: role == "orang_tua"
+                    ? const <BottomNavigationBarItem>[
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.person_outlined),
+                          label: "Profile",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.account_balance_wallet_outlined),
+                          label: "Tagihan",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.home),
+                          label: "Home",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.rule_outlined),
+                          label: "Point",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.info_outline),
+                          label: "About",
+                        )
+                      ]
+                    : const <BottomNavigationBarItem>[
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.person_outlined),
+                          label: "Profile",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.calendar_month_outlined),
+                          label: "Jadwal",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.home),
+                          label: "Home",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.menu_book_outlined),
+                          label: "Modul",
+                        ),
+                        BottomNavigationBarItem(
+                          icon: Icon(Icons.info_outline),
+                          label: "About",
+                        )
+                      ],
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: AppColors.secondColor,
                 currentIndex: _selectedIndex,
@@ -197,22 +246,42 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index) {
                   setState(() {
                     _selectedIndex = index;
-                    switch (index) {
-                      case 0:
-                        _navigatorKey.currentState!.pushNamed('/profile');
-                        break;
-                      case 1:
-                        _navigatorKey.currentState!.pushNamed('/tagihan');
-                        break;
-                      case 2:
-                        _navigatorKey.currentState!.pushNamed('/');
-                        break;
-                      case 3:
-                        _navigatorKey.currentState!.pushNamed('/point');
-                        break;
-                      case 4:
-                        _navigatorKey.currentState!.pushNamed('/about');
-                        break;
+                    if (role == "orang_tua") {
+                      switch (index) {
+                        case 0:
+                          _navigatorKey.currentState!.pushNamed('/profile');
+                          break;
+                        case 1:
+                          _navigatorKey.currentState!.pushNamed('/tagihan');
+                          break;
+                        case 2:
+                          _navigatorKey.currentState!.pushNamed('/');
+                          break;
+                        case 3:
+                          _navigatorKey.currentState!.pushNamed('/point');
+                          break;
+                        case 4:
+                          _navigatorKey.currentState!.pushNamed('/about');
+                          break;
+                      }
+                    } else {
+                      switch (index) {
+                        case 0:
+                          _navigatorKey.currentState!.pushNamed('/profile');
+                          break;
+                        case 1:
+                          _navigatorKey.currentState!.pushNamed('/jadwal');
+                          break;
+                        case 2:
+                          _navigatorKey.currentState!.pushNamed('/');
+                          break;
+                        case 3:
+                          _navigatorKey.currentState!.pushNamed('/modul');
+                          break;
+                        case 4:
+                          _navigatorKey.currentState!.pushNamed('/about');
+                          break;
+                      }
                     }
                   });
                 },

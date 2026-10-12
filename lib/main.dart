@@ -9,6 +9,9 @@ import 'package:siawi_app/app/widgets/splash.dart';
 // import 'package:siawi_app/app/widgets/version_checker.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:siawi_app/app/modules/home/views/MyHomePage.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -20,40 +23,36 @@ void main() async {
       sound: true,
     );
   } catch (e) {
-    print("Error requesting notification permission: $e");
+    debugPrint("Error requesting notification permission: $e");
   }
 
   SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-  runApp(MyApp());
+
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  bool isLoggedIn = preferences.getInt('value') == 1;
+  String savedRole = preferences.getString('role') ?? 'siswa';
+  MyHomePage.activeRole = savedRole;
+
+  runApp(MyApp(isLoggedIn: isLoggedIn, savedRole: savedRole));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  final String savedRole;
+  const MyApp({super.key, this.isLoggedIn = false, this.savedRole = 'siswa'});
 
   @override
   Widget build(BuildContext context) {
-    // return GetMaterialApp(
-    //   debugShowCheckedModeBanner: false,
-    //   title: "Application",
-    //   initialRoute: Routes.LOGIN,
-    //   getPages: AppPages.routes,
-    // );
-    // ignore: dead_code
-    return FutureBuilder(
-      future: Future.delayed(Duration(seconds: 4)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashScreen();
-        } else {
-          return GetMaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: "Application",
-            initialRoute: Routes.LOGIN,
-            getPages: AppPages.routes,
-          );
-        }
-      },
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "SIAWI",
+      getPages: AppPages.routes,
+      home: SplashScreen(
+        onFinished: () {
+          Get.offAllNamed(isLoggedIn ? Routes.HOME : Routes.LOGIN);
+        },
+      ),
     );
   }
 }
