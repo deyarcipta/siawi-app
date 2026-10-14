@@ -1,11 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
-import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
 class UploadFoto extends StatefulWidget {

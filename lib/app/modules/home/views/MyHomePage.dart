@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +10,6 @@ import 'package:siawi_app/app/modules/profile/views/profile_view.dart';
 import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 import 'package:siawi_app/utils/colors.dart';
-import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:siawi_app/app/routes/app_pages.dart';
