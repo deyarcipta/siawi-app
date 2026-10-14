@@ -226,15 +226,3 @@ Widget _buildTitle(String text) {
     ),
   );
 }
-
-Widget _buildTitleData(String text) {
-  return Container(
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        color: Colors.black,
-      ),
-    ),
-  );
-}

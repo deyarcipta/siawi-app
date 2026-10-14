@@ -17,16 +17,7 @@ class PasswordView extends StatefulWidget {
 class _PasswordViewState extends State<PasswordView> {
   late String password1;
   late String password2;
-  late String? _idSiswa;
   final _formKey = GlobalKey<FormState>();
-
-  Future<String?> _loadIdSiswa() async {
-    final idSiswa = await _getIdSiswa();
-    setState(() {
-      _idSiswa = idSiswa;
-    });
-    return idSiswa;
-  }
 
   Future<String?> _getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -196,7 +187,7 @@ class _PasswordViewState extends State<PasswordView> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          _loadIdSiswa().then((idSiswa) {
+                          _getIdSiswa().then((idSiswa) {
                             if (idSiswa != null) {
                               gantiPassword(idSiswa);
                             } else {
