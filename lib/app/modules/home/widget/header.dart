@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:siawi_app/app/models/menu_item.dart';
 import 'package:siawi_app/app/models/menu_items.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/app/modules/password/views/password_view.dart';
 
@@ -101,11 +99,10 @@ class _HeaderState extends State<Header> {
             ],
           ),
         ),
-        Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              PopupMenuButton<MenuKu>(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            PopupMenuButton<MenuKu>(
                 onSelected: (item) => onSelected(context, item),
                 itemBuilder: (context) => [
                   ...MenuItems.itemFirst.map(buildItem),
@@ -161,7 +158,6 @@ class _HeaderState extends State<Header> {
               ),
             ],
           ),
-        ),
       ],
     );
   }

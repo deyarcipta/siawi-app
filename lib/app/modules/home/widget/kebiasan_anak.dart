@@ -1,15 +1,5 @@
-import 'dart:convert';
-// import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-// import 'package:siawi_app/app/models/api.dart';
-
-// import 'berita_terbaru.dart';
-// import 'menu.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-// import 'package:siawi_app/utils/colors.dart';
-// import 'package:percent_indicator/percent_indicator.dart';
 
 class KebiasanAnakIndonesia extends StatefulWidget {
   final VoidCallback signOut;

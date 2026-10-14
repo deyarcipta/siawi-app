@@ -1,12 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-// import 'package:siawi_app/app/models/api.dart';
-
-// import 'berita_terbaru.dart';
-// import 'menu.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:siawi_app/app/data/api_service.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -275,21 +270,6 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
     );
   }
 
-  Widget _buildTitle(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 25),
-      // width: double.maxFinite,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
   Widget _buildRata(String text) {
     return Container(
       padding: const EdgeInsets.only(right: 1),
@@ -300,17 +280,6 @@ class _DataMahasiswaState extends State<DataMahasiswa> {
           fontSize: 11,
           color: Colors.white,
         ),
-      ),
-    );
-  }
-
-  Widget _buildIcon(icon) {
-    return Container(
-      padding: const EdgeInsets.only(right: 3),
-      // width: double.maxFinite,
-      child: Icon(
-        icon,
-        color: Colors.red,
       ),
     );
   }
