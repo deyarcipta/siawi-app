@@ -32,6 +32,7 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
   String? nis;
   String? nisn;
   String? fileFoto;
+  String jenisKelamin = 'L';
   int presentaseKehadiran = 0;
   String presensiRatio = "0 / 0 Hari";
   String presensiSemester = "-";
@@ -96,12 +97,18 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
     if (activeChild != null) {
       initNama = activeChild['nama_siswa']?.toString().toUpperCase();
       var k = activeChild['kelas'];
-      initKelas = k != null ? (k['nama_kelas'] ?? k['kode_kelas'])?.toString() : null;
+      initKelas =
+          k != null ? (k['nama_kelas'] ?? k['kode_kelas'])?.toString() : null;
       var j = activeChild['jurusan'];
-      initJurusan = j != null ? (j['nama_jurusan'] ?? j['kode_jurusan'])?.toString() : null;
+      initJurusan = j != null
+          ? (j['nama_jurusan'] ?? j['kode_jurusan'])?.toString()
+          : null;
       initNis = activeChild['nis']?.toString();
       initNisn = activeChild['nisn']?.toString();
       initFoto = activeChild['foto']?.toString();
+      if (activeChild['jenis_kelamin'] != null) {
+        jenisKelamin = activeChild['jenis_kelamin'].toString();
+      }
     }
 
     // Coba muat cache statistik terakhir jika tersedia agar data instan tampil
@@ -121,7 +128,9 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
     bool initIsPklLevel = isPklLevel;
     String? initPklPeriode = pklPeriode;
 
-    String? cacheRaw = currentId != null ? preferences.getString('cached_parent_header_$currentId') : null;
+    String? cacheRaw = currentId != null
+        ? preferences.getString('cached_parent_header_$currentId')
+        : null;
     if (cacheRaw != null && cacheRaw.isNotEmpty) {
       try {
         var cMap = jsonDecode(cacheRaw);
@@ -192,17 +201,24 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
         var pData = res['siswaPkl'];
 
         // Ambil data presensi riil dari API
-        int pres = int.tryParse(res['presentaseKehadiran']?.toString() ?? '0') ?? 0;
-        int totalH = int.tryParse(res['totalKehadiran']?.toString() ?? '0') ?? 0;
+        int pres =
+            int.tryParse(res['presentaseKehadiran']?.toString() ?? '0') ?? 0;
+        int totalH =
+            int.tryParse(res['totalKehadiran']?.toString() ?? '0') ?? 0;
         int hadirH = int.tryParse(res['jumlahHadir']?.toString() ?? '0') ?? 0;
 
         // Jika endpoint /home belum mengembalikan detail hari, sinkronkan langsung dengan endpoint /absensi
         try {
           final absenRes = await ApiService.get('/absensi/$studentId');
           if (absenRes != null) {
-            int h = int.tryParse(absenRes['jumlahHadir']?.toString() ?? '0') ?? 0;
-            int th = int.tryParse(absenRes['jumlahTidakHadir']?.toString() ?? '0') ?? 0;
-            int p = int.tryParse(absenRes['presentaseKehadiran']?.toString() ?? '0') ?? 0;
+            int h =
+                int.tryParse(absenRes['jumlahHadir']?.toString() ?? '0') ?? 0;
+            int th =
+                int.tryParse(absenRes['jumlahTidakHadir']?.toString() ?? '0') ??
+                    0;
+            int p = int.tryParse(
+                    absenRes['presentaseKehadiran']?.toString() ?? '0') ??
+                0;
             hadirH = h;
             totalH = h + th;
             pres = p > 0 ? p : pres;
@@ -221,7 +237,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
         bool rTrendUp = true;
         String rPredikat = "Belum Ada Rapot";
         int currentMonth = DateTime.now().month;
-        String rSemester = (currentMonth >= 7 && currentMonth <= 12) ? 'Ganjil' : 'Genap';
+        String rSemester =
+            (currentMonth >= 7 && currentMonth <= 12) ? 'Ganjil' : 'Genap';
 
         if (rData != null &&
             rData['rata_rata'] != null &&
@@ -259,7 +276,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
           if (prevRData != null &&
               prevRData['rata_rata'] != null &&
               val != null) {
-            double? prevVal = double.tryParse(prevRData['rata_rata'].toString());
+            double? prevVal =
+                double.tryParse(prevRData['rata_rata'].toString());
             if (prevVal != null) {
               double diff = val - prevVal;
               rTrendUp = diff >= 0;
@@ -284,13 +302,16 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
           pStatus = pData['status_label'] ?? pData['status'] ?? 'Ditempatkan';
           if (per['guru'] != null && per['guru']['nama_guru'] != null) {
             pSekolah = per['guru']['nama_guru'].toString();
-          } else if (pData['guru'] != null && pData['guru']['nama_guru'] != null) {
+          } else if (pData['guru'] != null &&
+              pData['guru']['nama_guru'] != null) {
             pSekolah = pData['guru']['nama_guru'].toString();
           }
           pIndustri = per['penanggung_jawab'] ?? per['pic'] ?? '-';
           pAlamat = per['alamat_perusahaan'] ?? '-';
-          if (pData['tanggal_mulai'] != null && pData['tanggal_selesai'] != null) {
-            pPeriode = "${pData['tanggal_mulai']} s/d ${pData['tanggal_selesai']}";
+          if (pData['tanggal_mulai'] != null &&
+              pData['tanggal_selesai'] != null) {
+            pPeriode =
+                "${pData['tanggal_mulai']} s/d ${pData['tanggal_selesai']}";
           }
         }
 
@@ -305,13 +326,18 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
 
         setState(() {
           namaSiswa = sData['nama_siswa']?.toString().toUpperCase();
-          namaKelas = kData != null ? kData['nama_kelas']?.toString() : 'XII - TKJ 1';
+          namaKelas =
+              kData != null ? kData['nama_kelas']?.toString() : 'XII - TKJ 1';
           namaJurusan = jData != null
               ? jData['nama_jurusan']?.toString()
               : 'Teknik Komputer & Jaringan';
           nis = sData['nis']?.toString();
           nisn = sData['nisn']?.toString();
           fileFoto = sData['foto']?.toString();
+          if (sData['jenis_kelamin'] != null &&
+              sData['jenis_kelamin'].toString().isNotEmpty) {
+            jenisKelamin = sData['jenis_kelamin'].toString();
+          }
           presentaseKehadiran = pres;
           presensiRatio = ratioStr;
           presensiSemester = rSemester;
@@ -334,6 +360,11 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
 
         try {
           SharedPreferences prefs = await SharedPreferences.getInstance();
+          if (namaSiswa != null) await prefs.setString('namaSiswa', namaSiswa!);
+          if (namaKelas != null) await prefs.setString('namaKelas', namaKelas!);
+          if (namaJurusan != null) await prefs.setString('namaJurusan', namaJurusan!);
+          if (nis != null) await prefs.setString('nis', nis!);
+          await prefs.setBool('is_pkl_level', isPklLevel);
           await prefs.setString(
             'cached_parent_header_$studentId',
             jsonEncode({
@@ -365,11 +396,25 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
     });
   }
 
+  String _getDefaultAvatarAsset([String? jk]) {
+    final gender = (jk ?? jenisKelamin).trim().toUpperCase();
+    if (gender == 'P' || gender == 'PEREMPUAN') {
+      return 'assets/images/avatar_female.png';
+    }
+    return 'assets/images/avatar_male.png';
+  }
+
   String _getStudentPhotoUrl(String? filename) {
     if (filename == null ||
         filename.isEmpty ||
         filename == 'null' ||
-        filename == 'default.png') {
+        filename == 'default.png' ||
+        filename == 'avatar.jpg' ||
+        filename == 'avatar.png' ||
+        filename == 'avatar_male.jpg' ||
+        filename == 'avatar_male.png' ||
+        filename == 'avatar_female.jpg' ||
+        filename == 'avatar_female.png') {
       return '';
     }
     if (filename.startsWith('http://') || filename.startsWith('https://')) {
@@ -406,7 +451,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
   @override
   Widget build(BuildContext context) {
     String greeting = _getGreeting();
-    String parentName = (namaOrtu != null && namaOrtu!.isNotEmpty) ? namaOrtu! : 'Pak Hendra';
+    String parentName =
+        (namaOrtu != null && namaOrtu!.isNotEmpty) ? namaOrtu! : 'Pak Hendra';
     String activeChildShort = namaSiswa ?? 'M. Rizky Pratama';
     if (activeChildShort.length > 18) {
       activeChildShort = '${activeChildShort.substring(0, 16)}...';
@@ -482,7 +528,7 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
               padding: const EdgeInsets.all(3),
               child: ClipOval(
                 child: Image.asset(
-                  'assets/logo/logo-wistek.png',
+                  'assets/logo/logo-splash.png',
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.school_rounded,
@@ -556,7 +602,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFF3B30),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.mainColor, width: 1.5),
+                        border:
+                            Border.all(color: AppColors.mainColor, width: 1.5),
                       ),
                     ),
                   ),
@@ -568,32 +615,17 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
               tooltip: 'Menu Akun',
               padding: EdgeInsets.zero,
               icon: Container(
-                width: 38,
-                height: 38,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    width: 1.8,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/avatar.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person_rounded,
-                      color: Color(0xFF756DDA),
-                      size: 24,
-                    ),
+                child: const Center(
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 24,
                   ),
                 ),
               ),
@@ -619,14 +651,18 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
           children: [
             Icon(
               item.icon,
-              color: item == MenuItems.itemLogout ? Colors.redAccent : Colors.black87,
+              color: item == MenuItems.itemLogout
+                  ? Colors.redAccent
+                  : Colors.black87,
               size: 20,
             ),
             const SizedBox(width: 12),
             Text(
               item.text,
               style: TextStyle(
-                color: item == MenuItems.itemLogout ? Colors.redAccent : Colors.black87,
+                color: item == MenuItems.itemLogout
+                    ? Colors.redAccent
+                    : Colors.black87,
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),
@@ -649,7 +685,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
   }
 
   /// 2. GREETING & SCHOOL CARD
-  Widget _buildGreetingCard(String greeting, String parentName, String activeChildShort) {
+  Widget _buildGreetingCard(
+      String greeting, String parentName, String activeChildShort) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 18),
@@ -668,63 +705,39 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEFF4FF),
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(5),
-                child: Image.asset(
-                  'assets/logo/logo-splash.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.school_rounded,
-                    color: Color(0xFF5B4BD1),
-                    size: 24,
-                  ),
+              const Text(
+                'SMK WISATA INDONESIA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: Color(0xFF5B4BD1),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'SMK WISATA INDONESIA',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                        color: Color(0xFF8A92A6),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$greeting, $parentName',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1E2432),
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 3),
+              Text(
+                '$greeting, $parentName',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 17.5,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1E2432),
+                  letterSpacing: -0.3,
                 ),
               ),
-            ], // end of Row
+            ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F0FF),
                     borderRadius: BorderRadius.circular(20),
@@ -765,7 +778,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEBF5FF),
                   borderRadius: BorderRadius.circular(20),
@@ -895,7 +909,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFF5B4BD1).withValues(alpha: 0.3),
+                                  color: const Color(0xFF5B4BD1)
+                                      .withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -906,8 +921,10 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                         children: [
                           Builder(
                             builder: (context) {
-                              String cPhoto =
-                                  _getStudentPhotoUrl(child['foto']?.toString());
+                              String cPhoto = _getStudentPhotoUrl(
+                                  child['foto']?.toString());
+                              String cAvatar = _getDefaultAvatarAsset(
+                                  child['jenis_kelamin']?.toString());
                               return CircleAvatar(
                                 radius: 17,
                                 backgroundColor: isSelected
@@ -915,11 +932,9 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                                     : const Color(0xFFEDE9FE),
                                 backgroundImage: cPhoto.isNotEmpty
                                     ? NetworkImage(cPhoto) as ImageProvider
-                                    : const AssetImage(
-                                        'assets/images/avatar.png'),
-                                onBackgroundImageError: cPhoto.isNotEmpty
-                                    ? (_, __) {}
-                                    : null,
+                                    : AssetImage(cAvatar) as ImageProvider,
+                                onBackgroundImageError:
+                                    cPhoto.isNotEmpty ? (_, __) {} : null,
                               );
                             },
                           ),
@@ -1074,7 +1089,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.88),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.88),
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -1138,13 +1154,14 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                             child: ClipOval(
                               child: CircleAvatar(
                                 radius: 27,
-                                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.2),
                                 backgroundImage: mainPhoto.isNotEmpty
                                     ? NetworkImage(mainPhoto) as ImageProvider
-                                    : const AssetImage('assets/images/avatar.png'),
-                                onBackgroundImageError: mainPhoto.isNotEmpty
-                                    ? (_, __) {}
-                                    : null,
+                                    : AssetImage(_getDefaultAvatarAsset())
+                                        as ImageProvider,
+                                onBackgroundImageError:
+                                    mainPhoto.isNotEmpty ? (_, __) {} : null,
                               ),
                             ),
                           );
@@ -1156,11 +1173,13 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
 
                   // Middle Stats Box (Presensi & Rapor)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 13),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15)),
                     ),
                     child: Row(
                       children: [
@@ -1249,7 +1268,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                                       vertical: 2.5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF00E5FF).withValues(alpha: 0.22),
+                                      color: const Color(0xFF00E5FF)
+                                          .withValues(alpha: 0.22),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
@@ -1294,7 +1314,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                                       vertical: 2.5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.15),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: const Text(
@@ -1326,82 +1347,83 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                   const SizedBox(height: 12),
 
                   if (isPklLevel) ...[
-                  // Bottom Action Banner: Status PKL (Clickable)
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () => _showPklDetailBottomSheet(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.15),
+                    // Bottom Action Banner: Status PKL (Clickable)
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => _showPklDetailBottomSheet(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              hasPkl
-                                  ? Icons.check_box_outlined
-                                  : Icons.info_outline_rounded,
-                              color: hasPkl
-                                  ? const Color(0xFF38BDF8)
-                                  : const Color(0xFFFBBF24),
-                              size: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.15),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: RichText(
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Status PKL: ',
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.8),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                hasPkl
+                                    ? Icons.check_box_outlined
+                                    : Icons.info_outline_rounded,
+                                color: hasPkl
+                                    ? const Color(0xFF38BDF8)
+                                    : const Color(0xFFFBBF24),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: RichText(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Status PKL: ',
+                                        style: TextStyle(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.8),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    TextSpan(
-                                      text: statusPklText,
-                                      style: TextStyle(
-                                        color: hasPkl
-                                            ? Colors.white
-                                            : const Color(0xFFFEF3C7),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
+                                      TextSpan(
+                                        text: statusPklText,
+                                        style: TextStyle(
+                                          color: hasPkl
+                                              ? Colors.white
+                                              : const Color(0xFFFEF3C7),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: Colors.white.withValues(alpha: 0.8),
-                              size: 18,
-                            ),
-                          ],
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                size: 18,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   /// 5. PKL DETAIL BOTTOM SHEET MODAL (TANPA NOMOR HP)

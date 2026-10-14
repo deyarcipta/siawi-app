@@ -9,6 +9,9 @@ import 'package:siawi_app/app/modules/dokumen_gabungan/views/dokumen_gabungan_vi
 import 'package:siawi_app/app/modules/jadwal/views/jadwal_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
+import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
+import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/views/kejuruan_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ParentQuickServices extends StatefulWidget {
@@ -665,7 +668,7 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
     );
   }
 
-  /// KARTU 3: LAYANAN UTAMA (PINTASAN CEPAT)
+  /// KARTU 3: LAYANAN UTAMA (PINTASAN CEPAT - 9 FITUR GRID)
   Widget _buildMainServicesCard() {
     return Container(
       width: double.infinity,
@@ -684,20 +687,40 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Bar
+          // Header Bar: Layanan Utama [9 Fitur] dan Pintasan Cepat
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Layanan Utama',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E2432),
-                  letterSpacing: -0.3,
-                ),
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Layanan Utama',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1E2432),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDE9FE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '9 Fitur',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF6D28D9),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Text(
+              const Text(
                 'Pintasan Cepat',
                 style: TextStyle(
                   fontSize: 13,
@@ -709,30 +732,14 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
           ),
           const SizedBox(height: 16),
 
-          // Row 1: Keuangan, Presensi, Nilai & Rapot
+          // Row 1: Presensi, Keuangan, Nilai Rapot
           Row(
             children: [
               Expanded(
                 child: _buildServiceItem(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: 'Keuangan',
-                  subtitle: 'SPP & Tagihan',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TagihanView(widget.signOut),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildServiceItem(
                   icon: Icons.event_available_outlined,
                   title: 'Presensi',
-                  subtitle: 'Riwayat & Izin',
+                  subtitle: 'Riwayat Hadir',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -746,9 +753,26 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildServiceItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'Keuangan',
+                  subtitle: 'SPP & Tagihan',
+                  badgeCount: tagihanBadgeCount,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TagihanView(widget.signOut),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildServiceItem(
                   icon: Icons.assignment_outlined,
-                  title: 'Dokumen',
-                  subtitle: 'Dokumen & Rapot',
+                  title: 'Nilai Rapot',
+                  subtitle: 'Transkrip Nilai',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -764,14 +788,14 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
 
           const SizedBox(height: 12),
 
-          // Row 2: Jadwal, Poin Siswa, Wali Kelas
+          // Row 2: Jadwal, Kejuruan (Coming Soon), Informasi
           Row(
             children: [
               Expanded(
                 child: _buildServiceItem(
                   icon: Icons.calendar_month_outlined,
                   title: 'Jadwal',
-                  subtitle: 'Jadwal Mapel',
+                  subtitle: 'Jam Praktik',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -785,9 +809,48 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildServiceItem(
+                  icon: Icons.precision_manufacturing_outlined,
+                  title: 'Kejuruan',
+                  subtitle: 'Praktik & Nilai',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => KejuruanView(signOut: widget.signOut),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildServiceItem(
+                  icon: Icons.campaign_outlined,
+                  title: 'Informasi',
+                  subtitle: 'Pengumuman',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InformasiView(widget.signOut),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Row 3: Poin Siswa, Wali Kelas, Kalender
+          Row(
+            children: [
+              Expanded(
+                child: _buildServiceItem(
                   icon: Icons.military_tech_outlined,
                   title: 'Poin Siswa',
-                  subtitle: 'Prestasi/Disiplin',
+                  subtitle: 'Kedisiplinan',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -803,10 +866,24 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                 child: _buildServiceItem(
                   icon: Icons.support_agent_rounded,
                   title: 'Wali Kelas',
-                  subtitle: (namaWaliKelas.isNotEmpty && namaWaliKelas != '-')
-                      ? namaWaliKelas
-                      : 'Konsultasi',
+                  subtitle: 'Konsultasi',
                   onTap: () => _showWaliKelasBottomSheet(context),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildServiceItem(
+                  icon: Icons.event_note_outlined,
+                  title: 'Kalender',
+                  subtitle: 'Akademik',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => KalenderView(widget.signOut),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -1677,7 +1754,7 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 98,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.hardEdge,
@@ -1686,8 +1763,8 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
             itemBuilder: (context, index) {
               final item = list[index];
               return Container(
-                width: 215,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                width: 225,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -1760,15 +1837,24 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildGuruStatusBadgeOnLight(item.statusKehadiran),
+                      ],
                     ),
                   ],
                 ),
@@ -1887,8 +1973,8 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                 child: Row(
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -1904,17 +1990,24 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        item.namaGuru,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.namaGuru,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          _buildGuruStatusBadgeOnDark(item.statusKehadiran),
+                        ],
                       ),
                     ),
                   ],
@@ -1981,7 +2074,7 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 98,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.hardEdge,
@@ -1990,8 +2083,8 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
             itemBuilder: (context, index) {
               final item = list[index];
               return Container(
-                width: 200,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                width: 225,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -2026,15 +2119,24 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildGuruStatusBadgeOnLight(item.statusKehadiran),
+                      ],
                     ),
                   ],
                 ),
@@ -2043,6 +2145,112 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
           ),
         ),
       ],
+    );
+  }
+
+  // ==========================================
+  // HELPER BADGE STATUS KEHADIRAN GURU
+  // ==========================================
+
+  Widget _buildGuruStatusBadgeOnDark(String status) {
+    final cleanStatus = status.trim().toLowerCase();
+    final isHadir = cleanStatus == 'hadir';
+    final isSakit = cleanStatus == 'sakit';
+    final isIzin = cleanStatus == 'izin';
+
+    final Color dotColor = isHadir
+        ? const Color(0xFF10B981) // emerald
+        : (isSakit
+            ? const Color(0xFFF59E0B)
+            : (isIzin ? const Color(0xFF38BDF8) : const Color(0xFFF87171)));
+
+    final String label = isHadir
+        ? 'Guru Masuk'
+        : (isSakit
+            ? 'Guru Sakit'
+            : (isIzin ? 'Guru Izin' : 'Guru Tidak Hadir'));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuruStatusBadgeOnLight(String status) {
+    final cleanStatus = status.trim().toLowerCase();
+    final isHadir = cleanStatus == 'hadir';
+    final isSakit = cleanStatus == 'sakit';
+    final isIzin = cleanStatus == 'izin';
+
+    final Color textColor = isHadir
+        ? const Color(0xFF059669)
+        : (isSakit
+            ? const Color(0xFFD97706)
+            : (isIzin ? const Color(0xFF2563EB) : const Color(0xFFDC2626)));
+
+    final Color bgColor = isHadir
+        ? const Color(0xFFECFDF5)
+        : (isSakit
+            ? const Color(0xFFFFFBEB)
+            : (isIzin ? const Color(0xFFEFF6FF) : const Color(0xFFFEF2F2)));
+
+    final String label = isHadir
+        ? 'Masuk'
+        : (isSakit ? 'Sakit' : (isIzin ? 'Izin' : 'Tidak Hadir'));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: textColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

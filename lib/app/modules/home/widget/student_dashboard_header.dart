@@ -28,6 +28,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
   String nis = "-";
   String nisn = "-";
   String? fileFoto;
+  String jenisKelamin = "L";
   String namaSekolah = "SMK Wisata Indonesia";
   String semester = "Genap";
   String tahunAjaran = "2024/2025";
@@ -55,10 +56,10 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
   String? pklGuru;
 
   // Biometric / Daily Attendance Scenario
-  String attendanceStatus = 'hadir'; // hadir, terlambat, sakit, izin, alfa, belum
+  String attendanceStatus = 'belum'; // hadir, terlambat, sakit, izin, alfa, belum
   String attendanceType = 'mesin';   // mesin, piket
-  String attendanceJam = '06:45';
-  int attendanceStreak = 14;
+  String attendanceJam = '-- : --';
+  int attendanceStreak = 0;
   String? overrideScenario; // null = otomatis sistem
 
   @override
@@ -85,6 +86,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             nis = cMap['nis'] ?? nis;
             nisn = cMap['nisn'] ?? nisn;
             fileFoto = cMap['fileFoto'];
+            jenisKelamin = cMap['jenisKelamin'] ?? preferences.getString('jenisKelamin') ?? jenisKelamin;
             namaSekolah = cMap['namaSekolah'] ?? namaSekolah;
             semester = cMap['semester'] ?? semester;
             tahunAjaran = cMap['tahunAjaran'] ?? tahunAjaran;
@@ -225,21 +227,40 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
 
         // Kehadiran Hari Ini
         var todayAbsen = res['kehadiranToday'];
-        String rawStatus = 'hadir';
-        String rawJam = '06:45';
+        String rawStatus = 'belum';
+        String rawJam = '-- : --';
         String rawType = 'mesin';
         if (todayAbsen != null) {
-          rawStatus = (todayAbsen['kehadiran'] ?? 'hadir').toString().toLowerCase();
+          String? rawKehadiran = todayAbsen['kehadiran']?.toString().toLowerCase();
+          String? ket = todayAbsen['keterangan']?.toString().toLowerCase();
+          String? tm = todayAbsen['tipe_masuk']?.toString().toLowerCase();
           String? jm = todayAbsen['jam_masuk']?.toString();
+
           if (jm != null && jm.isNotEmpty && jm != 'null' && jm != '-') {
             rawJam = jm.length >= 5 ? jm.substring(0, 5) : jm;
           }
-          String? tm = todayAbsen['tipe_masuk']?.toString().toLowerCase();
-          String? ket = todayAbsen['keterangan']?.toString().toLowerCase();
+
           if (tm == 'piket' || tm == 'manual' || (ket != null && ket.contains('piket'))) {
             rawType = 'piket';
           } else {
             rawType = 'mesin';
+          }
+
+          // Cek status keterlambatan & kehadiran secara akurat berdasarkan keterangan guru/sistem
+          if (rawKehadiran == 'sakit' || (ket != null && ket.contains('sakit'))) {
+            rawStatus = 'sakit';
+          } else if (rawKehadiran == 'izin' || (ket != null && ket.contains('izin'))) {
+            rawStatus = 'izin';
+          } else if (rawKehadiran == 'alfa' || rawKehadiran == 'alpa' || (ket != null && (ket.contains('alfa') || ket.contains('alpa')))) {
+            rawStatus = 'alfa';
+          } else if (rawKehadiran == 'terlambat' || (ket != null && ket.contains('terlambat'))) {
+            // Hanya diklasifikasikan terlambat jika keterangan eksplisit mencatat 'terlambat'
+            rawStatus = 'terlambat';
+          } else if (rawKehadiran == 'hadir') {
+            // Berstatus Hadir (misal diinput manual guru dengan keterangan 'Masuk')
+            rawStatus = 'hadir';
+          } else {
+            rawStatus = rawKehadiran ?? 'belum';
           }
         }
 
@@ -267,6 +288,9 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
           nis = sData['nis']?.toString() ?? '-';
           nisn = sData['nisn']?.toString() ?? '-';
           fileFoto = sData['foto']?.toString();
+          if (sData['jenis_kelamin'] != null && sData['jenis_kelamin'].toString().isNotEmpty) {
+            jenisKelamin = sData['jenis_kelamin'].toString();
+          }
           presentaseKehadiran = pres;
           hasRapor = rExists;
           nilaiRapor = rNilai;
@@ -301,7 +325,10 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         try {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setBool('is_pkl_level', isPklLevel);
+          await prefs.setString('namaSiswa', namaSiswa);
           await prefs.setString('namaKelas', namaKelas);
+          await prefs.setString('namaJurusan', namaJurusan);
+          await prefs.setString('nis', nis);
           await prefs.setString(
             'cached_student_header_$studentId',
             jsonEncode({
@@ -311,6 +338,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
               'nis': nis,
               'nisn': nisn,
               'fileFoto': fileFoto,
+              'jenisKelamin': jenisKelamin,
               'namaSekolah': namaSekolah,
               'semester': semester,
               'tahunAjaran': tahunAjaran,
@@ -337,18 +365,32 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
     }
   }
 
+  String _getDefaultAvatarAsset([String? jk]) {
+    final gender = (jk ?? jenisKelamin).trim().toUpperCase();
+    if (gender == 'P' || gender == 'PEREMPUAN') {
+      return 'assets/images/avatar_female.png';
+    }
+    return 'assets/images/avatar_male.png';
+  }
+
   String _getStudentPhotoUrl(String? filename) {
     if (filename == null ||
         filename.isEmpty ||
         filename == 'null' ||
         filename == 'default.png' ||
-        filename == 'avatar.jpg') {
+        filename == 'avatar.jpg' ||
+        filename == 'avatar.png' ||
+        filename == 'avatar_male.jpg' ||
+        filename == 'avatar_male.png' ||
+        filename == 'avatar_female.jpg' ||
+        filename == 'avatar_female.png') {
       return '';
     }
     return 'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$filename';
   }
 
   Widget _buildStudentPhoto() {
+    final defaultAsset = _getDefaultAvatarAsset();
     String photoUrl = _getStudentPhotoUrl(fileFoto);
     if (photoUrl.isNotEmpty) {
       return CachedNetworkImage(
@@ -368,13 +410,13 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
           ),
         ),
         errorWidget: (context, url, error) => Image.asset(
-          'assets/images/avatar.png',
+          defaultAsset,
           fit: BoxFit.cover,
         ),
       );
     }
     return Image.asset(
-      'assets/images/avatar.png',
+      defaultAsset,
       fit: BoxFit.cover,
     );
   }
@@ -415,6 +457,14 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         );
         break;
     }
+  }
+
+  String _getGreeting() {
+    int hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) return 'SELAMAT PAGI,';
+    if (hour >= 11 && hour < 15) return 'SELAMAT SIANG,';
+    if (hour >= 15 && hour < 18) return 'SELAMAT SORE,';
+    return 'SELAMAT MALAM,';
   }
 
   @override
@@ -594,9 +644,9 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'SELAMAT DATANG,',
-                  style: TextStyle(
+                Text(
+                  _getGreeting(),
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -1045,8 +1095,16 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
     Color badgeBorder = const Color(0xFFA7F3D0);
     Color badgeTextColor = const Color(0xFF047857);
 
+    // Opsi 1: Jika diinput guru/piket atau waktu sistem lewat 07:00 tapi berstatus Hadir, sembunyikan jam dan tampilkan Tepat Waktu
+    bool isLateTimeInput = attendanceJam.isNotEmpty &&
+        attendanceJam != '-- : --' &&
+        attendanceJam.compareTo('07:00') > 0;
+    bool isManualOrPiketHadir = attendanceType == 'piket' || isLateTimeInput;
+
     String labelCol1 = 'MASUK';
-    String valueCol1 = attendanceJam.isNotEmpty ? attendanceJam : '06:45';
+    String valueCol1 = attendanceJam.isNotEmpty && attendanceJam != '-- : --'
+        ? attendanceJam
+        : '06:45';
     String unitCol1 = 'WIB';
     Color valueCol1Color = const Color(0xFF0F172A);
 
@@ -1057,47 +1115,70 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
       const Color(0xFFFF5722)
     ];
 
+    if (attendanceStatus == 'hadir' && isManualOrPiketHadir) {
+      headerTitle = 'Presensi Kehadiran';
+      headerSubtitle = 'Verifikasi Guru / Piket';
+      badgeText = 'Verifikasi Guru';
+      badgeIcon = Icons.verified_user_rounded;
+      labelCol1 = 'STATUS';
+      valueCol1 = 'Tepat Waktu';
+      unitCol1 = '';
+      valueCol1Color = const Color(0xFF047857);
+      iconData = Icons.how_to_reg_rounded;
+
+      // Presensi verifikasi manual guru/piket bukan tap biometrik otomatis gerbang, streak biometrik = 0
+      streakText = '0 Hari Streak';
+      streakIcon = '⚡';
+      streakGradient = [const Color(0xFF64748B), const Color(0xFF475569)];
+    }
+
     switch (activeScenario) {
       case 'piket':
-        headerTitle = 'Presensi Biometrik';
-        headerSubtitle = 'Diinput Manual oleh Guru Piket';
-        dotColor = const Color(0xFF6366F1);
-        iconData = Icons.assignment_ind_rounded;
-        iconGradient = [const Color(0xFF6366F1), const Color(0xFF4F46E5)];
-        iconShadow = const Color(0xFF6366F1);
+        headerTitle = 'Presensi Kehadiran';
+        headerSubtitle = 'Verifikasi Guru / Piket';
+        dotColor = const Color(0xFF10B981);
+        iconData = Icons.how_to_reg_rounded;
+        iconGradient = [const Color(0xFF10B981), const Color(0xFF059669)];
+        iconShadow = const Color(0xFF10B981);
 
-        badgeText = 'Hadir (Input Piket)';
-        badgeIcon = Icons.how_to_reg_rounded;
-        badgeBg = const Color(0xFFEEF2FF);
-        badgeBorder = const Color(0xFFC7D2FE);
-        badgeTextColor = const Color(0xFF4338CA);
+        badgeText = 'Verifikasi Guru';
+        badgeIcon = Icons.verified_user_rounded;
+        badgeBg = const Color(0xFFECFDF5);
+        badgeBorder = const Color(0xFFA7F3D0);
+        badgeTextColor = const Color(0xFF047857);
 
-        labelCol1 = 'MASUK';
-        valueCol1 = attendanceJam.isNotEmpty ? attendanceJam : '06:52';
-        unitCol1 = 'WIB';
-        valueCol1Color = const Color(0xFF1E1B4B);
+        labelCol1 = 'STATUS';
+        valueCol1 = 'Tepat Waktu';
+        unitCol1 = '';
+        valueCol1Color = const Color(0xFF047857);
 
-        streakText = 'Putus (Input Piket)';
+        streakText = '0 Hari Streak';
         streakIcon = '⚡';
         streakGradient = [const Color(0xFF64748B), const Color(0xFF475569)];
         break;
 
       case 'terlambat':
-        headerTitle = 'Presensi Biometrik';
-        headerSubtitle = 'Melebihi Batas 07.00 WIB';
+        headerTitle = attendanceType == 'piket'
+            ? 'Presensi Gerbang Piket'
+            : 'Presensi Biometrik';
+        headerSubtitle = attendanceType == 'piket'
+            ? 'Dicatat Guru Piket (Lewat 07.00 WIB)'
+            : 'Melebihi Batas 07.00 WIB';
         dotColor = const Color(0xFFF59E0B);
         iconData = Icons.access_time_filled_rounded;
         iconGradient = [const Color(0xFFF59E0B), const Color(0xFFD97706)];
         iconShadow = const Color(0xFFF59E0B);
 
-        badgeText = 'Hadir Terlambat';
+        badgeText = attendanceType == 'piket'
+            ? 'Terlambat (Piket)'
+            : 'Hadir Terlambat';
         badgeIcon = Icons.schedule_rounded;
         badgeBg = const Color(0xFFFFFBEB);
         badgeBorder = const Color(0xFFFDE68A);
         badgeTextColor = const Color(0xFFB45309);
 
         labelCol1 = 'MASUK';
-        valueCol1 = attendanceJam.isNotEmpty && attendanceJam != '06:45'
+        valueCol1 = attendanceJam.isNotEmpty && attendanceJam != '-- : --'
             ? attendanceJam
             : '07:18';
         unitCol1 = 'WIB';
@@ -1228,74 +1309,85 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Kiri: Fingerprint Icon Box & Title
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: iconGradient,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: iconShadow.withValues(alpha: 0.32),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+              // Kiri: Fingerprint Icon Box & Title (dibungkus Expanded agar tidak overflow)
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: iconGradient,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Icon(
-                        iconData,
-                        color: Colors.white,
-                        size: 25,
+                        boxShadow: [
+                          BoxShadow(
+                            color: iconShadow.withValues(alpha: 0.32),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          iconData,
+                          color: Colors.white,
+                          size: 25,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            headerTitle,
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A),
-                              letterSpacing: -0.2,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  headerTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0F172A),
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: dotColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: dotColor,
-                              shape: BoxShape.circle,
+                          const SizedBox(height: 2),
+                          Text(
+                            headerSubtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        headerSubtitle,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               // Kanan: Status Badge (Dapat di-tap untuk simulasi skenario)
               Material(
                 color: Colors.transparent,
@@ -1304,7 +1396,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                   onTap: () => _showScenarioSelectorModal(context),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5.5),
+                        horizontal: 9, vertical: 5),
                     decoration: BoxDecoration(
                       color: badgeBg,
                       borderRadius: BorderRadius.circular(20),
@@ -1319,13 +1411,13 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                         Icon(
                           badgeIcon,
                           color: badgeTextColor,
-                          size: 14,
+                          size: 13.5,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           badgeText,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                             color: badgeTextColor,
                           ),

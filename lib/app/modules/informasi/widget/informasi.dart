@@ -17,12 +17,12 @@ class Informasi {
 
   factory Informasi.fromJson(Map<String, dynamic> json) {
     return Informasi(
-      informasi: json['informasi'],
-      ketInformasi: json['ket_informasi'],
-      hari: json['hari'],
-      tanggalAwal: json['tanggal_awal'],
-      tanggalAkhir: json['tanggal_akhir'],
-      file: json['file'],
+      informasi: json['informasi']?.toString() ?? '',
+      ketInformasi: json['ket_informasi']?.toString() ?? '',
+      hari: json['hari']?.toString() ?? '',
+      tanggalAwal: json['tanggal_awal']?.toString() ?? '',
+      tanggalAkhir: json['tanggal_akhir']?.toString() ?? '',
+      file: json['file']?.toString() ?? '',
     );
   }
 }

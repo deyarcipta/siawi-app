@@ -24,7 +24,7 @@ class KegiatanDataSource extends CalendarDataSource {
 
   @override
   Color getColor(int index) {
-    return appointments![index].background ?? Colors.blue;
+    return appointments![index].background;
   }
 
   @override

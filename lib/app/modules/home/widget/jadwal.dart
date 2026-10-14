@@ -561,7 +561,7 @@ class _JadwalTodayState extends State<JadwalToday> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 98,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.hardEdge,
@@ -570,9 +570,9 @@ class _JadwalTodayState extends State<JadwalToday> {
             itemBuilder: (context, index) {
               final item = list[index];
               return Container(
-                width: 215,
+                width: 225,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -645,15 +645,24 @@ class _JadwalTodayState extends State<JadwalToday> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildGuruStatusBadgeOnLight(item.statusKehadiran),
+                      ],
                     ),
                   ],
                 ),
@@ -775,8 +784,8 @@ class _JadwalTodayState extends State<JadwalToday> {
                 child: Row(
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -792,17 +801,24 @@ class _JadwalTodayState extends State<JadwalToday> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        item.namaGuru,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.namaGuru,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          _buildGuruStatusBadgeOnDark(item.statusKehadiran),
+                        ],
                       ),
                     ),
                   ],
@@ -870,7 +886,7 @@ class _JadwalTodayState extends State<JadwalToday> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 98,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.hardEdge,
@@ -879,9 +895,9 @@ class _JadwalTodayState extends State<JadwalToday> {
             itemBuilder: (context, index) {
               final item = list[index];
               return Container(
-                width: 200,
+                width: 225,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -916,15 +932,24 @@ class _JadwalTodayState extends State<JadwalToday> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildGuruStatusBadgeOnLight(item.statusKehadiran),
+                      ],
                     ),
                   ],
                 ),
@@ -933,6 +958,112 @@ class _JadwalTodayState extends State<JadwalToday> {
           ),
         ),
       ],
+    );
+  }
+
+  // ==========================================
+  // HELPER BADGE STATUS KEHADIRAN GURU
+  // ==========================================
+
+  Widget _buildGuruStatusBadgeOnDark(String status) {
+    final cleanStatus = status.trim().toLowerCase();
+    final isHadir = cleanStatus == 'hadir';
+    final isSakit = cleanStatus == 'sakit';
+    final isIzin = cleanStatus == 'izin';
+
+    final Color dotColor = isHadir
+        ? const Color(0xFF10B981) // emerald
+        : (isSakit
+            ? const Color(0xFFF59E0B)
+            : (isIzin ? const Color(0xFF38BDF8) : const Color(0xFFF87171)));
+
+    final String label = isHadir
+        ? 'Guru Masuk'
+        : (isSakit
+            ? 'Guru Sakit'
+            : (isIzin ? 'Guru Izin' : 'Guru Tidak Hadir'));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuruStatusBadgeOnLight(String status) {
+    final cleanStatus = status.trim().toLowerCase();
+    final isHadir = cleanStatus == 'hadir';
+    final isSakit = cleanStatus == 'sakit';
+    final isIzin = cleanStatus == 'izin';
+
+    final Color textColor = isHadir
+        ? const Color(0xFF059669)
+        : (isSakit
+            ? const Color(0xFFD97706)
+            : (isIzin ? const Color(0xFF2563EB) : const Color(0xFFDC2626)));
+
+    final Color bgColor = isHadir
+        ? const Color(0xFFECFDF5)
+        : (isSakit
+            ? const Color(0xFFFFFBEB)
+            : (isIzin ? const Color(0xFFEFF6FF) : const Color(0xFFFEF2F2)));
+
+    final String label = isHadir
+        ? 'Masuk'
+        : (isSakit ? 'Sakit' : (isIzin ? 'Izin' : 'Tidak Hadir'));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: textColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:siawi_app/app/data/api_service.dart';
 
 class VersionChecker {
   // Versi aplikasi saat ini (disinkronkan dengan pubspec.yaml dan splash screen)
-  static const String appVersion = "1.1.4";
+  static const String appVersion = "2.0.0";
 
   final BuildContext context;
   final String currentVersion;

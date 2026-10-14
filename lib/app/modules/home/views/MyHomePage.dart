@@ -173,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 builder = (BuildContext context) => JadwalView(SignOut);
                 break;
               case '/modul':
-                builder = (BuildContext context) => ModulMapelView();
+                builder = (BuildContext context) => ModulMapelView(signOut: SignOut);
                 break;
               case '/':
                 builder = (BuildContext context) =>

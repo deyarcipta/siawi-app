@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 class ApiService {
   static const String baseUrl = 'https://siawi.smkwisataindonesia.sch.id/api';
-  static const Duration timeoutDuration = Duration(seconds: 10);
+  static const Duration timeoutDuration = Duration(seconds: 25);
 
   // In-memory cache and pending request maps for GET requests
   static final Map<String, Future<dynamic>> _pendingRequests = {};
@@ -156,7 +156,11 @@ class ApiService {
   static Future<dynamic> post(String endpoint, Map<String, String> body) async {
     try {
       final response = await http
-          .post(Uri.parse('$baseUrl$endpoint'), body: body)
+          .post(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: const {'Accept': 'application/json'},
+            body: body,
+          )
           .timeout(timeoutDuration);
       return _processResponse(response);
     } on SocketException {

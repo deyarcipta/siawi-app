@@ -8,13 +8,14 @@ class ModulList {
   });
 
   factory ModulList.fromJson(Map<String, dynamic> json) {
-    List<dynamic> modulJson = json['modul'];
-    List<ModulItem> modulItems =
-        modulJson.map((item) => ModulItem.fromJson(item)).toList();
+    List<dynamic> modulJson = (json['modul'] is List) ? json['modul'] : [];
+    List<ModulItem> modulItems = modulJson
+        .whereType<Map<String, dynamic>>()
+        .map((item) => ModulItem.fromJson(item))
+        .toList();
 
     return ModulList(
-      namaMapel: json[
-          'namaMapel'], // Perubahan disini, nama kunci pada JSON adalah 'namaMapel'
+      namaMapel: json['namaMapel']?.toString() ?? 'Mata Pelajaran',
       modulItems: modulItems,
     );
   }
@@ -31,8 +32,8 @@ class ModulItem {
 
   factory ModulItem.fromJson(Map<String, dynamic> json) {
     return ModulItem(
-      namaModul: json['namaModul'],
-      fileModul: json['file_modul'],
+      namaModul: json['namaModul']?.toString() ?? 'Modul Tanpa Judul',
+      fileModul: json['file_modul']?.toString() ?? '',
     );
   }
 }

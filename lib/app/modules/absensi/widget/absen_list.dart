@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AbsenList {
-  final String keterangan;
+  final String keterangan; // 'hadir', 'sakit', 'izin', 'alfa'
   final String status;
   final String tanggal;
   final String hari;
@@ -9,6 +9,9 @@ class AbsenList {
   final String jamMasuk;
   final String jamPulang;
   final String tipeAbsen;
+  final String? catatan;
+  final String? tipeMasuk;
+  final String? tipePulang;
 
   AbsenList({
     required this.keterangan,
@@ -18,90 +21,118 @@ class AbsenList {
     required this.jamMasuk,
     required this.jamPulang,
     required this.tipeAbsen,
+    this.catatan,
+    this.tipeMasuk,
+    this.tipePulang,
   }) : status = _getStatus(keterangan);
 
-  static String _getStatus(String keterangan) {
-    if (keterangan.toLowerCase() == 'sakit' ||
-        keterangan.toLowerCase() == 'izin' ||
-        keterangan.toLowerCase() == 'alfa') {
-      return 'Tidak masuk sekolah ($keterangan)'; // Jika sakit, izin, atau alfa
+  bool get isHadir => keterangan.toLowerCase() == 'hadir';
+  bool get isSakit => keterangan.toLowerCase() == 'sakit';
+  bool get isIzin => keterangan.toLowerCase() == 'izin';
+  bool get isAlfa => keterangan.toLowerCase() == 'alfa';
+
+  // Cek apakah sudah absen pulang
+  bool get hasPulang =>
+      jamPulang.isNotEmpty && jamPulang != '-' && jamPulang != '--:--';
+
+  // Cek apakah pulang menggunakan mesin biometrik
+  bool get isPulangMesin =>
+      hasPulang &&
+      ((tipePulang ?? '').toLowerCase().contains('mesin') ||
+          (tipePulang ?? '').toLowerCase().contains('face') ||
+          (tipePulang ?? '').toLowerCase().contains('biometrik'));
+
+  // Deteksi jika kehadiran adalah hadir dan masuknya dilakukan secara manual
+  bool get isManualHadir {
+    if (!isHadir) return false;
+    final tm = (tipeMasuk ?? '').toLowerCase().trim();
+    final ta = tipeAbsen.toLowerCase().trim();
+    if (tm == 'manual' || ta.contains('manual')) return true;
+    if (!ta.contains('otomatis') &&
+        !ta.contains('face') &&
+        !ta.contains('biometrik') &&
+        !ta.contains('piket') &&
+        !ta.contains('mesin')) {
+      return true;
+    }
+    return false;
+  }
+
+  // Teks deskripsi keterangan dinamis (cerdas saat masuk manual & pulang mesin)
+  String get keteranganDeskripsi {
+    final cleanCatatan = (catatan ?? '').trim();
+    final hasValidCatatan = cleanCatatan.isNotEmpty && cleanCatatan != '-';
+
+    if (hasValidCatatan) {
+      return cleanCatatan;
+    }
+
+    if (isManualHadir) {
+      if (hasPulang) {
+        return isPulangMesin
+            ? "Masuk dicatat manual Guru • Pulang tap mesin Biometrik ($jamPulang)."
+            : "Masuk dicatat manual Guru • Pulang tercatat ($jamPulang).";
+      } else {
+        return "Absensi masuk dicatat secara manual oleh Guru / Wali Kelas.";
+      }
+    } else if (isSakit) {
+      return "Izin sakit telah diverifikasi oleh pihak sekolah.";
+    } else if (isIzin) {
+      return "Izin telah tercatat dan disetujui pihak sekolah.";
+    } else if (isAlfa) {
+      return "Siswa tidak hadir tanpa konfirmasi kehadiran.";
     } else {
-      return 'Masuk sekolah'; // Jika hadir
+      if (hasPulang) {
+        return "Kehadiran masuk & pulang tercatat via mesin Biometrik Face Recognition.";
+      } else {
+        return "Kehadiran masuk tercatat via mesin Biometrik Face Recognition.";
+      }
+    }
+  }
+
+  static String _getStatus(String keterangan) {
+    switch (keterangan.toLowerCase()) {
+      case 'sakit':
+        return 'Sakit (Izin Medis)';
+      case 'izin':
+        return 'Izin (Keperluan)';
+      case 'alfa':
+        return 'Tanpa Keterangan (Alfa)';
+      default:
+        return 'Hadir Tepat Waktu';
+    }
+  }
+
+  static Color getStatusColor(String keterangan) {
+    switch (keterangan.toLowerCase()) {
+      case 'hadir':
+        return const Color(0xFF10B981); // Emerald Green
+      case 'sakit':
+        return const Color(0xFFF59E0B); // Amber
+      case 'izin':
+        return const Color(0xFF0EA5E9); // Sky Blue
+      case 'alfa':
+        return const Color(0xFFEF4444); // Red Rose
+      default:
+        return const Color(0xFF64748B);
     }
   }
 
   factory AbsenList.fromJson(Map<String, dynamic> json) {
-    Color parseColor(String colorString) {
-      switch (colorString.toLowerCase()) {
-        case 'red':
-          return Colors.red;
-        case 'blue':
-          return Colors.blue;
-        // Tambahkan kasus lain sesuai kebutuhan
-        default:
-          return Colors.black; // Warna default jika tidak cocok
-      }
-    }
+    String kehadiran = (json['kehadiran'] ?? 'hadir').toString();
+    Color statusColor = getStatusColor(kehadiran);
 
     return AbsenList(
-      keterangan: json['kehadiran'],
-      tanggal: json['tanggal'],
-      hari: json['hari'],
-      warna: parseColor(json['warna']),
+      keterangan: kehadiran,
+      tanggal: json['tanggal'] ?? '-',
+      hari: json['hari'] ?? '-',
+      warna: statusColor,
       jamMasuk: json['jam_masuk'] ?? '-',
       jamPulang: json['jam_pulang'] ?? '-',
       tipeAbsen: json['tipe_absen'] ?? 'Manual oleh Guru',
+      catatan: json['ket']?.toString(),
+      tipeMasuk: json['tipe_masuk']?.toString(),
+      tipePulang: json['tipe_pulang']?.toString(),
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// // import 'package:flutter/src/widgets/text.dart';
-
-// class AbsenList {
-//   final String tanggal;
-//   final String keterangan;
-//   final String img;
-//   final Color warna;
-
-//   AbsenList(
-//       {required this.tanggal,
-//       required this.keterangan,
-//       required this.img,
-//       required this.warna});
-
-//   // Data dari kelas AbsenList
-// }
-
-// List<AbsenList> myData = [
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.blue),
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.blue),
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Tidak Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.red),
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.blue),
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.blue),
-//   AbsenList(
-//       tanggal: 'Rabu, 12 Januari 2024',
-//       keterangan: 'Masuk Sekolah',
-//       img: "assets/icon/absen.png",
-//       warna: Colors.blue),
-// ];

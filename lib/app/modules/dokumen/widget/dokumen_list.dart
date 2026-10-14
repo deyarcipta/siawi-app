@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 class DokumenList {
   late String jenis_dokumen;
   late String fileDokumen;
@@ -9,8 +11,8 @@ class DokumenList {
 
   factory DokumenList.fromJson(Map<String, dynamic> json) {
     return DokumenList(
-      jenis_dokumen: json['jenis_dokumen'],
-      fileDokumen: json['file_dokumen'],
+      jenis_dokumen: json['jenis_dokumen'] ?? '',
+      fileDokumen: json['file_dokumen'] ?? '',
     );
   }
 }

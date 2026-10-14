@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/data/api_service.dart';
@@ -150,18 +151,100 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
       return;
     }
 
+    String? currentId = prefs.getString('idSiswa');
+    String? currentNama = prefs.getString('namaSiswa');
+    String? currentNis = prefs.getString('nis');
+    String? currentKelas = prefs.getString('namaKelas');
+    String? currentJurusan = prefs.getString('namaJurusan');
+
+    // 1. Coba baca dari cached header jika namaSiswa belum tersimpan
+    if (currentNama == null || currentNama.isEmpty || currentNama == 'Siswa') {
+      try {
+        final cachedHeader =
+            prefs.getString('cached_student_header_$currentId');
+        if (cachedHeader != null && cachedHeader.isNotEmpty) {
+          final cMap = jsonDecode(cachedHeader);
+          if (cMap is Map) {
+            currentNama = cMap['namaSiswa']?.toString() ?? currentNama;
+            currentKelas = cMap['namaKelas']?.toString() ?? currentKelas;
+            currentJurusan = cMap['namaJurusan']?.toString() ?? currentJurusan;
+            currentNis = cMap['nis']?.toString() ?? currentNis;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 2. Coba fallback dari masterDataSiswa jika masih kosong/Siswa
+    if (currentNama == null || currentNama.isEmpty || currentNama == 'Siswa') {
+      try {
+        int myId = int.tryParse(currentId ?? '0') ?? 0;
+        final match = masterDataSiswa.firstWhere(
+          (s) =>
+              s['id_siswa'] == myId ||
+              (currentNis != null && s['nis'] == currentNis),
+          orElse: () => {},
+        );
+        if (match.isNotEmpty) {
+          currentNama = match['nama_siswa']?.toString() ?? currentNama;
+          currentKelas = match['kelas']?.toString() ?? currentKelas;
+          currentJurusan =
+              match['program_keahlian']?.toString() ?? currentJurusan;
+          currentNis = match['nis']?.toString() ?? currentNis;
+        }
+      } catch (_) {}
+    }
+
     setState(() {
-      idSiswa = prefs.getString('idSiswa');
-      namaSiswa = prefs.getString('namaSiswa') ?? 'Siswa';
-      nisSiswa = prefs.getString('nis') ?? '-';
-      kelasSiswa = prefs.getString('namaKelas') ?? '-';
-      jurusanSiswa = prefs.getString('namaJurusan') ?? '-';
+      idSiswa = currentId;
+      namaSiswa = (currentNama != null && currentNama.isNotEmpty)
+          ? currentNama
+          : 'Siswa';
+      nisSiswa = currentNis ?? '-';
+      kelasSiswa = currentKelas ?? '-';
+      jurusanSiswa = currentJurusan ?? '-';
     });
+
+    // 3. Sinkronisasi live data langsung dari database
+    Future<void> syncProfileFromDatabase() async {
+      if (currentId == null || currentId.isEmpty) return;
+      try {
+        final homeRes = await ApiService.get('/home/$currentId', silent: true);
+        if (homeRes != null && homeRes['siswa'] != null && mounted) {
+          final sData = homeRes['siswa'];
+          final kData = homeRes['kelas'];
+          final jData = homeRes['jurusan'];
+          final realNama =
+              (sData['nama_siswa']?.toString() ?? namaSiswa)?.toUpperCase();
+          final realNis = sData['nis']?.toString() ?? nisSiswa;
+          final realKelas = kData != null
+              ? kData['nama_kelas']?.toString() ?? kelasSiswa
+              : kelasSiswa;
+          final realJurusan = jData != null
+              ? jData['nama_jurusan']?.toString() ?? jurusanSiswa
+              : jurusanSiswa;
+
+          setState(() {
+            namaSiswa = realNama;
+            nisSiswa = realNis;
+            kelasSiswa = realKelas;
+            jurusanSiswa = realJurusan;
+          });
+
+          if (realNama != null) prefs.setString('namaSiswa', realNama);
+          if (realNis != null) prefs.setString('nis', realNis);
+          if (realKelas != null) prefs.setString('namaKelas', realKelas);
+          if (realJurusan != null) {
+            prefs.setString('namaJurusan', realJurusan);
+          }
+        }
+      } catch (_) {}
+    }
 
     await Future.wait([
       _fetchRiwayatPengajuan(),
       _fetchMitraPerusahaan(),
       _fetchTemanSelevel(),
+      syncProfileFromDatabase(),
     ]);
 
     if (mounted) {
@@ -254,106 +337,288 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
     }
   }
 
-  Widget _buildTitle(String text) {
-    return Text(
-      text,
-      maxLines: 2,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-        color: Colors.white,
+  Widget _buildHeroHeader() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4C3EC7),
+            Color(0xFF382BAA),
+          ],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x334C3EC7),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
-    );
-  }
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            // Ornamen lingkaran abstrak
+            Positioned(
+              right: -30,
+              top: -30,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
+            Positioned(
+              left: -20,
+              bottom: 10,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.04),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // App Bar Row
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      ),
+                      const SizedBox(width: 4),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Surat Pengajuan PKL',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            Text(
+                              'BKK & Hubungan Industri SMK Wisata Indonesia',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Image.asset(
+                          'assets/logo/logo-splash.png',
+                          width: 28,
+                          height: 28,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
 
-  Widget _buildTitleData(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        color: Colors.white,
+                  // Card Profil Pemohon (Siswa) di dalam Header
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (namaSiswa != null && namaSiswa!.isNotEmpty)
+                                    ? namaSiswa!
+                                    : 'Siswa',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${(kelasSiswa != null && kelasSiswa != '-') ? kelasSiswa : 'Kelas'} • NIS: ${(nisSiswa != null && nisSiswa != '-') ? nisSiswa : '-'}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Chips Statistik Pengajuan
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.assignment_outlined,
+                              size: 14,
+                              color: Color(0xFF93C5FD),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${pengajuanList.length} Pengajuan Diajukan',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.business_rounded,
+                              size: 14,
+                              color: Color(0xFFFDE68A),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${mitraList.length} Mitra Perusahaan',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: AppColors.mainColor,
-        centerTitle: true,
-        leading: BackButton(color: AppColors.white),
-        title: Text(
-          'SI AWI',
-          style: TextStyle(
-            color: AppColors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
-            child: Image.asset(
-              'assets/logo/logo-splash.png',
-              width: 30,
-            ),
-          ),
-        ],
-      ),
-      body: isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppColors.mainColor,
-                strokeWidth: 3,
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () async {
-                await Future.wait([
-                  _fetchRiwayatPengajuan(),
-                  _fetchMitraPerusahaan(),
-                  _fetchTemanSelevel(),
-                ]);
-              },
-              color: AppColors.mainColor,
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 100),
-                children: [
-                  // 1. BANNER UNGU KONSISTEN DENGAN JUDUL LAYANAN BKK & HUBIN
-                  Container(
-                    width: double.infinity,
-                    height: size.height * .11,
-                    decoration: BoxDecoration(
-                      color: AppColors.fiveColor,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildTitle('Layanan BKK & Hubin'),
-                          const SizedBox(height: 3),
-                          _buildTitleData('$namaSiswa ($nisSiswa)'),
-                          const SizedBox(height: 2),
-                          _buildTitleData('$jurusanSiswa - $kelasSiswa'),
-                        ],
-                      ),
-                    ),
-                  ),
+      body: Column(
+        children: [
+          // 1. HERO HEADER LENGKUNG SIAWI
+          _buildHeroHeader(),
 
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          // 2. KONTEN UTAMA
+          Expanded(
+            child: isLoading
+                ? _buildLoadingSkeleton()
+                : RefreshIndicator(
+                    onRefresh: () async {
+                      await Future.wait([
+                        _fetchRiwayatPengajuan(),
+                        _fetchMitraPerusahaan(),
+                        _fetchTemanSelevel(),
+                      ]);
+                    },
+                    color: const Color(0xFF4C3EC7),
+                    backgroundColor: Colors.white,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       children: [
-                        // Card Info Pengajuan PKL
+                        // Card Alur Pengajuan PKL
                         _buildHeaderCard(),
                         const SizedBox(height: 20),
 
-                        // 2. JUDUL RIWAYAT
+                        // Judul Riwayat Pengajuan
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -362,22 +627,27 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF1E293B),
+                                color: Color(0xFF0F172A),
                               ),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppColors.thirdColor,
+                                color: const Color(0xFFEEF2FF),
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFFE0E7FF),
+                                ),
                               ),
                               child: Text(
                                 '${pengajuanList.length} Pengajuan',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.mainColor,
+                                  color: Color(0xFF4C3EC7),
                                 ),
                               ),
                             ),
@@ -385,7 +655,7 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
                         ),
                         const SizedBox(height: 14),
 
-                        // 3. DAFTAR PENGAJUAN / EMPTY STATE
+                        // Daftar Pengajuan / Empty State
                         if (pengajuanList.isEmpty)
                           _buildEmptyState()
                         else
@@ -394,19 +664,21 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openFormPengajuan,
-        backgroundColor: AppColors.mainColor,
+        backgroundColor: const Color(0xFF4C3EC7),
+        elevation: 4,
         icon: const Icon(Icons.add_task_rounded, color: Colors.white),
         label: const Text(
           'Ajukan Surat PKL',
           style: TextStyle(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             fontSize: 14,
             color: Colors.white,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -420,56 +692,88 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
   Widget _buildHeaderCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.thirdColor,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              Icons.mail_outline_rounded,
-              color: AppColors.mainColor,
-              size: 24,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE0E7FF)),
+                ),
+                child: const Icon(
+                  Icons.mark_email_read_rounded,
+                  color: Color(0xFF4C3EC7),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Alur Pengajuan Surat PKL',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Layanan resmi BKK & Hubin Sekolah',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+            ),
+            child: Row(
               children: [
-                const Text(
-                  'Pengajuan Surat Rekomendasi PKL',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E293B),
-                  ),
+                _buildStepItem('1', 'Pilih Tempat', Icons.business_outlined),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 11,
+                  color: Color(0xFFCBD5E1),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  'Ajukan surat permohonan PKL resmi ke perusahaan tujuan secara mandiri atau berkelompok.',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.grey.shade600,
-                    height: 1.3,
-                  ),
+                _buildStepItem('2', 'Verifikasi BKK', Icons.verified_user_outlined),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 11,
+                  color: Color(0xFFCBD5E1),
                 ),
+                _buildStepItem('3', 'Ambil Surat Fisik', Icons.inventory_2_outlined),
               ],
             ),
           ),
@@ -478,28 +782,141 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
     );
   }
 
+  Widget _buildStepItem(String num, String label, IconData icon) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF4C3EC7),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    num,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(icon, size: 14, color: const Color(0xFF4C3EC7)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF334155),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton() {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: 4,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (_, __) => Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 90,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                Container(
+                  width: 80,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: 160,
+              height: 16,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              height: 12,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
-              color: AppColors.thirdColor,
-              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFEEF2FF),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE0E7FF), width: 2),
             ),
-            child: Icon(
-              Icons.assignment_late_outlined,
-              color: AppColors.mainColor,
-              size: 32,
+            child: const Icon(
+              Icons.mark_email_unread_outlined,
+              color: Color(0xFF4C3EC7),
+              size: 36,
             ),
           ),
           const SizedBox(height: 16),
@@ -508,31 +925,31 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1E293B),
+              color: Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 6),
           const Text(
-            'Silakan buat pengajuan surat baru untuk tempat Praktik Kerja Lapangan Anda.',
+            'Anda belum mengajukan permohonan surat PKL. Buat pengajuan baru untuk perusahaan tempat Praktik Kerja Lapangan Anda.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
               color: Color(0xFF64748B),
-              height: 1.3,
+              height: 1.4,
             ),
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: _openFormPengajuan,
-            icon: const Icon(Icons.add_rounded, size: 18),
+            icon: const Icon(Icons.add_task_rounded, size: 18),
             label: const Text(
-              'Buat Pengajuan Sekarang',
+              'Ajukan Surat PKL Sekarang',
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mainColor,
+              backgroundColor: const Color(0xFF4C3EC7),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

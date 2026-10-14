@@ -15,11 +15,11 @@ class PointList {
 
   factory PointList.fromJson(Map<String, dynamic> json) {
     return PointList(
-      namaPoint: json['nama_point'],
-      skorPoint: json['skor_point'],
-      tanggal: json['tanggal'],
-      waktu: json['waktu'],
-      hari: json['hari'],
+      namaPoint: json['nama_point']?.toString() ?? '',
+      skorPoint: json['skor_point']?.toString() ?? '0',
+      tanggal: json['tanggal']?.toString() ?? '',
+      waktu: json['waktu']?.toString() ?? '',
+      hari: json['hari']?.toString() ?? '',
     );
   }
 }

@@ -133,7 +133,7 @@ class _MenuState extends State<Menu> {
         icon: Icons.menu_book_rounded,
         bgColor: const Color(0xFFFFEDD5),
         iconColor: const Color(0xFFEA580C),
-        destination: const ModulMapelView(),
+        destination: ModulMapelView(signOut: widget.signOut),
       ),
       // 8. Surat PKL (Sesuai Mockup Gambar, Posisi Paling Akhir)
       _MenuItemData(
@@ -195,7 +195,7 @@ class _MenuState extends State<Menu> {
         icon: Icons.menu_book_rounded,
         bgColor: const Color(0xFFFFEDD5),
         iconColor: const Color(0xFFEA580C),
-        destination: const ModulMapelView(),
+        destination: ModulMapelView(signOut: widget.signOut),
       ),
       _MenuItemData(
         title: "Informasi",
@@ -329,120 +329,132 @@ class _MenuState extends State<Menu> {
     bool isPklMenu = item.title == "Surat PKL";
     bool isLocked = isPklMenu && !isPklLevel;
 
-    return GestureDetector(
-      onTap: () async {
-        if (isPklMenu) {
-          // Validasi secara realtime dengan preferences terkini
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          bool allowed = isPklLevel;
-          if (prefs.containsKey('is_pkl_level')) {
-            allowed = prefs.getBool('is_pkl_level') ?? allowed;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          if (isPklMenu) {
+            // Validasi secara realtime dengan preferences terkini
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            bool allowed = isPklLevel;
+            if (prefs.containsKey('is_pkl_level')) {
+              allowed = prefs.getBool('is_pkl_level') ?? allowed;
+            }
+            if (!allowed) {
+              if (!mounted) return;
+              _showPklRestrictedDialog(context);
+              return;
+            }
           }
-          if (!allowed) {
-            if (!mounted) return;
-            _showPklRestrictedDialog(context);
-            return;
-          }
-        }
 
-        if (item.destination != null) {
-          if (!mounted) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => item.destination!),
-          );
-        }
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(2, 9, 2, 7),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: const Color(0xFFECEFF5),
-            width: 1.2,
+          if (item.destination != null) {
+            if (!mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => item.destination!),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(20),
+        splashColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.1),
+        highlightColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(4, 9, 4, 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFECEFF5),
+              width: 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Squircle container warna pastel dengan icon berwarna & badge lock jika tidak aktif
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isLocked ? const Color(0xFFF1F5F9) : item.bgColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    item.icon,
-                    color: isLocked ? const Color(0xFF94A3B8) : item.iconColor,
-                    size: 24,
-                  ),
-                ),
-                if (isLocked)
-                  Positioned(
-                    top: -3,
-                    right: -3,
-                    child: Container(
-                      padding: const EdgeInsets.all(3.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF64748B),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.lock_rounded,
-                        size: 10,
-                        color: Colors.white,
-                      ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Squircle container warna pastel dengan icon berwarna & badge lock jika tidak aktif
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isLocked ? const Color(0xFFF1F5F9) : item.bgColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      item.icon,
+                      color: isLocked ? const Color(0xFF94A3B8) : item.iconColor,
+                      size: 24,
                     ),
                   ),
-              ],
-            ),
-            // Jarak icon dan teks dibuat rapat/dekat sesuai permintaan user
-            const SizedBox(height: 5),
+                  if (isLocked)
+                    Positioned(
+                      top: -3,
+                      right: -3,
+                      child: Container(
+                        padding: const EdgeInsets.all(3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF64748B),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.lock_rounded,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              // Jarak icon dan teks dibuat proporsional
+              const SizedBox(height: 5),
 
-            // Label Title (Poin Siswa & Surat PKL lengkap tanpa terpotong)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: SizedBox(
-                height: 22,
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.center,
-                    child: Text(
-                      item.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isLocked
-                            ? const Color(0xFF64748B)
-                            : const Color(0xFF1E293B),
-                        letterSpacing: -0.2,
+              // Label Title (Poin Siswa & Surat PKL lengkap tanpa terpotong)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: SizedBox(
+                  height: 22,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        item.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isLocked
+                              ? const Color(0xFF64748B)
+                              : const Color(0xFF1E293B),
+                          letterSpacing: -0.2,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
