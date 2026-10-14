@@ -6,6 +6,7 @@ class JadwalHariIni {
   final String waktuAwal;
   final String waktuAkhir;
   final String statusKehadiran;
+  final String? fotoGuru;
 
   JadwalHariIni({
     required this.namaMapel,
@@ -15,7 +16,18 @@ class JadwalHariIni {
     required this.waktuAwal,
     required this.waktuAkhir,
     required this.statusKehadiran,
+    this.fotoGuru,
   });
+
+  String? get fotoGuruUrl {
+    if (fotoGuru == null || fotoGuru!.trim().isEmpty || fotoGuru == 'null') {
+      return null;
+    }
+    if (fotoGuru!.startsWith('http://') || fotoGuru!.startsWith('https://')) {
+      return fotoGuru;
+    }
+    return 'https://siawi.smkwisataindonesia.sch.id/storage/foto_guru/$fotoGuru';
+  }
 
   factory JadwalHariIni.fromJson(Map<String, dynamic> json) {
     return JadwalHariIni(
@@ -26,6 +38,7 @@ class JadwalHariIni {
       waktuAwal: json['waktu_awal']?.toString() ?? '',
       waktuAkhir: json['waktu_akhir']?.toString() ?? '',
       statusKehadiran: json['status_kehadiran']?.toString() ?? '',
+      fotoGuru: json['foto_guru']?.toString() ?? json['foto']?.toString(),
     );
   }
 }

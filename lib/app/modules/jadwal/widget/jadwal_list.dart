@@ -88,6 +88,75 @@ class _JadwalListState extends State<JadwalList>
     return hari[0].toUpperCase() + hari.substring(1).toLowerCase();
   }
 
+  Widget _buildTeacherAvatar(
+    String? photoUrl,
+    String teacherName,
+    Color accentColor, {
+    double size = 26,
+  }) {
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: accentColor.withValues(alpha: 0.12),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: Image.network(
+            photoUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                _buildInitialsAvatar(teacherName, accentColor, size),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildInitialsAvatar(teacherName, accentColor, size);
+            },
+          ),
+        ),
+      );
+    }
+    return _buildInitialsAvatar(teacherName, accentColor, size);
+  }
+
+  Widget _buildInitialsAvatar(
+    String teacherName,
+    Color accentColor,
+    double size,
+  ) {
+    String initial = 'G';
+    if (teacherName.isNotEmpty) {
+      initial = teacherName[0].toUpperCase();
+    }
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: TextStyle(
+            fontSize: size * 0.44,
+            fontWeight: FontWeight.w800,
+            color: accentColor,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -254,20 +323,10 @@ class _JadwalListState extends State<JadwalList>
                                 // Guru Pengampu
                                 Row(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 12,
-                                      backgroundColor: accentColor
-                                          .withValues(alpha: 0.12),
-                                      child: Text(
-                                        jadwal.namaGuru.isNotEmpty
-                                            ? jadwal.namaGuru[0].toUpperCase()
-                                            : 'G',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          color: accentColor,
-                                        ),
-                                      ),
+                                    _buildTeacherAvatar(
+                                      jadwal.fotoGuruUrl,
+                                      jadwal.namaGuru,
+                                      accentColor,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(

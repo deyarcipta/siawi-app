@@ -60,7 +60,6 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
   String attendanceType = 'mesin';   // mesin, piket
   String attendanceJam = '-- : --';
   int attendanceStreak = 0;
-  String? overrideScenario; // null = otomatis sistem
 
   @override
   void initState() {
@@ -1072,8 +1071,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
   }
 
   Widget _buildBiometricAttendanceCard(BuildContext context) {
-    // Tentukan skenario aktif (default: otomatis, atau override simulasi)
-    String activeScenario = overrideScenario ??
+    // Tentukan skenario aktif dari data aktual presensi
+    String activeScenario =
         (attendanceStatus == 'hadir' && attendanceType == 'piket'
             ? 'piket'
             : attendanceStatus);
@@ -1388,43 +1387,36 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
                 ),
               ),
               const SizedBox(width: 8),
-              // Kanan: Status Badge (Dapat di-tap untuk simulasi skenario)
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
+              // Kanan: Status Badge Presensi
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: badgeBg,
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () => _showScenarioSelectorModal(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: badgeBg,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: badgeBorder,
-                        width: 1.2,
+                  border: Border.all(
+                    color: badgeBorder,
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      badgeIcon,
+                      color: badgeTextColor,
+                      size: 13.5,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      badgeText,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: badgeTextColor,
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          badgeIcon,
-                          color: badgeTextColor,
-                          size: 13.5,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          badgeText,
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: badgeTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -1576,217 +1568,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
     );
   }
 
-  // ========================================================
-  // MODAL SIMULASI SKENARIO PRESENSI
-  // ========================================================
-  void _showScenarioSelectorModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4.5,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Simulasi Skenario Presensi',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  if (overrideScenario != null)
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          overrideScenario = null;
-                        });
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Skenario dikembalikan ke data otomatis sistem'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      child: const Text('Reset'),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Pilih salah satu kondisi presensi siswa untuk melihat perubahan tampilan secara langsung:',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                  height: 1.3,
-                ),
-              ),
-              const SizedBox(height: 14),
-              _buildScenarioTile(
-                icon: Icons.verified_rounded,
-                iconColor: const Color(0xFF10B981),
-                title: 'Hadir Tepat Waktu',
-                subtitle: 'Biometrik RFID & Face ID Terverifikasi (06:45 WIB)',
-                isSelected: overrideScenario == 'hadir',
-                onTap: () =>
-                    _applyScenario('hadir', 'Hadir Tepat Waktu (Biometrik)'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.assignment_ind_rounded,
-                iconColor: const Color(0xFF6366F1),
-                title: 'Masuk tapi Diinput Manual Piket',
-                subtitle:
-                    'Divalidasi manual oleh Guru Piket di pos gerbang (06:52 WIB)',
-                isSelected: overrideScenario == 'piket',
-                onTap: () => _applyScenario(
-                    'piket', 'Hadir Diinput Manual oleh Guru Piket'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.schedule_rounded,
-                iconColor: const Color(0xFFF59E0B),
-                title: 'Hadir Terlambat',
-                subtitle: 'Melebihi batas jam 07:00 WIB (07:18 WIB)',
-                isSelected: overrideScenario == 'terlambat',
-                onTap: () =>
-                    _applyScenario('terlambat', 'Hadir Terlambat'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.medical_services_rounded,
-                iconColor: const Color(0xFF0EA5E9),
-                title: 'Sedang Sakit',
-                subtitle: 'Surat keterangan dokter diterima pihak sekolah',
-                isSelected: overrideScenario == 'sakit',
-                onTap: () =>
-                    _applyScenario('sakit', 'Sedang Sakit (Keterangan Medis)'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.assignment_turned_in_rounded,
-                iconColor: const Color(0xFFA855F7),
-                title: 'Izin Resmi',
-                subtitle: 'Surat izin keperluan keluarga / dispensasi disetujui',
-                isSelected: overrideScenario == 'izin',
-                onTap: () =>
-                    _applyScenario('izin', 'Izin Resmi (Dispensasi)'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.person_off_rounded,
-                iconColor: const Color(0xFFF43F5E),
-                title: 'Tanpa Keterangan (Alfa)',
-                subtitle: 'Tidak hadir dan belum ada konfirmasi dari orang tua',
-                isSelected: overrideScenario == 'alfa',
-                onTap: () =>
-                    _applyScenario('alfa', 'Tanpa Keterangan (Alfa)'),
-              ),
-              _buildScenarioTile(
-                icon: Icons.hourglass_top_rounded,
-                iconColor: const Color(0xFF64748B),
-                title: 'Belum Presensi',
-                subtitle: 'Kondisi pagi hari sebelum siswa scan di gerbang sekolah',
-                isSelected: overrideScenario == 'belum',
-                onTap: () =>
-                    _applyScenario('belum', 'Belum Presensi (Pagi Hari)'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  void _applyScenario(String scenario, String label) {
-    setState(() {
-      overrideScenario = scenario;
-    });
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Skenario aktif: $label'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Widget _buildScenarioTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? iconColor.withValues(alpha: 0.08)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isSelected ? iconColor : const Color(0xFFE2E8F0),
-          width: isSelected ? 1.5 : 1,
-        ),
-      ),
-      child: ListTile(
-        dense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        leading: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.14),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: iconColor, size: 20),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isSelected ? iconColor : const Color(0xFF0F172A),
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        trailing: isSelected
-            ? Icon(Icons.check_circle_rounded, color: iconColor, size: 20)
-            : const Icon(Icons.chevron_right_rounded,
-                color: Colors.grey, size: 20),
-        onTap: onTap,
-      ),
-    );
-  }
 
   void _showPklDetailBottomSheet(BuildContext context) {
     showModalBottomSheet(

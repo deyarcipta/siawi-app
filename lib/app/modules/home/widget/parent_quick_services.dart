@@ -1370,6 +1370,73 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
     }
   }
 
+  Widget _buildTeacherAvatar(
+    String? photoUrl,
+    String teacherName, {
+    double size = 34,
+    Color textColor = const Color(0xFF4338CA),
+    Color bgColor = Colors.white,
+  }) {
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: Image.network(
+            photoUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                _buildInitialsCircle(teacherName, size, textColor, bgColor),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildInitialsCircle(teacherName, size, textColor, bgColor);
+            },
+          ),
+        ),
+      );
+    }
+    return _buildInitialsCircle(teacherName, size, textColor, bgColor);
+  }
+
+  Widget _buildInitialsCircle(
+    String teacherName,
+    double size,
+    Color textColor,
+    Color bgColor,
+  ) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(teacherName),
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w800,
+            fontSize: size * 0.32,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _getFormattedDateToday() {
     final now = DateTime.now();
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -1841,15 +1908,29 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text(
-                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              _buildTeacherAvatar(
+                                item.fotoGuruUrl,
+                                item.namaGuru,
+                                size: 18,
+                                textColor: const Color(0xFF4F46E5),
+                                bgColor: const Color(0xFFEEF2FF),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -1972,23 +2053,12 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
               Expanded(
                 child: Row(
                   children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          _getInitials(item.namaGuru),
-                          style: const TextStyle(
-                            color: Color(0xFF4338CA),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
+                    _buildTeacherAvatar(
+                      item.fotoGuruUrl,
+                      item.namaGuru,
+                      size: 36,
+                      textColor: const Color(0xFF4338CA),
+                      bgColor: Colors.white,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -2123,15 +2193,29 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text(
-                            '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              _buildTeacherAvatar(
+                                item.fotoGuruUrl,
+                                item.namaGuru,
+                                size: 18,
+                                textColor: const Color(0xFF4F46E5),
+                                bgColor: const Color(0xFFEEF2FF),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${item.namaGuru} • ${_formatJamKe(item.jamAwal, item.jamAkhir)}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 4),
