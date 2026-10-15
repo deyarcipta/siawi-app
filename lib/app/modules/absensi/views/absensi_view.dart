@@ -525,38 +525,105 @@ class _AbsensiViewState extends State<AbsensiView> {
 
                             const SizedBox(height: 24),
 
-                            // 3. BARIS JUDUL RIWAYAT & FILTER
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Riwayat Kehadiran",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF0F172A),
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEDE9FE),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    "Tampil ${displayedItems.length} dari ${_filteredList.length} Hari",
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF6366F1),
+                            // 3. BARIS JUDUL RIWAYAT & FILTER (ADAPTIF TERHADAP SCROLL & BACKGROUND UNGU)
+                            AnimatedBuilder(
+                              animation: _scrollController,
+                              builder: (context, _) {
+                                final offset = _scrollController.hasClients
+                                    ? _scrollController.offset
+                                    : 0.0;
+                                // Transisi halus saat judul bergerak memasuki area curved banner ungu (offset 160-220)
+                                final t = ((offset - 160) / 60.0).clamp(0.0, 1.0);
+                                final titleColor = Color.lerp(
+                                      const Color(0xFF0F172A),
+                                      Colors.white,
+                                      t,
+                                    ) ??
+                                    const Color(0xFF0F172A);
+
+                                final badgeBgColor = Color.lerp(
+                                      const Color(0xFFEDE9FE),
+                                      Colors.white.withValues(alpha: 0.22),
+                                      t,
+                                    ) ??
+                                    const Color(0xFFEDE9FE);
+
+                                final badgeTextColor = Color.lerp(
+                                      const Color(0xFF6366F1),
+                                      Colors.white,
+                                      t,
+                                    ) ??
+                                    const Color(0xFF6366F1);
+
+                                final badgeBorderColor = Color.lerp(
+                                      Colors.transparent,
+                                      Colors.white.withValues(alpha: 0.4),
+                                      t,
+                                    ) ??
+                                    Colors.transparent;
+
+                                return Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.history_rounded,
+                                          size: 18,
+                                          color: titleColor,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "Riwayat Kehadiran",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: titleColor,
+                                            letterSpacing: -0.3,
+                                            shadows: t > 0
+                                                ? [
+                                                    Shadow(
+                                                      color: Colors.black
+                                                          .withValues(
+                                                            alpha: 0.25 * t,
+                                                          ),
+                                                      blurRadius: 4,
+                                                      offset:
+                                                          const Offset(0, 1),
+                                                    ),
+                                                  ]
+                                                : null,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ),
-                              ],
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: badgeBgColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: badgeBorderColor,
+                                          width: 1.1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        "Tampil ${displayedItems.length} dari ${_filteredList.length} Hari",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: badgeTextColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
 
                             const SizedBox(height: 12),
@@ -958,9 +1025,9 @@ class _AbsensiViewState extends State<AbsensiView> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF4C3EC7)
+                        ? Colors.white.withValues(alpha: 0.85)
                         : const Color(0xFFE2E8F0),
-                    width: 1.1,
+                    width: isSelected ? 1.3 : 1.1,
                   ),
                   boxShadow: isSelected
                       ? [
