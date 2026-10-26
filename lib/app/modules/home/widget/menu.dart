@@ -6,6 +6,7 @@ import 'package:siawi_app/app/modules/dokumen_gabungan/views/dokumen_gabungan_vi
 import 'package:siawi_app/app/modules/informasi/views/informasi_view.dart';
 import 'package:siawi_app/app/modules/jadwal/views/jadwal_view.dart';
 import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/views/kejuruan_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/pengajuan_pkl/views/pengajuan_pkl_view.dart';
@@ -25,6 +26,8 @@ class _MenuItemData {
   final Color bgColor;
   final Color iconColor;
   final Widget? destination;
+  final String? badge;
+  final Color? badgeColor;
 
   const _MenuItemData({
     required this.title,
@@ -32,6 +35,8 @@ class _MenuItemData {
     required this.bgColor,
     required this.iconColor,
     this.destination,
+    this.badge,
+    this.badgeColor,
   });
 }
 
@@ -119,9 +124,9 @@ class _MenuState extends State<Menu> {
         iconColor: const Color(0xFF4F46E5),
         destination: DokumenGabunganView(widget.signOut),
       ),
-      // 6. Poin Siswa (Teks Lengkap)
+      // 6. Poin Siswa
       _MenuItemData(
-        title: "Poin Siswa",
+        title: "Poin siswa",
         icon: Icons.balance_rounded,
         bgColor: const Color(0xFFF3E8FF),
         iconColor: const Color(0xFF9333EA),
@@ -135,13 +140,23 @@ class _MenuState extends State<Menu> {
         iconColor: const Color(0xFFEA580C),
         destination: ModulMapelView(signOut: widget.signOut),
       ),
-      // 8. Surat PKL (Sesuai Mockup Gambar, Posisi Paling Akhir)
+      // 8. Surat PKL
       _MenuItemData(
         title: "Surat PKL",
         icon: Icons.work_outline_rounded,
-        bgColor: const Color(0xFFE6FAF5),
-        iconColor: const Color(0xFF0F766E),
+        bgColor: const Color(0xFFF1F5F9),
+        iconColor: const Color(0xFF475569),
         destination: PengajuanPklView(widget.signOut),
+      ),
+      // 9. Kejuruan (Fitur Baru Siswa)
+      _MenuItemData(
+        title: "Kejuruan",
+        icon: Icons.architecture_rounded,
+        bgColor: const Color(0xFFDCFCE7),
+        iconColor: const Color(0xFF16A34A),
+        badge: "Baru",
+        badgeColor: const Color(0xFF0284C7),
+        destination: KejuruanView(signOut: widget.signOut),
       ),
     ];
   }
@@ -231,7 +246,7 @@ class _MenuState extends State<Menu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Fitur & Layanan Siswa + Badge Menu Terpadu
+            // Header: Fitur & Layanan Siswa + Akses cepat administrasi akademik
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +258,7 @@ class _MenuState extends State<Menu> {
                       Text(
                         role == "orang_tua"
                             ? "Fitur & Layanan Akademik"
-                            : "Fitur & Layanan Siswa",
+                            : "Fitur dan layanan siswa",
                         style: const TextStyle(
                           fontSize: 17.5,
                           fontWeight: FontWeight.w800,
@@ -295,30 +310,22 @@ class _MenuState extends State<Menu> {
             ),
             const SizedBox(height: 16),
 
-            // Baris 1: Informasi, Kalender, Absensi, Jadwal
-            Row(
-              children: [
-                for (int i = 0; i < 4; i++) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildMenuItem(items[i]),
-                  ),
+            // Grid 3x3 Menu (3 item per baris)
+            for (int r = 0; r < (items.length / 3).ceil(); r++) ...[
+              if (r > 0) const SizedBox(height: 12),
+              Row(
+                children: [
+                  for (int c = 0; c < 3; c++) ...[
+                    if (c > 0) const SizedBox(width: 10),
+                    Expanded(
+                      child: (r * 3 + c < items.length)
+                          ? _buildMenuItem(items[r * 3 + c])
+                          : const SizedBox(),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Baris 2: Dokumen, Poin Siswa, Modul, Surat PKL
-            Row(
-              children: [
-                for (int i = 4; i < 8; i++) ...[
-                  if (i > 4) const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildMenuItem(items[i]),
-                  ),
-                ],
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),
@@ -328,135 +335,171 @@ class _MenuState extends State<Menu> {
   Widget _buildMenuItem(_MenuItemData item) {
     bool isPklMenu = item.title == "Surat PKL";
     bool isLocked = isPklMenu && !isPklLevel;
+    bool hasBadge = item.badge != null && item.badge!.isNotEmpty;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () async {
-          if (isPklMenu) {
-            // Validasi secara realtime dengan preferences terkini
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            bool allowed = isPklLevel;
-            if (prefs.containsKey('is_pkl_level')) {
-              allowed = prefs.getBool('is_pkl_level') ?? allowed;
-            }
-            if (!allowed) {
-              if (!mounted) return;
-              _showPklRestrictedDialog(context);
-              return;
-            }
-          }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () async {
+              if (isPklMenu) {
+                // Validasi secara realtime dengan preferences terkini
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                bool allowed = isPklLevel;
+                if (prefs.containsKey('is_pkl_level')) {
+                  allowed = prefs.getBool('is_pkl_level') ?? allowed;
+                }
+                if (!allowed) {
+                  if (!mounted) return;
+                  _showPklRestrictedDialog(context);
+                  return;
+                }
+              }
 
-          if (item.destination != null) {
-            if (!mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => item.destination!),
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(20),
-        splashColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.1),
-        highlightColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.05),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(4, 9, 4, 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
+              if (item.destination != null) {
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => item.destination!),
+                );
+              }
+            },
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFECEFF5),
-              width: 1.1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Squircle container warna pastel dengan icon berwarna & badge lock jika tidak aktif
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isLocked ? const Color(0xFFF1F5F9) : item.bgColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      item.icon,
-                      color: isLocked ? const Color(0xFF94A3B8) : item.iconColor,
-                      size: 24,
-                    ),
+            splashColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.1),
+            highlightColor: (isLocked ? const Color(0xFF94A3B8) : item.iconColor).withValues(alpha: 0.05),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: hasBadge
+                      ? const Color(0xFF0284C7).withValues(alpha: 0.45)
+                      : const Color(0xFFECEFF5),
+                  width: hasBadge ? 1.4 : 1.1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                  if (isLocked)
-                    Positioned(
-                      top: -3,
-                      right: -3,
-                      child: Container(
-                        padding: const EdgeInsets.all(3.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF64748B),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.12),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.lock_rounded,
-                          size: 10,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
                 ],
               ),
-              // Jarak icon dan teks dibuat proporsional
-              const SizedBox(height: 5),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Squircle container warna pastel dengan icon berwarna & badge lock jika tidak aktif
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: isLocked ? const Color(0xFFF1F5F9) : item.bgColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          item.icon,
+                          color: isLocked ? const Color(0xFF94A3B8) : item.iconColor,
+                          size: 26,
+                        ),
+                      ),
+                      if (isLocked)
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF64748B),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 10,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
 
-              // Label Title (Poin Siswa & Surat PKL lengkap tanpa terpotong)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: SizedBox(
-                  height: 22,
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.center,
-                      child: Text(
-                        item.title,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isLocked
-                              ? const Color(0xFF64748B)
-                              : const Color(0xFF1E293B),
-                          letterSpacing: -0.2,
+                  // Label Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: SizedBox(
+                      height: 22,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: Text(
+                            item.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: isLocked
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF1E293B),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+        if (hasBadge)
+          Positioned(
+            top: -5,
+            right: 4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: item.badgeColor ?? const Color(0xFF0284C7),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                item.badge!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
