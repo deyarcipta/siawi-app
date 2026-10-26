@@ -138,17 +138,17 @@ class _KejuruanViewState extends State<KejuruanView> {
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Card 1: Praktik Berikutnya
+                          // Card 1: Praktik Berikutnya (Ringkas & Efisien Tempat)
                           _buildPraktikBerikutnyaCard(),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 11),
 
                           // 3 Kartu Statistik (Kehadiran, Rata-rata Nilai, Remedial)
                           _buildStatCardsRow(),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 14),
 
                           // 6 Tombol Sub-Menu Kejuruan (2 x 3)
                           _buildMenuGrid(),
@@ -213,7 +213,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -275,19 +275,20 @@ class _KejuruanViewState extends State<KejuruanView> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
 
                   // Hero Floating Card Profil Siswa & Program Kejuruan (Konsisten Jadwal/Poin)
                   Container(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -295,18 +296,18 @@ class _KejuruanViewState extends State<KejuruanView> {
                       children: [
                         // Ikon Kotak Kejuruan
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(9),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.architecture_rounded,
                             color: Color(0xFF16A34A),
-                            size: 26,
+                            size: 22,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 10),
 
                         // Info Siswa, Kelas & Konsentrasi Keahlian
                         Expanded(
@@ -409,7 +410,7 @@ class _KejuruanViewState extends State<KejuruanView> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: const Color(0xFFE2E8F0),
           width: 1.1,
@@ -417,12 +418,12 @@ class _KejuruanViewState extends State<KejuruanView> {
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF4C3EC7).withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -433,24 +434,24 @@ class _KejuruanViewState extends State<KejuruanView> {
               // Left Pill: Praktik Bengkel / Lab
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 11, vertical: 5.5),
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(
                       Icons.construction_rounded,
-                      size: 13.5,
+                      size: 12,
                       color: Color(0xFF4C3EC7),
                     ),
-                    SizedBox(width: 5),
+                    SizedBox(width: 4),
                     Text(
                       "Praktik Bengkel / Lab",
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF4C3EC7),
                       ),
@@ -461,29 +462,29 @@ class _KejuruanViewState extends State<KejuruanView> {
               // Right Pill: Hari Ini • 08.00 WIB
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 11, vertical: 5.5),
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 6.5,
-                      height: 6.5,
+                      width: 5.5,
+                      height: 5.5,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFF059669),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
                       praktikBerikutnya['badge_waktu'] ??
                           praktikBerikutnya['badge'] ??
                           "Hari Ini • 08.00 WIB",
                       style: const TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF047857),
                       ),
@@ -493,40 +494,40 @@ class _KejuruanViewState extends State<KejuruanView> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
 
           // 2. Modul & Topic tags
           Row(
             children: [
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   praktikBerikutnya['modul_nomor'] ?? "MODUL 04",
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF475569),
                     letterSpacing: 0.3,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   praktikBerikutnya['topik_modul'] ?? "MikroTik RouterOS",
                   style: const TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF4F46E5),
                   ),
@@ -534,28 +535,28 @@ class _KejuruanViewState extends State<KejuruanView> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
 
           // 3. Judul Praktik
           Text(
             praktikBerikutnya['judul'] ??
                 "Praktik Konfigurasi Routing & Switching",
             style: const TextStyle(
-              fontSize: 18.5,
-              fontWeight: FontWeight.w900,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
-              letterSpacing: -0.4,
+              letterSpacing: -0.3,
               height: 1.25,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
 
           // 4. Dua Kolom: LOKASI & JADWAL
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
@@ -565,21 +566,21 @@ class _KejuruanViewState extends State<KejuruanView> {
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
                           color: const Color(0xFFEEF2FF),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Center(
                           child: Icon(
                             Icons.dns_rounded,
-                            size: 18,
+                            size: 14,
                             color: Color(0xFF4C3EC7),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 7),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,19 +588,18 @@ class _KejuruanViewState extends State<KejuruanView> {
                             const Text(
                               "LOKASI",
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 8.5,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF94A3B8),
-                                letterSpacing: 0.4,
+                                letterSpacing: 0.3,
                               ),
                             ),
-                            const SizedBox(height: 1),
                             Text(
                               praktikBerikutnya['lab'] ??
                                   praktikBerikutnya['lokasi'] ??
                                   "Lab Jaringan 2",
                               style: const TextStyle(
-                                fontSize: 12.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF0F172A),
                               ),
@@ -613,7 +613,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                   ),
                 ),
                 Container(
-                  height: 28,
+                  height: 22,
                   width: 1,
                   color: const Color(0xFFE2E8F0),
                   margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -623,21 +623,21 @@ class _KejuruanViewState extends State<KejuruanView> {
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
                           color: const Color(0xFFE0F2FE),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Center(
                           child: Icon(
                             Icons.access_time_rounded,
-                            size: 18,
+                            size: 14,
                             color: Color(0xFF0284C7),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 7),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,19 +645,18 @@ class _KejuruanViewState extends State<KejuruanView> {
                             const Text(
                               "JADWAL",
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 8.5,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF94A3B8),
-                                letterSpacing: 0.4,
+                                letterSpacing: 0.3,
                               ),
                             ),
-                            const SizedBox(height: 1),
                             Text(
                               praktikBerikutnya['jadwal'] ??
                                   praktikBerikutnya['jam'] ??
                                   "08.00–10.15 (Senin)",
                               style: const TextStyle(
-                                fontSize: 12.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF0F172A),
                               ),
@@ -673,64 +672,67 @@ class _KejuruanViewState extends State<KejuruanView> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 7),
 
           // 5. Guru / Instruktur Row
           Row(
             children: [
               Container(
-                width: 28,
-                height: 28,
+                width: 22,
+                height: 22,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0xFFEEF2FF),
                 ),
                 child: const Icon(
                   Icons.person_rounded,
-                  size: 16,
+                  size: 13,
                   color: Color(0xFF4C3EC7),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 praktikBerikutnya['guru'] ?? "Pak Hendra, S.Kom",
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1E293B),
                 ),
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 4),
               const Text(
                 "•",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   color: Color(0xFF94A3B8),
                 ),
               ),
-              const SizedBox(width: 5),
-              Text(
-                praktikBerikutnya['peran_guru'] ?? "Instruktur Kejuruan",
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  praktikBerikutnya['peran_guru'] ?? "Instruktur Kejuruan",
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
 
           // 6. Peralatan Wajib Dibawa Card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: const Color(0xFFFDE68A),
-                width: 1.1,
+                width: 1,
               ),
             ),
             child: Column(
@@ -740,14 +742,14 @@ class _KejuruanViewState extends State<KejuruanView> {
                   children: const [
                     Icon(
                       Icons.home_repair_service_rounded,
-                      size: 16,
+                      size: 13,
                       color: Color(0xFFD97706),
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: 5),
                     Text(
                       "PERALATAN WAJIB DIBAWA:",
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 9.5,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFFB45309),
                         letterSpacing: 0.3,
@@ -755,25 +757,25 @@ class _KejuruanViewState extends State<KejuruanView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 4,
                   children: peralatanList.map((alat) {
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                          horizontal: 7, vertical: 2.5),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: const Color(0xFFFDE68A),
-                          width: 1,
+                          width: 0.9,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 4,
+                            blurRadius: 3,
                             offset: const Offset(0, 1),
                           ),
                         ],
@@ -783,14 +785,14 @@ class _KejuruanViewState extends State<KejuruanView> {
                         children: [
                           const Icon(
                             Icons.check_rounded,
-                            size: 13,
+                            size: 11,
                             color: Color(0xFF059669),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 3),
                           Text(
                             alat,
                             style: const TextStyle(
-                              fontSize: 11.5,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF334155),
                             ),
@@ -803,59 +805,61 @@ class _KejuruanViewState extends State<KejuruanView> {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
 
           // 7. Bottom Action Buttons: "Lihat Panduan Job Sheet" + Bookmark Button
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 48,
+                  height: 40,
                   child: ElevatedButton(
                     onPressed: () => _openSubMenu("Modul praktik"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4C3EC7),
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(Icons.description_rounded, size: 18),
-                        SizedBox(width: 8),
+                        Icon(Icons.description_rounded, size: 16),
+                        SizedBox(width: 6),
                         Text(
                           "Lihat Panduan Job Sheet",
                           style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        SizedBox(width: 6),
-                        Icon(Icons.arrow_forward_rounded, size: 16),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_rounded, size: 14),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Container(
-                height: 48,
-                width: 48,
+                height: 40,
+                width: 40,
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: const Color(0xFFC7D2FE),
                   ),
                 ),
                 child: IconButton(
+                  padding: EdgeInsets.zero,
                   icon: const Icon(
                     Icons.bookmark_border_rounded,
                     color: Color(0xFF4C3EC7),
-                    size: 22,
+                    size: 20,
                   ),
                   tooltip: 'Simpan Jadwal',
                   onPressed: () {
