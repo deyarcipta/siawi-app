@@ -37,14 +37,6 @@ class _KejuruanViewState extends State<KejuruanView> {
   String rataRataNilai = "82";
   String perluRemedial = "1";
 
-  // Sub-data for detail dialogs
-  List<dynamic> listJadwal = [];
-  List<dynamic> listModul = [];
-  List<dynamic> listNilai = [];
-  Map<String, dynamic>? dataUkk;
-  List<dynamic> listPortofolio = [];
-  List<dynamic> listTkk = [];
-
   @override
   void initState() {
     super.initState();
@@ -61,10 +53,12 @@ class _KejuruanViewState extends State<KejuruanView> {
       if (headerCache != null && headerCache.isNotEmpty) {
         try {
           var cMap = jsonDecode(headerCache);
-          if (cMap['namaJurusan'] != null && cMap['namaJurusan'].toString().isNotEmpty) {
+          if (cMap['namaJurusan'] != null &&
+              cMap['namaJurusan'].toString().isNotEmpty) {
             namaJurusan = cMap['namaJurusan'].toString();
           }
-          if (cMap['namaKelas'] != null && cMap['namaKelas'].toString().isNotEmpty) {
+          if (cMap['namaKelas'] != null &&
+              cMap['namaKelas'].toString().isNotEmpty) {
             namaKelas = cMap['namaKelas'].toString();
           }
           subtitle = "$namaJurusan · $namaKelas";
@@ -72,17 +66,19 @@ class _KejuruanViewState extends State<KejuruanView> {
       }
     }
 
-    // 2. Fetch live data dari API (dengan fallback mulus)
+    // 2. Fetch live data dari API di siawi-admin
     if (idSiswa != null) {
       try {
-        final res = await ApiService.get('/kejuruan/dashboard/$idSiswa', silent: true);
+        final res =
+            await ApiService.get('/kejuruan/dashboard/$idSiswa', silent: true);
         if (res != null && res['success'] == true && res['data'] != null) {
           final data = res['data'];
           if (data['subtitle'] != null) subtitle = data['subtitle'];
           if (data['jurusan'] != null) namaJurusan = data['jurusan'];
           if (data['kelas'] != null) namaKelas = data['kelas'];
           if (data['praktik_berikutnya'] != null) {
-            praktikBerikutnya = Map<String, dynamic>.from(data['praktik_berikutnya']);
+            praktikBerikutnya =
+                Map<String, dynamic>.from(data['praktik_berikutnya']);
           }
           if (data['stats'] != null) {
             var stats = data['stats'];
@@ -92,7 +88,7 @@ class _KejuruanViewState extends State<KejuruanView> {
           }
         }
       } catch (_) {
-        // Fallback default sesuai UI mock yang diberikan
+        // Fallback default
       }
     }
 
@@ -105,114 +101,169 @@ class _KejuruanViewState extends State<KejuruanView> {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF121417);
-    const cardBgColor = Color(0xFF1A1D23);
-    const borderColor = Color(0xFF262A34);
-
     return Scaffold(
-      backgroundColor: bgColor,
-      body: SafeArea(
-        child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF38BDF8),
-                ),
-              )
-            : SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Bar (Back button, Title "Kejuruan", Subtitle)
-                    _buildHeader(),
-                    const SizedBox(height: 18),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Column(
+        children: [
+          // Header Modern SIAWI dengan Curve & Gradient Ungu Khas SIAWI
+          _buildSiawiHeader(),
 
-                    // Card 1: Praktik Berikutnya (Sesuai Gambar Terbaru)
-                    _buildPraktikBerikutnyaCard(cardBgColor),
-                    const SizedBox(height: 14),
+          // Konten Utama
+          Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF4C3EC7),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadData,
+                    color: const Color(0xFF4C3EC7),
+                    backgroundColor: Colors.white,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Card 1: Praktik Berikutnya
+                          _buildPraktikBerikutnyaCard(),
+                          const SizedBox(height: 14),
 
-                    // 3 Kartu Statistik (94% Kehadiran, 82 Rata-rata nilai, 1 Perlu remedial)
-                    _buildStatCardsRow(cardBgColor, borderColor),
-                    const SizedBox(height: 18),
+                          // 3 Kartu Statistik (Kehadiran, Rata-rata Nilai, Remedial)
+                          _buildStatCardsRow(),
+                          const SizedBox(height: 18),
 
-                    // 6 Grid Tombol Menu Kejuruan
-                    _buildMenuGrid(cardBgColor, borderColor),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
+                          // 6 Tombol Sub-Menu Kejuruan (2 x 3)
+                          _buildMenuGrid(),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => Navigator.pop(context),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E222B),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-                size: 22,
+  Widget _buildSiawiHeader() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF4C3EC7), Color(0xFF6366F1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            // Ornamen Lingkaran Halus Background Khas SIAWI
+            Positioned(
+              right: -30,
+              top: -30,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Kejuruan",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
+            Positioned(
+              left: -20,
+              bottom: 20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            ),
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Kejuruan",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Image.asset(
+                      'assets/logo/logo-splash.png',
+                      width: 28,
+                      height: 28,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox(),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildPraktikBerikutnyaCard(Color cardBgColor) {
+  Widget _buildPraktikBerikutnyaCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: cardBgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: const Color(0xFF1E3A8A).withValues(alpha: 0.65),
+          color: const Color(0xFFEEF2FF),
           width: 1.3,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0284C7).withValues(alpha: 0.05),
+            color: const Color(0xFF4C3EC7).withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 4),
           ),
@@ -229,24 +280,25 @@ class _KejuruanViewState extends State<KejuruanView> {
               const Text(
                 "Praktik berikutnya",
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E293B),
                   letterSpacing: -0.2,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4.5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 4.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0369A1),
+                  color: const Color(0xFFEEF2FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   praktikBerikutnya['badge'] ?? 'Hari ini',
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: Color(0xFF4C3EC7),
                   ),
                 ),
               ),
@@ -260,7 +312,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: Color(0xFF0F172A),
               letterSpacing: -0.3,
             ),
           ),
@@ -268,11 +320,12 @@ class _KejuruanViewState extends State<KejuruanView> {
 
           // Subtitle (Lab, Jam, Guru)
           Text(
-            praktikBerikutnya['subtitle'] ?? 'Lab 2 · 08.00 sampai 10.15 · Pak Andi',
+            praktikBerikutnya['subtitle'] ??
+                'Lab 2 · 08.00 sampai 10.15 · Pak Andi',
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 14),
@@ -284,7 +337,7 @@ class _KejuruanViewState extends State<KejuruanView> {
               const Icon(
                 Icons.work_outline_rounded,
                 size: 16,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF64748B),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -292,14 +345,14 @@ class _KejuruanViewState extends State<KejuruanView> {
                   "Bawa: ${praktikBerikutnya['alat_bahan'] ?? 'kabel UTP, crimping tool, LAN tester'}",
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Color(0xFFCBD5E1),
+                    color: Color(0xFF334155),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 8),
 
           // Item 2: Baca modul sebelum praktik (Link style)
           Material(
@@ -314,15 +367,16 @@ class _KejuruanViewState extends State<KejuruanView> {
                     const Icon(
                       Icons.menu_book_rounded,
                       size: 16,
-                      color: Color(0xFF38BDF8),
+                      color: Color(0xFF4C3EC7),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      praktikBerikutnya['catatan_modul'] ?? 'Baca modul sebelum praktik',
+                      praktikBerikutnya['catatan_modul'] ??
+                          'Baca modul sebelum praktik',
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF38BDF8),
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4C3EC7),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -335,17 +389,15 @@ class _KejuruanViewState extends State<KejuruanView> {
     );
   }
 
-  Widget _buildStatCardsRow(Color cardBgColor, Color borderColor) {
+  Widget _buildStatCardsRow() {
     return Row(
       children: [
         // 1. Kehadiran praktik (94%)
         Expanded(
           child: _buildSingleStatCard(
             value: kehadiranPraktik,
-            valueColor: const Color(0xFF22C55E),
+            valueColor: const Color(0xFF16A34A),
             label: "Kehadiran\npraktik",
-            cardBgColor: cardBgColor,
-            borderColor: borderColor,
           ),
         ),
         const SizedBox(width: 10),
@@ -354,10 +406,8 @@ class _KejuruanViewState extends State<KejuruanView> {
         Expanded(
           child: _buildSingleStatCard(
             value: rataRataNilai,
-            valueColor: Colors.white,
+            valueColor: const Color(0xFF1E293B),
             label: "Rata-rata nilai\npraktik",
-            cardBgColor: cardBgColor,
-            borderColor: borderColor,
           ),
         ),
         const SizedBox(width: 10),
@@ -366,10 +416,8 @@ class _KejuruanViewState extends State<KejuruanView> {
         Expanded(
           child: _buildSingleStatCard(
             value: perluRemedial,
-            valueColor: const Color(0xFFF59E0B),
+            valueColor: const Color(0xFFD97706),
             label: "Perlu\nremedial",
-            cardBgColor: cardBgColor,
-            borderColor: borderColor,
           ),
         ),
       ],
@@ -380,15 +428,20 @@ class _KejuruanViewState extends State<KejuruanView> {
     required String value,
     required Color valueColor,
     required String label,
-    required Color cardBgColor,
-    required Color borderColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: cardBgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: 1.1),
+        border: Border.all(color: const Color(0xFFECEFF5), width: 1.1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -409,7 +462,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             style: const TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF64748B),
               height: 1.25,
             ),
           ),
@@ -418,54 +471,54 @@ class _KejuruanViewState extends State<KejuruanView> {
     );
   }
 
-  Widget _buildMenuGrid(Color cardBgColor, Color borderColor) {
+  Widget _buildMenuGrid() {
     final menuItems = [
       // 1. Jadwal praktik
       _KejuruanMenuItem(
         title: "Jadwal\npraktik",
         icon: Icons.calendar_month_rounded,
-        bgColor: const Color(0xFF0C2A4D),
-        iconColor: const Color(0xFF38BDF8),
+        bgColor: const Color(0xFFE0F2FE),
+        iconColor: const Color(0xFF0284C7),
         onTap: () => _openSubMenu("Jadwal praktik"),
       ),
       // 2. Modul praktik
       _KejuruanMenuItem(
         title: "Modul\npraktik",
         icon: Icons.menu_book_rounded,
-        bgColor: const Color(0xFF3D2409),
-        iconColor: const Color(0xFFF59E0B),
+        bgColor: const Color(0xFFFFEDD5),
+        iconColor: const Color(0xFFEA580C),
         onTap: () => _openSubMenu("Modul praktik"),
       ),
       // 3. Nilai praktik
       _KejuruanMenuItem(
         title: "Nilai praktik",
         icon: Icons.fact_check_rounded,
-        bgColor: const Color(0xFF0F3621),
-        iconColor: const Color(0xFF22C55E),
+        bgColor: const Color(0xFFDCFCE7),
+        iconColor: const Color(0xFF059669),
         onTap: () => _openSubMenu("Nilai praktik"),
       ),
       // 4. Uji kompetensi
       _KejuruanMenuItem(
         title: "Uji\nkompetensi",
         icon: Icons.workspace_premium_rounded,
-        bgColor: const Color(0xFF241547),
-        iconColor: const Color(0xFFA855F7),
+        bgColor: const Color(0xFFF3E8FF),
+        iconColor: const Color(0xFF9333EA),
         onTap: () => _openSubMenu("Uji kompetensi"),
       ),
       // 5. Sertifikat dan portofolio
       _KejuruanMenuItem(
         title: "Sertifikat\ndan\nportofolio",
         icon: Icons.folder_rounded,
-        bgColor: const Color(0xFF3B151E),
-        iconColor: const Color(0xFFF43F5E),
+        bgColor: const Color(0xFFFFE4E6),
+        iconColor: const Color(0xFFE11D48),
         onTap: () => _openSubMenu("Sertifikat dan portofolio"),
       ),
       // 6. TKK
       _KejuruanMenuItem(
         title: "TKK",
         icon: Icons.lock_rounded,
-        bgColor: const Color(0xFF242730),
-        iconColor: const Color(0xFF94A3B8),
+        bgColor: const Color(0xFFF1F5F9),
+        iconColor: const Color(0xFF475569),
         onTap: () => _openSubMenu("TKK"),
       ),
     ];
@@ -478,7 +531,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             for (int i = 0; i < 3; i++) ...[
               if (i > 0) const SizedBox(width: 10),
               Expanded(
-                child: _buildGridButton(menuItems[i], cardBgColor, borderColor),
+                child: _buildGridButton(menuItems[i]),
               ),
             ],
           ],
@@ -491,7 +544,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             for (int i = 3; i < 6; i++) ...[
               if (i > 3) const SizedBox(width: 10),
               Expanded(
-                child: _buildGridButton(menuItems[i], cardBgColor, borderColor),
+                child: _buildGridButton(menuItems[i]),
               ),
             ],
           ],
@@ -500,33 +553,36 @@ class _KejuruanViewState extends State<KejuruanView> {
     );
   }
 
-  Widget _buildGridButton(
-    _KejuruanMenuItem item,
-    Color cardBgColor,
-    Color borderColor,
-  ) {
+  Widget _buildGridButton(_KejuruanMenuItem item) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: item.onTap,
         borderRadius: BorderRadius.circular(20),
-        splashColor: item.iconColor.withValues(alpha: 0.15),
-        highlightColor: item.iconColor.withValues(alpha: 0.08),
+        splashColor: item.iconColor.withValues(alpha: 0.12),
+        highlightColor: item.iconColor.withValues(alpha: 0.05),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
           decoration: BoxDecoration(
-            color: cardBgColor,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: borderColor, width: 1.1),
+            border: Border.all(color: const Color(0xFFECEFF5), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Squircle Container Icon
+              // Squircle Container Icon Warna Pastel Sesuai SIAWI App
               Container(
-                width: 52,
-                height: 52,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
                   color: item.bgColor,
                   borderRadius: BorderRadius.circular(16),
@@ -542,7 +598,7 @@ class _KejuruanViewState extends State<KejuruanView> {
 
               // Title label
               SizedBox(
-                height: 38,
+                height: 36,
                 child: Center(
                   child: Text(
                     item.title,
@@ -551,7 +607,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Color(0xFF1E293B),
                       height: 1.2,
                     ),
                   ),
@@ -560,70 +616,6 @@ class _KejuruanViewState extends State<KejuruanView> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _openSubMenu(String title) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildDetailBottomSheet(title),
-    );
-  }
-
-  Widget _buildDetailBottomSheet(String title) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.82,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1D23),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFF475569),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Header Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title.replaceAll("\n", " "),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
-              ),
-            ],
-          ),
-          const Divider(color: Color(0xFF262A34), height: 18),
-
-          // Content body
-          Expanded(
-            child: _buildSubMenuContent(title),
-          ),
-        ],
       ),
     );
   }
@@ -655,13 +647,77 @@ class _KejuruanViewState extends State<KejuruanView> {
     return null;
   }
 
+  void _openSubMenu(String title) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildDetailBottomSheet(title),
+    );
+  }
+
+  Widget _buildDetailBottomSheet(String title) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.82,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 44,
+              height: 4.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Header Title
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title.replaceAll("\n", " "),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+              ),
+            ],
+          ),
+          const Divider(color: Color(0xFFECEFF5), height: 18),
+
+          // Content body
+          Expanded(
+            child: _buildSubMenuContent(title),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSubMenuContent(String title) {
     return FutureBuilder<dynamic>(
       future: _fetchSubMenuData(title),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF38BDF8)),
+            child: CircularProgressIndicator(color: Color(0xFF4C3EC7)),
           );
         }
 
@@ -675,19 +731,26 @@ class _KejuruanViewState extends State<KejuruanView> {
               itemCount: liveData.length,
               itemBuilder: (context, i) {
                 var item = liveData[i];
-                String mapel = item['mapel']?['nama_mapel'] ?? item['materi'] ?? 'Praktik Kejuruan';
+                String mapel = item['mapel']?['nama_mapel'] ??
+                    item['materi'] ??
+                    'Praktik Kejuruan';
                 String lab = item['lab']?['nama_lab'] ?? 'Lab Praktik';
                 String hari = item['hari'] ?? 'Senin';
-                String jamMulai = item['jam_mulai'] != null ? item['jam_mulai'].toString().substring(0, 5) : '08.00';
-                String jamSelesai = item['jam_selesai'] != null ? item['jam_selesai'].toString().substring(0, 5) : '10.15';
+                String jamMulai = item['jam_mulai'] != null
+                    ? item['jam_mulai'].toString().substring(0, 5)
+                    : '08.00';
+                String jamSelesai = item['jam_selesai'] != null
+                    ? item['jam_selesai'].toString().substring(0, 5)
+                    : '10.15';
                 String guru = item['guru']?['nama_guru'] ?? '-';
                 String alat = item['alat_bahan'] ?? '-';
 
                 return _buildInfoTile(
                   title: mapel,
-                  subtitle: "$lab · $hari, $jamMulai - $jamSelesai\nGuru: $guru\nAlat: $alat",
+                  subtitle:
+                      "$lab · $hari, $jamMulai - $jamSelesai\nGuru: $guru\nAlat: $alat",
                   badge: hari,
-                  badgeColor: const Color(0xFF0369A1),
+                  badgeColor: const Color(0xFF0284C7),
                   icon: Icons.access_time_rounded,
                 );
               },
@@ -697,16 +760,18 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "Instalasi Jaringan LAN & Server",
-                subtitle: "Lab 2 · Senin, 08.00 - 10.15\nGuru: Pak Andi\nAlat: Kabel UTP, Crimping tool, Tester",
+                subtitle:
+                    "Lab 2 · Senin, 08.00 - 10.15\nGuru: Pak Andi\nAlat: Kabel UTP, Crimping tool, Tester",
                 badge: "Hari Ini",
-                badgeColor: const Color(0xFF0369A1),
+                badgeColor: const Color(0xFF0284C7),
                 icon: Icons.access_time_rounded,
               ),
               _buildInfoTile(
                 title: "Konfigurasi Mikrotik Router",
-                subtitle: "Lab Jaringan 1 · Rabu, 10.30 - 12.45\nGuru: Bu Sarah\nAlat: Routerboard RB941, Kabel Console",
+                subtitle:
+                    "Lab Jaringan 1 · Rabu, 10.30 - 12.45\nGuru: Bu Sarah\nAlat: Routerboard RB941, Kabel Console",
                 badge: "Mendatang",
-                badgeColor: const Color(0xFF334155),
+                badgeColor: const Color(0xFF64748B),
                 icon: Icons.router_rounded,
               ),
             ],
@@ -720,15 +785,19 @@ class _KejuruanViewState extends State<KejuruanView> {
               itemCount: liveData.length,
               itemBuilder: (context, i) {
                 var item = liveData[i];
-                String judul = item['judul_modul'] ?? item['nama_modul'] ?? 'Modul Praktik';
-                String komp = item['kompetensi']?['nama_kompetensi'] ?? 'Kompetensi Kejuruan';
+                String judul = item['judul_modul'] ??
+                    item['nama_modul'] ??
+                    'Modul Praktik';
+                String komp = item['kompetensi']?['nama_kompetensi'] ??
+                    'Kompetensi Kejuruan';
                 String status = item['status'] ?? 'Tersedia';
 
                 return _buildInfoTile(
                   title: judul,
-                  subtitle: "Kompetensi: $komp\nGuru: ${item['guru']?['nama_guru'] ?? '-'}",
+                  subtitle:
+                      "Kompetensi: $komp\nGuru: ${item['guru']?['nama_guru'] ?? '-'}",
                   badge: status.toUpperCase(),
-                  badgeColor: const Color(0xFF0F766E),
+                  badgeColor: const Color(0xFF0D9488),
                   icon: Icons.menu_book_rounded,
                 );
               },
@@ -738,16 +807,18 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "Modul 01: Perakitan & Pengkabelan UTP",
-                subtitle: "Revisi 2.0 · 18 Halaman · PDF\nKompetensi: Pengkabelan Jaringan Lokal",
+                subtitle:
+                    "Revisi 2.0 · 18 Halaman · PDF\nKompetensi: Pengkabelan Jaringan Lokal",
                 badge: "Tersedia",
-                badgeColor: const Color(0xFF0F766E),
+                badgeColor: const Color(0xFF0D9488),
                 icon: Icons.menu_book_rounded,
               ),
               _buildInfoTile(
                 title: "Modul 02: Routing Statis & Dinamis",
-                subtitle: "Revisi 1.2 · 24 Halaman · PDF\nKompetensi: Jaringan Skala Menengah",
+                subtitle:
+                    "Revisi 1.2 · 24 Halaman · PDF\nKompetensi: Jaringan Skala Menengah",
                 badge: "Tersedia",
-                badgeColor: const Color(0xFF0F766E),
+                badgeColor: const Color(0xFF0D9488),
                 icon: Icons.menu_book_rounded,
               ),
             ],
@@ -761,16 +832,23 @@ class _KejuruanViewState extends State<KejuruanView> {
               itemCount: liveData.length,
               itemBuilder: (context, i) {
                 var item = liveData[i];
-                String judul = item['penilaian']?['judul_penilaian'] ?? item['penilaian']?['modul']?['judul_modul'] ?? 'Penilaian Praktik';
+                String judul = item['penilaian']?['judul_penilaian'] ??
+                    item['penilaian']?['modul']?['judul_modul'] ??
+                    'Penilaian Praktik';
                 num nilai = item['nilai_akhir'] ?? 0;
                 bool isRemedial = item['is_remedial'] == true || nilai < 75;
 
                 return _buildInfoTile(
                   title: judul,
-                  subtitle: "Nilai: $nilai · Status: ${isRemedial ? 'Perlu Remedial' : 'Kompeten'}\nCatatan: ${item['catatan'] ?? '-'}",
+                  subtitle:
+                      "Nilai: $nilai · Status: ${isRemedial ? 'Perlu Remedial' : 'Kompeten'}\nCatatan: ${item['catatan'] ?? '-'}",
                   badge: isRemedial ? "Remedial" : "Kompeten",
-                  badgeColor: isRemedial ? const Color(0xFFEA580C) : const Color(0xFF16A34A),
-                  icon: isRemedial ? Icons.warning_amber_rounded : Icons.fact_check_rounded,
+                  badgeColor: isRemedial
+                      ? const Color(0xFFEA580C)
+                      : const Color(0xFF16A34A),
+                  icon: isRemedial
+                      ? Icons.warning_amber_rounded
+                      : Icons.fact_check_rounded,
                 );
               },
             );
@@ -779,14 +857,16 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "Praktik Pengkabelan Straight & Cross",
-                subtitle: "Nilai: 88 · KKM: 75 · Sangat Baik\nCatatan: Rapih, urutan warna presisi",
+                subtitle:
+                    "Nilai: 88 · KKM: 75 · Sangat Baik\nCatatan: Rapih, urutan warna presisi",
                 badge: "Kompeten",
                 badgeColor: const Color(0xFF16A34A),
                 icon: Icons.fact_check_rounded,
               ),
               _buildInfoTile(
                 title: "Konfigurasi Dasar MikroTik",
-                subtitle: "Nilai: 70 · KKM: 75 · Perlu Remedial\nCatatan: Pelajari kembali subnetting",
+                subtitle:
+                    "Nilai: 70 · KKM: 75 · Perlu Remedial\nCatatan: Pelajari kembali subnetting",
                 badge: "Remedial",
                 badgeColor: const Color(0xFFEA580C),
                 icon: Icons.warning_amber_rounded,
@@ -798,15 +878,19 @@ class _KejuruanViewState extends State<KejuruanView> {
         // 4. Uji Kompetensi
         else if (cleanTitle.contains("Uji kompetensi")) {
           if (liveData is Map && liveData.isNotEmpty) {
-            String namaKegiatan = liveData['kegiatan']?['nama_kegiatan'] ?? 'UKK LSP-P1 SMK Wisata Indonesia';
-            String nilai = liveData['nilai_akhir'] != null ? liveData['nilai_akhir'].toString() : 'Terdaftar';
+            String namaKegiatan = liveData['kegiatan']?['nama_kegiatan'] ??
+                'UKK LSP-P1 SMK Wisata Indonesia';
+            String nilai = liveData['nilai_akhir'] != null
+                ? liveData['nilai_akhir'].toString()
+                : 'Terdaftar';
             return ListView(
               children: [
                 _buildInfoTile(
                   title: namaKegiatan,
-                  subtitle: "Status: Terdaftar Peserta Resmi\nNilai Akhir: $nilai\nPenguji: LSP-P1 SMK Wisata Indonesia",
+                  subtitle:
+                      "Status: Terdaftar Peserta Resmi\nNilai Akhir: $nilai\nPenguji: LSP-P1 SMK Wisata Indonesia",
                   badge: "Terdaftar",
-                  badgeColor: const Color(0xFF6D28D9),
+                  badgeColor: const Color(0xFF7C3AED),
                   icon: Icons.workspace_premium_rounded,
                 ),
               ],
@@ -816,9 +900,10 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "UKK Skema Teknisi Madya Jaringan",
-                subtitle: "Status: Terdaftar Peserta Resmi\nUnit Kompetensi: 10 Unit\nPenguji: LSP-P1 SMK Wisata Indonesia",
+                subtitle:
+                    "Status: Terdaftar Peserta Resmi\nUnit Kompetensi: 10 Unit\nPenguji: LSP-P1 SMK Wisata Indonesia",
                 badge: "Terdaftar",
-                badgeColor: const Color(0xFF6D28D9),
+                badgeColor: const Color(0xFF7C3AED),
                 icon: Icons.workspace_premium_rounded,
               ),
             ],
@@ -833,8 +918,11 @@ class _KejuruanViewState extends State<KejuruanView> {
               itemBuilder: (context, i) {
                 var item = liveData[i];
                 return _buildInfoTile(
-                  title: item['nama_kegiatan'] ?? item['judul'] ?? 'Portofolio Siswa',
-                  subtitle: "Tanggal: ${item['tanggal_kegiatan'] ?? '-'}\nKategori: ${item['kategori'] ?? 'Karya Kejuruan'}",
+                  title: item['nama_kegiatan'] ??
+                      item['judul'] ??
+                      'Portofolio Siswa',
+                  subtitle:
+                      "Tanggal: ${item['tanggal_kegiatan'] ?? '-'}\nKategori: ${item['kategori'] ?? 'Karya Kejuruan'}",
                   badge: "Terverifikasi",
                   badgeColor: const Color(0xFF059669),
                   icon: Icons.folder_shared_rounded,
@@ -846,7 +934,8 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "Sertifikat Cisco Networking Basics",
-                subtitle: "Diterbitkan: 12 Agustus 2024\nNomor: CSCO-NET-2024-0891\nKategori: Sertifikasi Vendor",
+                subtitle:
+                    "Diterbitkan: 12 Agustus 2024\nNomor: CSCO-NET-2024-0891\nKategori: Sertifikasi Vendor",
                 badge: "Terverifikasi",
                 badgeColor: const Color(0xFF059669),
                 icon: Icons.folder_shared_rounded,
@@ -862,10 +951,12 @@ class _KejuruanViewState extends State<KejuruanView> {
               itemCount: liveData.length,
               itemBuilder: (context, i) {
                 var item = liveData[i];
-                String namaTkk = item['jenis_tkk']?['nama_tkk'] ?? 'Tanda Kecakapan Kejuruan';
+                String namaTkk = item['jenis_tkk']?['nama_tkk'] ??
+                    'Tanda Kecakapan Kejuruan';
                 return _buildInfoTile(
                   title: namaTkk,
-                  subtitle: "SK: ${item['nomor_sertifikat'] ?? '-'}\nTanggal: ${item['tanggal_perolehan'] ?? '-'}",
+                  subtitle:
+                      "SK: ${item['nomor_sertifikat'] ?? '-'}\nTanggal: ${item['tanggal_perolehan'] ?? '-'}",
                   badge: "Lulus",
                   badgeColor: const Color(0xFF0284C7),
                   icon: Icons.verified_user_rounded,
@@ -877,7 +968,8 @@ class _KejuruanViewState extends State<KejuruanView> {
             children: [
               _buildInfoTile(
                 title: "TKK Tingkat Madya - Jaringan Komputer",
-                subtitle: "SK Pemberian: TKK/TKJ/2024/09\nTanggal Perolehan: 15 Sept 2024\nPemberi: Tim Asesor Sekolah",
+                subtitle:
+                    "SK Pemberian: TKK/TKJ/2024/09\nTanggal Perolehan: 15 Sept 2024\nPemberi: Tim Asesor Sekolah",
                 badge: "Lulus",
                 badgeColor: const Color(0xFF0284C7),
                 icon: Icons.verified_user_rounded,
@@ -900,9 +992,9 @@ class _KejuruanViewState extends State<KejuruanView> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF121417),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF262A34), width: 1.1),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,10 +1002,11 @@ class _KejuruanViewState extends State<KejuruanView> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E222B),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFECEFF5), width: 1),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: const Color(0xFF4C3EC7), size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -929,22 +1022,25 @@ class _KejuruanViewState extends State<KejuruanView> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: badgeColor,
+                        color: badgeColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: badgeColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         badge,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: badgeColor,
                         ),
                       ),
                     ),
@@ -955,7 +1051,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                   subtitle,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF64748B),
                     height: 1.35,
                   ),
                 ),
