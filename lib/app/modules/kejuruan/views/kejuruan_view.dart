@@ -1732,76 +1732,124 @@ class _KejuruanViewState extends State<KejuruanView> {
 
   Widget _buildMenuGrid() {
     final menuItems = [
-      // 1. Jadwal praktik
+      // 1. Jadwal Praktik
       _KejuruanMenuItem(
-        title: "Jadwal\npraktik",
+        title: "Jadwal\nPraktik",
         icon: Icons.calendar_month_rounded,
         bgColor: const Color(0xFFE0F2FE),
         iconColor: const Color(0xFF0284C7),
-        onTap: () => _openSubMenu("Jadwal praktik"),
+        onTap: () => _openSubMenu("Jadwal Praktik"),
       ),
-      // 2. Modul praktik
+      // 2. Modul Praktik
       _KejuruanMenuItem(
-        title: "Modul\npraktik",
+        title: "Modul\nPraktik",
         icon: Icons.menu_book_rounded,
-        bgColor: const Color(0xFFFFEDD5),
-        iconColor: const Color(0xFFEA580C),
-        onTap: () => _openSubMenu("Modul praktik"),
+        bgColor: const Color(0xFFFEF3C7),
+        iconColor: const Color(0xFFD97706),
+        onTap: () => _openSubMenu("Modul Praktik"),
       ),
-      // 3. Nilai praktik
+      // 3. Nilai Praktik
       _KejuruanMenuItem(
-        title: "Nilai praktik",
-        icon: Icons.fact_check_rounded,
+        title: "Nilai\nPraktik",
+        icon: Icons.assignment_turned_in_rounded,
         bgColor: const Color(0xFFDCFCE7),
-        iconColor: const Color(0xFF059669),
-        onTap: () => _openSubMenu("Nilai praktik"),
+        iconColor: const Color(0xFF16A34A),
+        onTap: () => _openSubMenu("Nilai Praktik"),
       ),
-      // 4. Uji kompetensi
+      // 4. Uji Kompetensi
       _KejuruanMenuItem(
-        title: "Uji\nkompetensi",
-        icon: Icons.workspace_premium_rounded,
-        bgColor: const Color(0xFFF3E8FF),
-        iconColor: const Color(0xFF9333EA),
-        onTap: () => _openSubMenu("Uji kompetensi"),
+        title: "Uji\nKompetensi",
+        icon: Icons.school_rounded,
+        bgColor: const Color(0xFFEDE9FE),
+        iconColor: const Color(0xFF6366F1),
+        onTap: () => _openSubMenu("Uji Kompetensi"),
       ),
-      // 5. Sertifikat dan portofolio
+      // 5. Sertifikat & Portofolio
       _KejuruanMenuItem(
-        title: "Sertifikat\ndan\nportofolio",
-        icon: Icons.folder_rounded,
+        title: "Sertifikat &\nPortofolio",
+        icon: Icons.layers_rounded,
         bgColor: const Color(0xFFFFE4E6),
         iconColor: const Color(0xFFE11D48),
-        onTap: () => _openSubMenu("Sertifikat dan portofolio"),
+        onTap: () => _openSubMenu("Sertifikat & Portofolio"),
       ),
-      // 6. TKK
+      // 6. Tes Teori & TKK
       _KejuruanMenuItem(
-        title: "TKK",
-        icon: Icons.lock_rounded,
-        bgColor: const Color(0xFFF1F5F9),
-        iconColor: const Color(0xFF475569),
-        onTap: () => _openSubMenu("TKK"),
+        title: "Tes Teori &\nTKK",
+        icon: Icons.quiz_rounded,
+        bgColor: const Color(0xFFF3E8FF),
+        iconColor: const Color(0xFF9333EA),
+        onTap: () => _openSubMenu("Tes Teori & TKK"),
+      ),
+      // 7. Peminjaman Alat
+      _KejuruanMenuItem(
+        title: "Peminjaman\nAlat",
+        icon: Icons.home_repair_service_rounded,
+        bgColor: const Color(0xFFFEF3C7),
+        iconColor: const Color(0xFFB45309),
+        onTap: () => _openSubMenu("Peminjaman Alat"),
+      ),
+      // 8. Presensi Bengkel
+      _KejuruanMenuItem(
+        title: "Presensi\nBengkel",
+        icon: Icons.qr_code_scanner_rounded,
+        bgColor: const Color(0xFFCCFBF1),
+        iconColor: const Color(0xFF0D9488),
+        onTap: () => _openSubMenu("Presensi Bengkel"),
       ),
     ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Baris 1: Jadwal, Modul, Nilai
+        // Header Section: Icon + MENU LAYANAN PRAKTIK + 8 Menu Kejuruan
+        Row(
+          children: const [
+            Icon(
+              Icons.widgets_rounded,
+              size: 16,
+              color: Color(0xFF4C3EC7),
+            ),
+            SizedBox(width: 6),
+            Text(
+              "MENU LAYANAN PRAKTIK",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1E293B),
+                letterSpacing: 0.3,
+              ),
+            ),
+            Spacer(),
+            Text(
+              "8 Menu Kejuruan",
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Baris 1: 4 Menu Pertama
         Row(
           children: [
-            for (int i = 0; i < 3; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
+            for (int i = 0; i < 4; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
               Expanded(
                 child: _buildGridButton(menuItems[i]),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
-        // Baris 2: Uji kompetensi, Sertifikat dan portofolio, TKK
+        // Baris 2: 4 Menu Kedua
         Row(
           children: [
-            for (int i = 3; i < 6; i++) ...[
-              if (i > 3) const SizedBox(width: 10),
+            for (int i = 4; i < 8; i++) ...[
+              if (i > 4) const SizedBox(width: 8),
               Expanded(
                 child: _buildGridButton(menuItems[i]),
               ),
@@ -1817,15 +1865,15 @@ class _KejuruanViewState extends State<KejuruanView> {
       color: Colors.transparent,
       child: InkWell(
         onTap: item.onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         splashColor: item.iconColor.withValues(alpha: 0.12),
         highlightColor: item.iconColor.withValues(alpha: 0.05),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFECEFF5), width: 1.1),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -1838,36 +1886,36 @@ class _KejuruanViewState extends State<KejuruanView> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Squircle Container Icon Warna Pastel Sesuai SIAWI App
+              // Squircle Container Icon Warna Pastel Sesuai Gambar
               Container(
-                width: 50,
-                height: 50,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: item.bgColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
                 child: Icon(
                   item.icon,
                   color: item.iconColor,
-                  size: 26,
+                  size: 22,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
-              // Title label
+              // Title label (2 baris pas dan presisi)
               SizedBox(
-                height: 36,
+                height: 28,
                 child: Center(
                   child: Text(
                     item.title,
                     textAlign: TextAlign.center,
-                    maxLines: 3,
+                    maxLines: 2,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1E293B),
-                      height: 1.2,
+                      height: 1.15,
                     ),
                   ),
                 ),
@@ -1889,13 +1937,15 @@ class _KejuruanViewState extends State<KejuruanView> {
       endpoint = '/kejuruan/modul/$idSiswa';
     } else if (clean.contains("Nilai")) {
       endpoint = '/kejuruan/nilai/$idSiswa';
-    } else if (clean.contains("Uji kompetensi")) {
+    } else if (clean.contains("Uji")) {
       endpoint = '/kejuruan/ukk/$idSiswa';
-    } else if (clean.contains("Sertifikat")) {
+    } else if (clean.contains("Sertifikat") || clean.contains("Portofolio")) {
       endpoint = '/kejuruan/portofolio/$idSiswa';
-    } else {
+    } else if (clean.contains("TKK") || clean.contains("Teori")) {
       endpoint = '/kejuruan/tkk/$idSiswa';
     }
+
+    if (endpoint.isEmpty) return null;
 
     try {
       final res = await ApiService.get(endpoint, silent: true);
@@ -2203,8 +2253,8 @@ class _KejuruanViewState extends State<KejuruanView> {
           );
         }
 
-        // 6. TKK
-        else {
+        // 6. Tes Teori & TKK
+        else if (cleanTitle.contains("TKK") || cleanTitle.contains("Teori")) {
           if (liveData is List && liveData.isNotEmpty) {
             return ListView.builder(
               itemCount: liveData.length,
@@ -2232,6 +2282,78 @@ class _KejuruanViewState extends State<KejuruanView> {
                 badge: "Lulus",
                 badgeColor: const Color(0xFF0284C7),
                 icon: Icons.verified_user_rounded,
+              ),
+              _buildInfoTile(
+                title: "Tes Teori Kejuruan: Routing OSPF & BGP",
+                subtitle:
+                    "Skor: 92/100 · Predikat Sangat Baik\nTanggal: 20 Oktober 2026",
+                badge: "Selesai",
+                badgeColor: const Color(0xFF16A34A),
+                icon: Icons.quiz_rounded,
+              ),
+            ],
+          );
+        }
+
+        // 7. Peminjaman Alat
+        else if (cleanTitle.contains("Peminjaman")) {
+          return ListView(
+            children: [
+              _buildInfoTile(
+                title: "1 MikroTik RouterBOARD RB951-2HnD",
+                subtitle:
+                    "Lab 2 · Dipinjam hari ini pukul 08.00 WIB\nBatas Pengembalian: 11.00 WIB\nPetugas: Pak Hendra, S.Kom",
+                badge: "DIPINJAM",
+                badgeColor: const Color(0xFF0284C7),
+                icon: Icons.devices_other_rounded,
+              ),
+              _buildInfoTile(
+                title: "Crimping Tool Cat6 & Stripper",
+                subtitle:
+                    "Lab 2 · Dikembalikan kemarin pukul 15.30 WIB\nKondisi: Baik & Lengkap",
+                badge: "KEMBALI",
+                badgeColor: const Color(0xFF16A34A),
+                icon: Icons.home_repair_service_rounded,
+              ),
+              _buildInfoTile(
+                title: "Digital LAN Cable Tester RJ45",
+                subtitle:
+                    "Lab Jaringan 1 · Dikembalikan 22 Okt 2026\nKondisi: Normal",
+                badge: "SELESAI",
+                badgeColor: const Color(0xFF64748B),
+                icon: Icons.cable_rounded,
+              ),
+            ],
+          );
+        }
+
+        // 8. Presensi Bengkel
+        else {
+          return ListView(
+            children: [
+              _buildInfoTile(
+                title: "Praktik Konfigurasi Routing & Switching",
+                subtitle:
+                    "Lab Jaringan 2 · Hari Ini, 07.55 WIB\nStatus: Hadir Tepat Waktu (Presensi QR Bengkel)",
+                badge: "HADIR",
+                badgeColor: const Color(0xFF16A34A),
+                icon: Icons.check_circle_rounded,
+              ),
+              _buildInfoTile(
+                title: "Instalasi Patch Panel & Rack Server",
+                subtitle:
+                    "Bengkel Jaringan · 24 Okt 2026, 08.02 WIB\nStatus: Hadir Tepat Waktu",
+                badge: "HADIR",
+                badgeColor: const Color(0xFF16A34A),
+                icon: Icons.check_circle_rounded,
+              ),
+              _buildInfoTile(
+                title: "Crimping & Terminasi Kabel UTP Cat6",
+                subtitle:
+                    "Bengkel Jaringan · 21 Okt 2026, 08.10 WIB\nStatus: Hadir",
+                badge: "HADIR",
+                badgeColor: const Color(0xFF16A34A),
+                icon: Icons.check_circle_rounded,
               ),
             ],
           );
