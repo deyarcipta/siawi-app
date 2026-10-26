@@ -15,7 +15,8 @@ class _KejuruanViewState extends State<KejuruanView> {
   bool isLoading = true;
   String? idSiswa;
 
-  // Header data
+  // Header & Student data
+  String namaSiswa = "Siswa";
   String namaJurusan = "Teknik Komputer dan Jaringan";
   String namaKelas = "Kelas XI";
   String subtitle = "Teknik Komputer dan Jaringan · Kelas XI";
@@ -44,15 +45,24 @@ class _KejuruanViewState extends State<KejuruanView> {
   }
 
   Future<void> _loadData() async {
+    setState(() => isLoading = true);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     idSiswa = prefs.getString('idSiswa');
 
     // 1. Coba baca data dari cache profil siswa yang ada
     if (idSiswa != null) {
+      String? cachedName = prefs.getString('namaSiswa');
+      if (cachedName != null && cachedName.isNotEmpty) {
+        namaSiswa = cachedName;
+      }
       String? headerCache = prefs.getString('cached_student_header_$idSiswa');
       if (headerCache != null && headerCache.isNotEmpty) {
         try {
           var cMap = jsonDecode(headerCache);
+          if (cMap['namaSiswa'] != null &&
+              cMap['namaSiswa'].toString().isNotEmpty) {
+            namaSiswa = cMap['namaSiswa'].toString();
+          }
           if (cMap['namaJurusan'] != null &&
               cMap['namaJurusan'].toString().isNotEmpty) {
             namaJurusan = cMap['namaJurusan'].toString();
@@ -73,6 +83,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             await ApiService.get('/kejuruan/dashboard/$idSiswa', silent: true);
         if (res != null && res['success'] == true && res['data'] != null) {
           final data = res['data'];
+          if (data['nama_siswa'] != null) namaSiswa = data['nama_siswa'];
           if (data['subtitle'] != null) subtitle = data['subtitle'];
           if (data['jurusan'] != null) namaJurusan = data['jurusan'];
           if (data['kelas'] != null) namaKelas = data['kelas'];
@@ -105,7 +116,7 @@ class _KejuruanViewState extends State<KejuruanView> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
-          // Header Modern SIAWI dengan Curve & Gradient Ungu Khas SIAWI
+          // Header Modern Lengkung SIAWI Konsisten dengan Menu Lain
           _buildSiawiHeader(),
 
           // Konten Utama
@@ -160,6 +171,13 @@ class _KejuruanViewState extends State<KejuruanView> {
           bottomLeft: Radius.circular(28),
           bottomRight: Radius.circular(28),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x334C3EC7),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
@@ -193,53 +211,168 @@ class _KejuruanViewState extends State<KejuruanView> {
 
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Kejuruan",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
-                            letterSpacing: -0.2,
-                          ),
+                  // Baris Atas: Back button, Title & Logo (Konsisten SIAWI)
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 20,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      ),
+                      const SizedBox(width: 4),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Kompetensi Kejuruan",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            Text(
+                              "Praktik & Keahlian Vokasi Siswa",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.refresh_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        tooltip: 'Segarkan Data',
+                        onPressed: _loadData,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Image.asset(
+                          'assets/logo/logo-splash.png',
+                          width: 28,
+                          height: 28,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Hero Floating Card Profil Siswa & Program Kejuruan (Konsisten Jadwal/Poin)
+                  Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Image.asset(
-                      'assets/logo/logo-splash.png',
-                      width: 28,
-                      height: 28,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const SizedBox(),
+                    child: Row(
+                      children: [
+                        // Ikon Kotak Kejuruan
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.architecture_rounded,
+                            color: Color(0xFF16A34A),
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+
+                        // Info Siswa, Kelas & Konsentrasi Keahlian
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (namaSiswa.isNotEmpty && namaSiswa != "Siswa")
+                                    ? namaSiswa
+                                    : namaJurusan,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0F172A),
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$namaKelas • $namaJurusan',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF64748B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Badge Status Kejuruan Aktif
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEF2FF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFC7D2FE),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.verified_rounded,
+                                size: 13,
+                                color: Color(0xFF4C3EC7),
+                              ),
+                              SizedBox(width: 3.5),
+                              Text(
+                                'Aktif',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF4C3EC7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
