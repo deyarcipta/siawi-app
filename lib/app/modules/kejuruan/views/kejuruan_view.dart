@@ -36,10 +36,28 @@ class _KejuruanViewState extends State<KejuruanView> {
     'peralatan': ['Kabel UTP Cat6', 'Crimping Tool', 'Laptop / Winbox'],
   };
 
-  // 3 Stats
-  String kehadiranPraktik = "94%";
-  String rataRataNilai = "82";
-  String perluRemedial = "1";
+  // Stats & Remedial data (Gambar 1)
+  String kehadiranPraktik = "96%";
+  String kehadiranSesi = "(24/25 Sesi)";
+  String kehadiranBadge = "Sangat Disiplin";
+  String rataRataNilai = "88.5";
+  String predikatNilai = "Predikat A-";
+  String kompetensiBadge = "Kompeten";
+  String statusRemedialModul = "1 Modul Aktif";
+  String remedialTopik = "Subnetting & CIDR";
+  String remedialTarget = "Target Nilai KKM 75";
+
+  // Peminjaman Alat data (Gambar 2)
+  Map<String, dynamic> peminjamanAlat = {
+    'nama_alat': '1 MikroTik RB951',
+    'status': 'Dipinjam',
+    'lokasi': 'Lab 2',
+    'batas_kembali': '11.00 WIB',
+    'keterangan': 'Lab 2 • Kembalikan sebelum 11.00 WIB',
+    'sn': 'RB951-2HnD-7489',
+    'jam_pinjam': '08.00 WIB',
+    'petugas': 'Pak Hendra, S.Kom (Instruktur Lab)',
+  };
 
   @override
   void initState() {
@@ -97,8 +115,19 @@ class _KejuruanViewState extends State<KejuruanView> {
           if (data['stats'] != null) {
             var stats = data['stats'];
             kehadiranPraktik = stats['kehadiran_praktik'] ?? kehadiranPraktik;
+            kehadiranSesi = stats['kehadiran_sesi'] ?? kehadiranSesi;
+            kehadiranBadge = stats['kehadiran_badge'] ?? kehadiranBadge;
             rataRataNilai = stats['rata_rata_nilai'] ?? rataRataNilai;
-            perluRemedial = stats['perlu_remedial'] ?? perluRemedial;
+            predikatNilai = stats['predikat'] ?? predikatNilai;
+            kompetensiBadge = stats['kompetensi_badge'] ?? kompetensiBadge;
+            statusRemedialModul =
+                stats['remedial_modul'] ?? statusRemedialModul;
+            remedialTopik = stats['remedial_topik'] ?? remedialTopik;
+            remedialTarget = stats['remedial_kkm'] ?? remedialTarget;
+          }
+          if (data['peminjaman_alat'] != null) {
+            peminjamanAlat =
+                Map<String, dynamic>.from(data['peminjaman_alat']);
           }
         }
       } catch (_) {
@@ -142,15 +171,23 @@ class _KejuruanViewState extends State<KejuruanView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Card 1: Praktik Berikutnya (Ringkas & Efisien Tempat)
-                          _buildPraktikBerikutnyaCard(),
-                          const SizedBox(height: 11),
-
-                          // 3 Kartu Statistik (Kehadiran, Rata-rata Nilai, Remedial)
+                          // 1. Sebelum Jadwal Praktik: Kehadiran & Rata-rata Praktik (Gambar 1)
                           _buildStatCardsRow(),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 10),
 
-                          // 6 Tombol Sub-Menu Kejuruan (2 x 3)
+                          // 2. Sebelum Jadwal Praktik: Banner Status Remedial (Gambar 1)
+                          _buildStatusRemedialBanner(),
+                          const SizedBox(height: 12),
+
+                          // 3. Jadwal Praktik Hari Ini (Tengah)
+                          _buildPraktikBerikutnyaCard(),
+                          const SizedBox(height: 12),
+
+                          // 4. Setelah Jadwal Praktik: Peminjaman Alat (Gambar 2)
+                          _buildPeminjamanAlatCard(),
+                          const SizedBox(height: 16),
+
+                          // 5. 6 Tombol Sub-Menu Kejuruan (2 x 3)
                           _buildMenuGrid(),
                         ],
                       ),
@@ -882,49 +919,341 @@ class _KejuruanViewState extends State<KejuruanView> {
   Widget _buildStatCardsRow() {
     return Row(
       children: [
-        // 1. Kehadiran praktik (94%)
+        // 1. Kehadiran Praktik (96% (24/25 Sesi) - Sangat Disiplin)
         Expanded(
-          child: _buildSingleStatCard(
-            value: kehadiranPraktik,
-            valueColor: const Color(0xFF16A34A),
-            label: "Kehadiran\npraktik",
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Row: Icon + Badge
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.assignment_turned_in_rounded,
+                          size: 17,
+                          color: Color(0xFF16A34A),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        kehadiranBadge,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF15803D),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "KEHADIRAN PRAKTIK",
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$kehadiranPraktik ",
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      TextSpan(
+                        text: kehadiranSesi.startsWith("(")
+                            ? kehadiranSesi
+                            : "($kehadiranSesi)",
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: 10),
 
-        // 2. Rata-rata nilai praktik (82)
+        // 2. Rata-Rata Praktik (88.5 Predikat A- - Kompeten)
         Expanded(
-          child: _buildSingleStatCard(
-            value: rataRataNilai,
-            valueColor: const Color(0xFF1E293B),
-            label: "Rata-rata nilai\npraktik",
-          ),
-        ),
-        const SizedBox(width: 10),
-
-        // 3. Perlu remedial (1)
-        Expanded(
-          child: _buildSingleStatCard(
-            value: perluRemedial,
-            valueColor: const Color(0xFFD97706),
-            label: "Perlu\nremedial",
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Row: Icon + Badge
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.school_rounded,
+                          size: 17,
+                          color: Color(0xFF6366F1),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        kompetensiBadge,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4F46E5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "RATA-RATA PRAKTIK",
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$rataRataNilai ",
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      TextSpan(
+                        text: predikatNilai,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSingleStatCard({
-    required String value,
-    required Color valueColor,
-    required String label,
-  }) {
+  Widget _buildStatusRemedialBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFFDE68A),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Icon lingkaran info warna amber
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFFFEF3C7),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.info_rounded,
+                color: Color(0xFFB45309),
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // Teks Tengah: STATUS REMEDIAL + Badge 1 Modul Aktif + Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      "STATUS REMEDIAL",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF92400E),
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        statusRemedialModul,
+                        style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFB45309),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "$remedialTopik • $remedialTarget",
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Tombol Uji Ulang
+          InkWell(
+            onTap: _showRemedialDialog,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFFCD34D),
+                  width: 1,
+                ),
+              ),
+              child: const Text(
+                "Uji Ulang",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF78350F),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeminjamanAlatCard() {
+    final namaAlat = peminjamanAlat['nama_alat'] ?? '1 MikroTik RB951';
+    final status = peminjamanAlat['status'] ?? 'Dipinjam';
+    final lokasi = peminjamanAlat['lokasi'] ?? 'Lab 2';
+    final batasKembali = peminjamanAlat['batas_kembali'] ?? '11.00 WIB';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECEFF5), width: 1.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1.1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -933,31 +1262,471 @@ class _KejuruanViewState extends State<KejuruanView> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: valueColor,
-              letterSpacing: -0.5,
+          // Barcode Icon Box
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 3,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 2.5),
+                  Container(
+                    width: 2,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 2.5),
+                  Container(
+                    width: 3.5,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 2.5),
+                  Container(
+                    width: 2,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 2.5),
+                  Container(
+                    width: 3,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              height: 1.25,
+          const SizedBox(width: 11),
+
+          // Teks Tengah: Nama Alat + Badge Dipinjam + Subtitle Batas Waktu
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        namaAlat,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        status,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0284C7),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                RichText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$lokasi • Kembalikan sebelum ",
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      TextSpan(
+                        text: batasKembali,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFD97706),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Tombol Detail
+          InkWell(
+            onTap: _showPeminjamanDetailDialog,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
+              ),
+              child: const Text(
+                "Detail",
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showRemedialDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4.5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFB45309),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Program Uji Remedial",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          "Peningkatan Capaian Nilai Kompetensi",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Materi: $remedialTopik",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF92400E),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Status: $statusRemedialModul • $remedialTarget",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF78350F),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Silakan pelajari Job Sheet Modul 03 dan hubungi guru pengampu kejuruan untuk menentukan jadwal ujian praktik ulang.",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF475569),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _openSubMenu("Modul praktik");
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4C3EC7),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Buka Modul Persiapan Remedial",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPeminjamanDetailDialog() {
+    final namaAlat = peminjamanAlat['nama_alat'] ?? '1 MikroTik RB951';
+    final status = peminjamanAlat['status'] ?? 'Dipinjam';
+    final lokasi = peminjamanAlat['lokasi'] ?? 'Lab 2';
+    final batasKembali = peminjamanAlat['batas_kembali'] ?? '11.00 WIB';
+    final sn = peminjamanAlat['sn'] ?? 'RB951-2HnD-7489';
+    final jamPinjam = peminjamanAlat['jam_pinjam'] ?? '08.00 WIB';
+    final petugas =
+        peminjamanAlat['petugas'] ?? 'Pak Hendra, S.Kom (Instruktur Lab)';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4.5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.devices_other_rounded,
+                      color: Color(0xFF3B82F6),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          namaAlat,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          "Status Peminjaman: $status",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF0284C7),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    _buildPeminjamanInfoRow("Serial Number", sn),
+                    const Divider(height: 16),
+                    _buildPeminjamanInfoRow("Lokasi Pemakaian", lokasi),
+                    const Divider(height: 16),
+                    _buildPeminjamanInfoRow("Waktu Pinjam", jamPinjam),
+                    const Divider(height: 16),
+                    _buildPeminjamanInfoRow(
+                        "Batas Kembali", batasKembali, isHighlight: true),
+                    const Divider(height: 16),
+                    _buildPeminjamanInfoRow("Instruktur / Toolman", petugas),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Silakan serahkan perangkat ke toolman sebelum batas waktu selesai.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4C3EC7),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Tutup & Simpan Tiket",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPeminjamanInfoRow(String label, String value,
+      {bool isHighlight = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
+            color: isHighlight
+                ? const Color(0xFFD97706)
+                : const Color(0xFF0F172A),
+          ),
+        ),
+      ],
     );
   }
 
