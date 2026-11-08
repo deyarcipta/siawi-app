@@ -319,7 +319,7 @@ class _AbsensiViewState extends State<AbsensiView> {
                       ),
                     ),
 
-                    // 2. BACKGROUND LAYER: TOP CURVED SIAWI GRADIENT BANNER
+                    // 2. BACKGROUND LAYER: TOP CURVED SIAWI GRADIENT BANNER (DIPERTAHANKAN SAAT SCROLL)
                     Container(
                       height: 180,
                       width: double.infinity,
@@ -340,7 +340,6 @@ class _AbsensiViewState extends State<AbsensiView> {
                       ),
                       child: Stack(
                         children: [
-                          // Ornamen lingkaran 1 di kanan atas
                           Positioned(
                             top: -45,
                             right: -30,
@@ -353,7 +352,6 @@ class _AbsensiViewState extends State<AbsensiView> {
                               ),
                             ),
                           ),
-                          // Ornamen lingkaran 2 di kiri bawah
                           Positioned(
                             bottom: -35,
                             left: -25,
@@ -366,7 +364,6 @@ class _AbsensiViewState extends State<AbsensiView> {
                               ),
                             ),
                           ),
-                          // Ornamen lingkaran 3 kecil di tengah
                           Positioned(
                             top: 25,
                             right: 120,
@@ -422,323 +419,288 @@ class _AbsensiViewState extends State<AbsensiView> {
                       ),
                     ),
 
-                    // 5. KONTEN UTAMA DENGAN REFRESH INDICATOR & SCROLL CONTROLLER
+                    // 5. KONTEN UTAMA DENGAN REFRESH INDICATOR & CUSTOM SCROLL VIEW
                     RefreshIndicator(
                       color: const Color(0xFF4C3EC7),
                       onRefresh: () => _loadAbsensiData(forceRefresh: true),
-                      child: SingleChildScrollView(
+                      child: CustomScrollView(
                         controller: _scrollController,
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // HEADER SAPAAN & BADGE RESMI DI ATAS BANNER UNGU
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.18),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.25),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(
-                                        Icons.verified_rounded,
-                                        size: 12,
-                                        color: Colors.white,
+                        slivers: [
+                          // 1. HERO HEADER, KARTU STATISTIK & BARIS JUDUL RIWAYAT
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.18),
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(alpha: 0.25),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.verified_rounded,
+                                              size: 12,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(width: 5),
+                                            Text(
+                                              "Sistem Presensi SIAWI",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      SizedBox(width: 5),
-                                      Text(
-                                        "Sistem Presensi SIAWI",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          "Tap Biometrik & Piket",
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(alpha: 0.9),
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    "Tap Biometrik & Piket",
+
+                                  const SizedBox(height: 10),
+
+                                  const Text(
+                                    "Rekap Kehadiran Siswa",
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.9),
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: -0.3,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "Monitoring keaktifan harian, jam masuk & riwayat presensi",
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
 
-                            const SizedBox(height: 10),
+                                  const SizedBox(height: 16),
 
-                            const Text(
-                              "Rekap Kehadiran Siswa",
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              "Monitoring keaktifan harian, jam masuk & riwayat presensi",
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                                  // 1. KARTU HERO OVERVIEW PRESENSI MODERN
+                                  _buildHeroOverviewCard(percentValue, themeColor),
 
-                            const SizedBox(height: 16),
+                                  const SizedBox(height: 20),
 
-                            // 1. KARTU HERO OVERVIEW PRESENSI MODERN (OVERLAPPING CURVE)
-                            _buildHeroOverviewCard(percentValue, themeColor),
+                                  // 2. 4 KARTU STATISTIK DETIL
+                                  _buildStatsSummaryGrid(),
 
-                            const SizedBox(height: 20),
+                                  const SizedBox(height: 20),
 
-                            // 2. 4 KARTU STATISTIK DETIL (GRID 4 PILLS)
-                            _buildStatsSummaryGrid(),
-
-                            const SizedBox(height: 24),
-
-                            // 3. BARIS JUDUL RIWAYAT & FILTER (ADAPTIF TERHADAP SCROLL & BACKGROUND UNGU)
-                            AnimatedBuilder(
-                              animation: _scrollController,
-                              builder: (context, _) {
-                                final offset = _scrollController.hasClients
-                                    ? _scrollController.offset
-                                    : 0.0;
-                                // Transisi halus saat judul bergerak memasuki area curved banner ungu (offset 160-220)
-                                final t = ((offset - 160) / 60.0).clamp(0.0, 1.0);
-                                final titleColor = Color.lerp(
-                                      const Color(0xFF0F172A),
-                                      Colors.white,
-                                      t,
-                                    ) ??
-                                    const Color(0xFF0F172A);
-
-                                final badgeBgColor = Color.lerp(
-                                      const Color(0xFFEDE9FE),
-                                      Colors.white.withValues(alpha: 0.22),
-                                      t,
-                                    ) ??
-                                    const Color(0xFFEDE9FE);
-
-                                final badgeTextColor = Color.lerp(
-                                      const Color(0xFF6366F1),
-                                      Colors.white,
-                                      t,
-                                    ) ??
-                                    const Color(0xFF6366F1);
-
-                                final badgeBorderColor = Color.lerp(
-                                      Colors.transparent,
-                                      Colors.white.withValues(alpha: 0.4),
-                                      t,
-                                    ) ??
-                                    Colors.transparent;
-
-                                return Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.history_rounded,
-                                          size: 18,
-                                          color: titleColor,
+                                  // 3. BARIS JUDUL RIWAYAT
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.history_rounded,
+                                            size: 18,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            "Riwayat Kehadiran",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFF0F172A),
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
                                         ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "Riwayat Kehadiran",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w800,
-                                            color: titleColor,
-                                            letterSpacing: -0.3,
-                                            shadows: t > 0
-                                                ? [
-                                                    Shadow(
-                                                      color: Colors.black
-                                                          .withValues(
-                                                            alpha: 0.25 * t,
-                                                          ),
-                                                      blurRadius: 4,
-                                                      offset:
-                                                          const Offset(0, 1),
-                                                    ),
-                                                  ]
-                                                : null,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEDE9FE),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          "Tampil ${displayedItems.length} dari ${_filteredList.length} Hari",
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF6366F1),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: badgeBgColor,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: badgeBorderColor,
-                                          width: 1.1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        "Tampil ${displayedItems.length} dari ${_filteredList.length} Hari",
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: badgeTextColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
+                          ),
 
-                            const SizedBox(height: 12),
+                          // 2. STICKY FILTER CHIPS (PINNED DI ATAS DENGAN ADAPTASI WARNA)
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _SliverFilterBarDelegate(
+                              builder: (context, isPinned) =>
+                                  _buildFilterChips(isPinned: isPinned),
+                              height: 52.0,
+                            ),
+                          ),
 
-                            // 4. CHIP FILTER KATEGORI (HORIZONTAL SCROLL)
-                            _buildFilterChips(),
-
-                            const SizedBox(height: 16),
-
-                            // 5. DAFTAR RIWAYAT PRESENSI (PAGINATED 15 PER VIEW)
-                            if (_filteredList.isEmpty)
-                              _buildEmptyState()
-                            else ...[
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
+                          // 3. DAFTAR RIWAYAT PRESENSI / EMPTY STATE
+                          if (_filteredList.isEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+                                child: _buildEmptyState(),
+                              ),
+                            )
+                          else ...[
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+                              sliver: SliverList.builder(
                                 itemCount: displayedItems.length,
                                 itemBuilder: (context, index) {
                                   final item = displayedItems[index];
                                   return _buildAttendanceItemCard(item);
                                 },
                               ),
-
-                              // INDIKATOR LOADING SCROLL / RELOAD BAWAH
-                              if (_isLoadingMore)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 18),
-                                  child: Center(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: const Color(0xFFE2E8F0),
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.03),
-                                            blurRadius: 8,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.2,
-                                              color: Color(0xFF4C3EC7),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            "Memuat data kehadiran lainnya...",
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF475569),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else if (_displayedCount < _filteredList.length)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  child: Center(
-                                    child: TextButton.icon(
-                                      onPressed: _loadMoreData,
-                                      icon: const Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 16,
-                                        color: Color(0xFF4C3EC7),
-                                      ),
-                                      label: Text(
-                                        "Muat ${_filteredList.length - _displayedCount > _pageSize ? _pageSize : _filteredList.length - _displayedCount} data lagi (Total ${_filteredList.length})",
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF4C3EC7),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else if (_filteredList.length > _pageSize)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  child: Center(
-                                    child: Text(
-                                      "Semua riwayat kehadiran telah ditampilkan (${_filteredList.length} hari)",
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                            ),
+                            SliverToBoxAdapter(
+                              child: _buildListFooter(displayedItems),
+                            ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
                   ],
                 ),
     );
+  }
+
+  Widget _buildListFooter(List<AbsenList> displayedItems) {
+    if (_isLoadingMore) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Color(0xFF4C3EC7),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  "Memuat data kehadiran lainnya...",
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else if (_displayedCount < _filteredList.length) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Center(
+          child: TextButton.icon(
+            onPressed: _loadMoreData,
+            icon: const Icon(
+              Icons.arrow_downward_rounded,
+              size: 16,
+              color: Color(0xFF4C3EC7),
+            ),
+            label: Text(
+              "Muat ${_filteredList.length - _displayedCount > _pageSize ? _pageSize : _filteredList.length - _displayedCount} data lagi (Total ${_filteredList.length})",
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF4C3EC7),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (_filteredList.length > _pageSize) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8, bottom: 28),
+        child: Center(
+          child: Text(
+            "Semua riwayat kehadiran telah ditampilkan (${_filteredList.length} hari)",
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF94A3B8),
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 28);
   }
 
   // ==========================================
@@ -992,7 +954,7 @@ class _AbsensiViewState extends State<AbsensiView> {
   // ==========================================
   // WIDGET 3: CHIP FILTER KATEGORI
   // ==========================================
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips({bool isPinned = false}) {
     final filters = [
       {'key': 'semua', 'label': 'Semua', 'count': _absenList.length},
       {'key': 'hadir', 'label': 'Hadir', 'count': int.tryParse(_jumlahHadir) ?? 0},
@@ -1001,85 +963,127 @@ class _AbsensiViewState extends State<AbsensiView> {
       {'key': 'alfa', 'label': 'Alfa', 'count': int.tryParse(_jumlahAlfa) ?? 0},
     ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: filters.map((f) {
-          final isSelected = _selectedFilter == f['key'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                setState(() {
-                  _selectedFilter = f['key'] as String;
-                  _displayedCount = _pageSize; // Reset pagination per filter
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF4C3EC7) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.85)
-                        : const Color(0xFFE2E8F0),
-                    width: isSelected ? 1.3 : 1.1,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: filters.map((f) {
+            final isSelected = _selectedFilter == f['key'];
+
+            Color chipBg;
+            Color textColor;
+            Color countBg;
+            Color countColor;
+            Border border;
+
+            if (isPinned) {
+              if (isSelected) {
+                chipBg = Colors.white;
+                textColor = const Color(0xFF4C3EC7);
+                countBg = const Color(0xFFEDE9FE);
+                countColor = const Color(0xFF4C3EC7);
+                border = Border.all(color: Colors.white, width: 1.2);
+              } else {
+                chipBg = Colors.white.withValues(alpha: 0.18);
+                textColor = Colors.white;
+                countBg = Colors.white.withValues(alpha: 0.22);
+                countColor = Colors.white;
+                border = Border.all(
+                  color: Colors.white.withValues(alpha: 0.32),
+                  width: 1.1,
+                );
+              }
+            } else {
+              if (isSelected) {
+                chipBg = const Color(0xFF4C3EC7);
+                textColor = Colors.white;
+                countBg = Colors.white.withValues(alpha: 0.25);
+                countColor = Colors.white;
+                border = Border.all(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  width: 1.3,
+                );
+              } else {
+                chipBg = Colors.white;
+                textColor = const Color(0xFF475569);
+                countBg = const Color(0xFFF1F5F9);
+                countColor = const Color(0xFF64748B);
+                border = Border.all(
+                  color: const Color(0xFFE2E8F0),
+                  width: 1.1,
+                );
+              }
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  setState(() {
+                    _selectedFilter = f['key'] as String;
+                    _displayedCount = _pageSize; // Reset pagination per filter
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: chipBg,
+                    borderRadius: BorderRadius.circular(20),
+                    border: border,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: isPinned
+                                  ? Colors.black.withValues(alpha: 0.15)
+                                  : const Color(0xFF4C3EC7).withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                        : [],
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF4C3EC7).withValues(alpha: 0.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : [],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      f['label'] as String,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w600,
-                        color: isSelected ? Colors.white : const Color(0xFF475569),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.25)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        "${f['count']}",
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        f['label'] as String,
                         style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected
-                              ? Colors.white
-                              : const Color(0xFF64748B),
+                          fontSize: 12.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                          color: textColor,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: countBg,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "${f['count']}",
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: countColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -1492,5 +1496,47 @@ class _AbsensiViewState extends State<AbsensiView> {
         ],
       ),
     );
+  }
+}
+
+class _SliverFilterBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget Function(BuildContext context, bool isPinned) builder;
+  final double height;
+
+  _SliverFilterBarDelegate({
+    required this.builder,
+    this.height = 52.0,
+  });
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final isPinned = shrinkOffset > 4;
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: isPinned ? const Color(0xFF4C3EC7) : Colors.transparent,
+        boxShadow: isPinned
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: builder(context, isPinned),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _SliverFilterBarDelegate oldDelegate) {
+    return oldDelegate.height != height;
   }
 }

@@ -10,6 +10,7 @@ import 'package:siawi_app/app/modules/kejuruan/views/kejuruan_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
 import 'package:siawi_app/app/modules/pengajuan_pkl/views/pengajuan_pkl_view.dart';
+import 'package:siawi_app/app/modules/pengajuan_pkl/views/pkl_main_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 
 class Menu extends StatefulWidget {
@@ -43,6 +44,7 @@ class _MenuItemData {
 class _MenuState extends State<Menu> {
   String role = "siswa";
   bool isPklLevel = true;
+  bool _showKejuruanBadge = true;
 
   @override
   void initState() {
@@ -54,6 +56,17 @@ class _MenuState extends State<Menu> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String currentRole = preferences.getString('role') ?? 'siswa';
     String? idSiswa = preferences.getString('idSiswa');
+
+    // Cek waktu pertama kali aplikasi di-install / dijalankan untuk badge "Baru" Kejuruan (hilang setelah 3 hari)
+    int? installMs = preferences.getInt('app_first_install_ms');
+    if (installMs == null) {
+      installMs = DateTime.now().millisecondsSinceEpoch;
+      await preferences.setInt('app_first_install_ms', installMs);
+    }
+    final Duration elapsedSinceInstall = DateTime.now().difference(
+      DateTime.fromMillisecondsSinceEpoch(installMs),
+    );
+    final bool showBadge = elapsedSinceInstall < const Duration(days: 3);
 
     bool pklLevel = true;
     if (preferences.containsKey('is_pkl_level')) {
@@ -78,6 +91,7 @@ class _MenuState extends State<Menu> {
       setState(() {
         role = currentRole;
         isPklLevel = pklLevel;
+        _showKejuruanBadge = showBadge;
       });
     }
   }
@@ -140,13 +154,13 @@ class _MenuState extends State<Menu> {
         iconColor: const Color(0xFFEA580C),
         destination: ModulMapelView(signOut: widget.signOut),
       ),
-      // 8. Surat PKL
+      // 8. PKL (Presensi & Surat Terpadu)
       _MenuItemData(
-        title: "Surat PKL",
-        icon: Icons.work_outline_rounded,
-        bgColor: const Color(0xFFF1F5F9),
-        iconColor: const Color(0xFF475569),
-        destination: PengajuanPklView(widget.signOut),
+        title: "PKL",
+        icon: Icons.business_center_rounded,
+        bgColor: const Color(0xFFEFF6FF),
+        iconColor: const Color(0xFF2563EB),
+        destination: PklMainView(widget.signOut),
       ),
       // 9. Kejuruan (Fitur Baru Siswa)
       _MenuItemData(
@@ -154,7 +168,7 @@ class _MenuState extends State<Menu> {
         icon: Icons.architecture_rounded,
         bgColor: const Color(0xFFDCFCE7),
         iconColor: const Color(0xFF16A34A),
-        badge: "Baru",
+        badge: _showKejuruanBadge ? "Baru" : null,
         badgeColor: const Color(0xFF0284C7),
         destination: KejuruanView(signOut: widget.signOut),
       ),
@@ -333,7 +347,7 @@ class _MenuState extends State<Menu> {
   }
 
   Widget _buildMenuItem(_MenuItemData item) {
-    bool isPklMenu = item.title == "Surat PKL";
+    bool isPklMenu = item.title == "PKL" || item.title == "Surat PKL";
     bool isLocked = isPklMenu && !isPklLevel;
     bool hasBadge = item.badge != null && item.badge!.isNotEmpty;
 
@@ -600,7 +614,7 @@ class _MenuState extends State<Menu> {
 
                 // Deskripsi Penjelasan
                 Text(
-                  "Menu Surat PKL hanya dapat diakses oleh siswa pada tingkat yang sedang aktif mengikuti program PKL.\n\nTingkat kelas Anda saat ini belum memasuki masa aktif PKL yang ditetapkan oleh sekolah. Silakan berkoordinasi dengan wali kelas atau pihak BKK & Hubin jika ada pertanyaan.",
+                  "Menu PKL (Presensi & Pengajuan Surat) hanya dapat diakses oleh siswa pada tingkat yang sedang aktif mengikuti program PKL.\n\nTingkat kelas Anda saat ini belum memasuki masa aktif PKL yang ditetapkan oleh sekolah. Silakan berkoordinasi dengan wali kelas atau pihak BKK & Hubin jika ada pertanyaan.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,

@@ -6,6 +6,7 @@ import 'package:siawi_app/app/modules/home/widget/menu.dart';
 import 'package:siawi_app/app/modules/home/widget/parent_dashboard_header.dart';
 import 'package:siawi_app/app/modules/home/widget/student_dashboard_header.dart';
 import 'package:siawi_app/app/modules/home/widget/parent_quick_services.dart';
+import 'package:siawi_app/app/modules/home/widget/quick_pkl_attendance_card.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/app/modules/home/widget/version_checker.dart'; // Import version checker
 
@@ -112,6 +113,8 @@ class _HomeViewState extends State<HomeView> {
                   if (role == 'orang_tua')
                     ParentQuickServices(widget.signOut, childId: _activeChildId)
                   else ...[
+                    QuickPklAttendanceCard(widget.signOut),
+                    const SizedBox(height: 14),
                     Menu(widget.signOut),
                     const SizedBox(height: 20),
                     JadwalToday(widget.signOut),

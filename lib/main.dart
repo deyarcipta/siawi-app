@@ -30,6 +30,12 @@ void main() async {
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   SharedPreferences preferences = await SharedPreferences.getInstance();
+  if (!preferences.containsKey('app_first_install_ms')) {
+    await preferences.setInt(
+      'app_first_install_ms',
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
   bool isLoggedIn = preferences.getInt('value') == 1;
   String savedRole = preferences.getString('role') ?? 'siswa';
   MyHomePage.activeRole = savedRole;

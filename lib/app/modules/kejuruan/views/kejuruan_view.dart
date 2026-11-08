@@ -2,10 +2,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/data/api_service.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/jadwal_praktik_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/modul_praktik_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/nilai_praktik_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/uji_kompetensi_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/sertifikat_portofolio_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/tes_teori_tkk_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/peminjaman_alat_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/presensi_bengkel_view.dart';
+import 'package:siawi_app/app/modules/kejuruan/subviews/detail_modul_praktik_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class KejuruanView extends StatefulWidget {
   final VoidCallback? signOut;
-  const KejuruanView({this.signOut, super.key});
+  final String? idSiswa;
+  const KejuruanView({this.signOut, this.idSiswa, super.key});
 
   @override
   State<KejuruanView> createState() => _KejuruanViewState();
@@ -17,47 +28,31 @@ class _KejuruanViewState extends State<KejuruanView> {
 
   // Header & Student data
   String namaSiswa = "Siswa";
-  String namaJurusan = "Teknik Komputer dan Jaringan";
-  String namaKelas = "Kelas XI";
-  String subtitle = "Teknik Komputer dan Jaringan · Kelas XI";
+  String namaJurusan = "Program Keahlian";
+  String namaKelas = "Kelas Siswa";
+  String subtitle = "Program Keahlian · Kelas Siswa";
 
   // Praktik berikutnya data
-  Map<String, dynamic> praktikBerikutnya = {
-    'tipe': 'Praktik Bengkel / Lab',
-    'badge_waktu': 'Hari Ini • 08.00 WIB',
-    'modul_nomor': 'MODUL 04',
-    'topik_modul': 'MikroTik RouterOS',
-    'judul': 'Praktik Konfigurasi Routing & Switching',
-    'lab': 'Lab Jaringan 2',
-    'jadwal': '08.00–10.15 (Senin)',
-    'guru': 'Pak Hendra, S.Kom',
-    'peran_guru': 'Instruktur Kejuruan',
-    'alat_bahan': 'Kabel UTP Cat6, Crimping Tool, Laptop / Winbox',
-    'peralatan': ['Kabel UTP Cat6', 'Crimping Tool', 'Laptop / Winbox'],
-  };
+  Map<String, dynamic>? praktikBerikutnya;
+  List<Map<String, dynamic>> praktikHariIniList = [];
+  int? _selectedSesiIndex;
 
-  // Stats & Remedial data (Gambar 1)
-  String kehadiranPraktik = "96%";
-  String kehadiranSesi = "(24/25 Sesi)";
-  String kehadiranBadge = "Sangat Disiplin";
-  String rataRataNilai = "88.5";
-  String predikatNilai = "Predikat A-";
-  String kompetensiBadge = "Kompeten";
-  String statusRemedialModul = "1 Modul Aktif";
-  String remedialTopik = "Subnetting & CIDR";
-  String remedialTarget = "Target Nilai KKM 75";
+  // Stats & Remedial data
+  String kehadiranPraktik = "0%";
+  String kehadiranSesi = "(0/0 Sesi)";
+  String kehadiranBadge = "-";
+  String rataRataNilai = "0";
+  String predikatNilai = "-";
+  String kompetensiBadge = "-";
+  String statusRemedialModul = "";
+  String remedialTopik = "";
+  String remedialTarget = "";
 
-  // Peminjaman Alat data (Gambar 2)
-  Map<String, dynamic> peminjamanAlat = {
-    'nama_alat': '1 MikroTik RB951',
-    'status': 'Dipinjam',
-    'lokasi': 'Lab 2',
-    'batas_kembali': '11.00 WIB',
-    'keterangan': 'Lab 2 • Kembalikan sebelum 11.00 WIB',
-    'sn': 'RB951-2HnD-7489',
-    'jam_pinjam': '08.00 WIB',
-    'petugas': 'Pak Hendra, S.Kom (Instruktur Lab)',
-  };
+  // Peminjaman Alat data
+  Map<String, dynamic>? peminjamanAlat;
+
+  // Job sheets data
+  List<Map<String, dynamic>> jobSheets = [];
 
   @override
   void initState() {
@@ -65,10 +60,83 @@ class _KejuruanViewState extends State<KejuruanView> {
     _loadData();
   }
 
+  String _getTodayName() {
+    switch (DateTime.now().weekday) {
+      case DateTime.monday:
+        return 'Senin';
+      case DateTime.tuesday:
+        return 'Selasa';
+      case DateTime.wednesday:
+        return 'Rabu';
+      case DateTime.thursday:
+        return 'Kamis';
+      case DateTime.friday:
+        return 'Jumat';
+      case DateTime.saturday:
+        return 'Sabtu';
+      case DateTime.sunday:
+      default:
+        return 'Minggu';
+    }
+  }
+
+  String _getFormattedDateToday() {
+    final now = DateTime.now();
+    const List<String> months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return '${_getTodayName()}, ${now.day} ${months[now.month - 1]} ${now.year}';
+  }
+
+  int? _parseTimeToMinutes(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty || timeStr == '-') return null;
+    final clean = timeStr.trim().replaceAll('.', ':');
+    final parts = clean.split(':');
+    if (parts.length < 2) return null;
+    final h = int.tryParse(parts[0].trim());
+    final m = int.tryParse(parts[1].trim().substring(0, parts[1].trim().length >= 2 ? 2 : parts[1].trim().length));
+    if (h == null || m == null) return null;
+    return h * 60 + m;
+  }
+
+  Map<String, String> _extractStartEndTime(Map<String, dynamic> item) {
+    String jamMulai = (item['jam_mulai'] ?? '').toString().trim();
+    String jamSelesai = (item['jam_selesai'] ?? '').toString().trim();
+
+    if (jamMulai.isEmpty || jamSelesai.isEmpty || jamMulai == '-') {
+      final String rawJadwal =
+          (item['jadwal'] ?? item['jam'] ?? '').toString().trim();
+      if (rawJadwal.contains('-')) {
+        final parts = rawJadwal.split('-');
+        if (parts.length >= 2) {
+          jamMulai = parts[0].trim();
+          jamSelesai = parts[1].replaceAll('WIB', '').trim();
+        }
+      }
+    }
+    if (jamMulai.length >= 5) jamMulai = jamMulai.substring(0, 5);
+    if (jamSelesai.length >= 5) jamSelesai = jamSelesai.substring(0, 5);
+    return {
+      'jam_mulai': jamMulai.isEmpty ? '-' : jamMulai,
+      'jam_selesai': jamSelesai.isEmpty ? '-' : jamSelesai,
+    };
+  }
+
   Future<void> _loadData() async {
     setState(() => isLoading = true);
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    idSiswa = prefs.getString('idSiswa');
+    idSiswa = widget.idSiswa ?? prefs.getString('idSiswa');
 
     // 1. Coba baca data dari cache profil siswa yang ada
     if (idSiswa != null) {
@@ -100,35 +168,172 @@ class _KejuruanViewState extends State<KejuruanView> {
     // 2. Fetch live data dari API di siawi-admin
     if (idSiswa != null) {
       try {
-        final res =
-            await ApiService.get('/kejuruan/dashboard/$idSiswa', silent: true);
+        final res = await ApiService.get(
+          '/kejuruan/dashboard/$idSiswa',
+          forceRefresh: true,
+          silent: true,
+        );
         if (res != null && res['success'] == true && res['data'] != null) {
           final data = res['data'];
           if (data['nama_siswa'] != null) namaSiswa = data['nama_siswa'];
           if (data['subtitle'] != null) subtitle = data['subtitle'];
           if (data['jurusan'] != null) namaJurusan = data['jurusan'];
           if (data['kelas'] != null) namaKelas = data['kelas'];
-          if (data['praktik_berikutnya'] != null) {
-            praktikBerikutnya =
-                Map<String, dynamic>.from(data['praktik_berikutnya']);
+          praktikBerikutnya = data['praktik_berikutnya'] != null
+              ? Map<String, dynamic>.from(data['praktik_berikutnya'])
+              : null;
+          if (data['praktik_hari_ini'] is List &&
+              (data['praktik_hari_ini'] as List).isNotEmpty) {
+            final rawList = (data['praktik_hari_ini'] as List)
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList();
+            // Cek apakah jadwal yang dikembalikan benar-benar hari ini
+            final firstBadge =
+                (rawList.first['badge'] ?? rawList.first['badge_waktu'] ?? '')
+                    .toString()
+                    .toLowerCase();
+            if (firstBadge.contains('hari ini')) {
+              praktikHariIniList = rawList;
+            } else {
+              praktikHariIniList = [];
+            }
+          } else if (praktikBerikutnya != null) {
+            final badgeStr =
+                (praktikBerikutnya!['badge'] ??
+                        praktikBerikutnya!['badge_waktu'] ??
+                        '')
+                    .toString()
+                    .toLowerCase();
+            if (badgeStr.contains('hari ini')) {
+              praktikHariIniList = [praktikBerikutnya!];
+            } else {
+              praktikHariIniList = [];
+            }
+          } else {
+            praktikHariIniList = [];
           }
           if (data['stats'] != null) {
             var stats = data['stats'];
-            kehadiranPraktik = stats['kehadiran_praktik'] ?? kehadiranPraktik;
-            kehadiranSesi = stats['kehadiran_sesi'] ?? kehadiranSesi;
-            kehadiranBadge = stats['kehadiran_badge'] ?? kehadiranBadge;
-            rataRataNilai = stats['rata_rata_nilai'] ?? rataRataNilai;
-            predikatNilai = stats['predikat'] ?? predikatNilai;
-            kompetensiBadge = stats['kompetensi_badge'] ?? kompetensiBadge;
-            statusRemedialModul =
-                stats['remedial_modul'] ?? statusRemedialModul;
-            remedialTopik = stats['remedial_topik'] ?? remedialTopik;
-            remedialTarget = stats['remedial_kkm'] ?? remedialTarget;
+            kehadiranPraktik = stats['kehadiran_praktik'] ?? "0%";
+            kehadiranSesi = stats['kehadiran_sesi'] ?? "(0/0 Sesi)";
+            kehadiranBadge = stats['kehadiran_badge'] ?? "-";
+            rataRataNilai = stats['rata_rata_nilai']?.toString() ?? "0";
+            predikatNilai = stats['predikat'] ?? "-";
+            kompetensiBadge = stats['kompetensi_badge'] ?? "-";
+            statusRemedialModul = stats['remedial_modul'] ?? "";
+            remedialTopik = stats['remedial_topik'] ?? "";
+            remedialTarget = stats['remedial_kkm'] ?? "";
           }
-          if (data['peminjaman_alat'] != null) {
-            peminjamanAlat =
-                Map<String, dynamic>.from(data['peminjaman_alat']);
+          peminjamanAlat = data['peminjaman_alat'] != null
+              ? Map<String, dynamic>.from(data['peminjaman_alat'])
+              : null;
+        }
+
+        // Ambil seluruh daftar jadwal praktik siswa agar apabila hari ini ada > 1 jadwal (misal 2 sesi di XII-TKJ), semuanya tampil
+        try {
+          final resJadwal = await ApiService.get(
+            '/kejuruan/jadwal/$idSiswa',
+            forceRefresh: true,
+            silent: true,
+          );
+          if (resJadwal != null &&
+              resJadwal['success'] == true &&
+              resJadwal['data'] is List) {
+            final String todayName = _getTodayName().toLowerCase();
+            final List rawJadwal = resJadwal['data'];
+            final List<Map<String, dynamic>> todayItems = rawJadwal
+                .map((e) => Map<String, dynamic>.from(e))
+                .where((m) {
+                  final String hari =
+                      (m['hari'] ?? '').toString().trim().toLowerCase();
+                  final bool isActive = m['is_active'] == true;
+                  return isActive || hari == todayName;
+                })
+                .toList();
+
+            // Urutkan berdasarkan jam_mulai dari pagi ke sore
+            todayItems.sort((a, b) {
+              final minA =
+                  _parseTimeToMinutes(a['jam_mulai']?.toString()) ?? 9999;
+              final minB =
+                  _parseTimeToMinutes(b['jam_mulai']?.toString()) ?? 9999;
+              return minA.compareTo(minB);
+            });
+
+            if (todayItems.isNotEmpty) {
+              final int totalToday = todayItems.length;
+              praktikHariIniList = List.generate(totalToday, (idx) {
+                final m = todayItems[idx];
+                final String jamMulai = m['jam_mulai'] != null &&
+                        m['jam_mulai'].toString().length >= 5
+                    ? m['jam_mulai'].toString().substring(0, 5)
+                    : (m['jam_mulai']?.toString() ?? '-');
+                final String jamSelesai = m['jam_selesai'] != null &&
+                        m['jam_selesai'].toString().length >= 5
+                    ? m['jam_selesai'].toString().substring(0, 5)
+                    : (m['jam_selesai']?.toString() ?? '-');
+                final String judulMapel = m['mapel'] is Map
+                    ? (m['mapel']['nama_mapel'] ?? 'Praktik Kejuruan')
+                        .toString()
+                    : (m['mapel'] ??
+                            m['judul'] ??
+                            m['materi'] ??
+                            'Praktik Kejuruan')
+                        .toString();
+                final String namaLab = m['lab'] is Map
+                    ? (m['lab']['nama_lab'] ?? 'Lab Praktik').toString()
+                    : (m['lab'] ?? m['lokasi'] ?? m['ruangan'] ?? 'Lab Praktik')
+                        .toString();
+                final String namaGuru = m['guru'] is Map
+                    ? (m['guru']['nama_guru'] ?? 'Guru Pengampu').toString()
+                    : (m['guru'] ?? 'Guru Pengampu').toString();
+                final String? noHpGuru = m['guru'] is Map
+                    ? (m['guru']['no_hp'] ??
+                            m['guru']['no_telp'] ??
+                            m['guru']['telepon'])
+                        ?.toString()
+                    : m['no_hp_guru']?.toString();
+                final String badgeStr = totalToday > 1
+                    ? 'Hari ini • Sesi ${idx + 1}'
+                    : 'Hari ini';
+
+                return {
+                  'id_jadwal_praktik': m['id_jadwal_praktik'],
+                  'kode': (m['kode'] ?? '').toString(),
+                  'hari': (m['hari'] ?? _getTodayName()).toString(),
+                  'frekuensi_label':
+                      (m['frekuensi_label'] ?? 'Setiap Minggu').toString(),
+                  'judul': judulMapel,
+                  'lab': namaLab,
+                  'lokasi': namaLab,
+                  'jam_mulai': jamMulai,
+                  'jam_selesai': jamSelesai,
+                  'jam': '$jamMulai - $jamSelesai',
+                  'jadwal': '$jamMulai - $jamSelesai',
+                  'guru': namaGuru,
+                  'no_hp_guru': noHpGuru,
+                  'peran_guru': 'Instruktur Kejuruan',
+                  'alat_bahan': (m['alat_bahan'] ?? '-').toString(),
+                  'badge': badgeStr,
+                  'badge_waktu': badgeStr,
+                  'sesi_ke': idx + 1,
+                  'is_today': true,
+                };
+              });
+              praktikBerikutnya = praktikHariIniList.first;
+            } else {
+              praktikHariIniList = [];
+            }
           }
+        } catch (_) {}
+
+        // Ambil daftar modul untuk job sheet
+        final resModul =
+            await ApiService.get('/kejuruan/modul/$idSiswa', silent: true);
+        if (resModul != null &&
+            resModul['success'] == true &&
+            resModul['data'] is List) {
+          jobSheets = List<Map<String, dynamic>>.from(resModul['data']);
         }
       } catch (_) {
         // Fallback default
@@ -137,6 +342,7 @@ class _KejuruanViewState extends State<KejuruanView> {
 
     if (mounted) {
       setState(() {
+        _selectedSesiIndex = null;
         isLoading = false;
       });
     }
@@ -167,25 +373,34 @@ class _KejuruanViewState extends State<KejuruanView> {
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 1. Sebelum Jadwal Praktik: Kehadiran & Rata-rata Praktik (Gambar 1)
                           _buildStatCardsRow(),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
 
-                          // 2. Sebelum Jadwal Praktik: Banner Status Remedial (Gambar 1)
-                          _buildStatusRemedialBanner(),
-                          const SizedBox(height: 12),
+                          // 2. Sebelum Jadwal Praktik: Banner Status Remedial (Hanya muncul jika ada remedial aktif)
+                          if (statusRemedialModul.isNotEmpty &&
+                              statusRemedialModul != '-' &&
+                              !statusRemedialModul
+                                  .toLowerCase()
+                                  .contains('tidak ada') &&
+                              !statusRemedialModul.startsWith('0')) ...[
+                            _buildStatusRemedialBanner(),
+                            const SizedBox(height: 10),
+                          ],
 
                           // 3. Jadwal Praktik Hari Ini (Tengah)
                           _buildPraktikBerikutnyaCard(),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
 
-                          // 4. Setelah Jadwal Praktik: Peminjaman Alat (Gambar 2)
-                          _buildPeminjamanAlatCard(),
-                          const SizedBox(height: 16),
+                          // 4. Setelah Jadwal Praktik: Peminjaman Alat (Hanya muncul jika ada alat aktif)
+                          if (peminjamanAlat != null) ...[
+                            _buildPeminjamanAlatCard(),
+                            const SizedBox(height: 14),
+                          ],
 
                           // 5. 8 Menu Layanan Praktik / Kejuruan
                           _buildMenuGrid(),
@@ -216,14 +431,14 @@ class _KejuruanViewState extends State<KejuruanView> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+          bottomLeft: Radius.circular(26),
+          bottomRight: Radius.circular(26),
         ),
         boxShadow: [
           BoxShadow(
             color: Color(0x334C3EC7),
-            blurRadius: 18,
-            offset: Offset(0, 8),
+            blurRadius: 16,
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -258,7 +473,7 @@ class _KejuruanViewState extends State<KejuruanView> {
             ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 11),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -266,10 +481,11 @@ class _KejuruanViewState extends State<KejuruanView> {
                   Row(
                     children: [
                       IconButton(
+                        visualDensity: VisualDensity.compact,
                         icon: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           color: Colors.white,
-                          size: 20,
+                          size: 19,
                         ),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
@@ -283,7 +499,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
-                                fontSize: 18,
+                                fontSize: 17.5,
                                 letterSpacing: -0.2,
                               ),
                             ),
@@ -299,10 +515,11 @@ class _KejuruanViewState extends State<KejuruanView> {
                         ),
                       ),
                       IconButton(
+                        visualDensity: VisualDensity.compact,
                         icon: const Icon(
                           Icons.refresh_rounded,
                           color: Colors.white,
-                          size: 22,
+                          size: 21,
                         ),
                         tooltip: 'Segarkan Data',
                         onPressed: _loadData,
@@ -311,8 +528,8 @@ class _KejuruanViewState extends State<KejuruanView> {
                         padding: const EdgeInsets.only(right: 6),
                         child: Image.asset(
                           'assets/logo/logo-splash.png',
-                          width: 28,
-                          height: 28,
+                          width: 26,
+                          height: 26,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const SizedBox(),
@@ -320,20 +537,20 @@ class _KejuruanViewState extends State<KejuruanView> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
 
                   // Hero Floating Card Profil Siswa & Program Kejuruan (Konsisten Jadwal/Poin)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
+                        horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -341,15 +558,15 @@ class _KejuruanViewState extends State<KejuruanView> {
                       children: [
                         // Ikon Kotak Kejuruan
                         Container(
-                          padding: const EdgeInsets.all(9),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.architecture_rounded,
                             color: Color(0xFF16A34A),
-                            size: 22,
+                            size: 20,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -364,7 +581,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                                     ? namaSiswa
                                     : namaJurusan,
                                 style: const TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF0F172A),
                                   letterSpacing: -0.2,
@@ -372,11 +589,11 @@ class _KejuruanViewState extends State<KejuruanView> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 1.5),
                               Text(
                                 '$namaKelas • $namaJurusan',
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFF64748B),
                                 ),
@@ -391,8 +608,8 @@ class _KejuruanViewState extends State<KejuruanView> {
                         // Badge Status Kejuruan Aktif
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 5,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEEF2FF),
@@ -406,14 +623,14 @@ class _KejuruanViewState extends State<KejuruanView> {
                             children: [
                               Icon(
                                 Icons.verified_rounded,
-                                size: 13,
+                                size: 12.5,
                                 color: Color(0xFF4C3EC7),
                               ),
-                              SizedBox(width: 3.5),
+                              SizedBox(width: 3),
                               Text(
                                 'Aktif',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF4C3EC7),
                                 ),
@@ -434,25 +651,73 @@ class _KejuruanViewState extends State<KejuruanView> {
   }
 
   Widget _buildPraktikBerikutnyaCard() {
-    // Parsing daftar peralatan wajib dibawa
-    List<String> peralatanList = [];
-    if (praktikBerikutnya['peralatan'] is List) {
-      peralatanList = List<String>.from(praktikBerikutnya['peralatan']);
-    } else if (praktikBerikutnya['alat_bahan'] != null &&
-        praktikBerikutnya['alat_bahan'].toString().isNotEmpty) {
-      peralatanList = praktikBerikutnya['alat_bahan']
-          .toString()
-          .split(RegExp(r'[,;]'))
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
+    final bool hasTodaySchedule = praktikHariIniList.isNotEmpty;
+    final bool hasUpcomingOtherDay =
+        !hasTodaySchedule && praktikBerikutnya != null;
+
+    // Kategorisasi berdasarkan waktu sekarang (seperti JadwalToday pada Jadwal Mapel)
+    final now = DateTime.now();
+    final int nowMinutes = now.hour * 60 + now.minute;
+
+    final List<Map<String, dynamic>> enrichedTodayList = [];
+    int? defaultActiveIndex;
+    bool allCompleted = false;
+
+    if (hasTodaySchedule) {
+      for (int i = 0; i < praktikHariIniList.length; i++) {
+        final item = Map<String, dynamic>.from(praktikHariIniList[i]);
+        item['sesi_ke'] = item['sesi_ke'] ?? (i + 1);
+        final times = _extractStartEndTime(item);
+        item['jam_mulai'] = times['jam_mulai'];
+        item['jam_selesai'] = times['jam_selesai'];
+
+        final int? startMin = _parseTimeToMinutes(times['jam_mulai']);
+        final int? endMin = _parseTimeToMinutes(times['jam_selesai']);
+
+        String statusMode = 'berikutnya';
+        if (startMin != null && endMin != null) {
+          if (nowMinutes > endMin) {
+            statusMode = 'selesai';
+          } else if (defaultActiveIndex == null) {
+            defaultActiveIndex = i;
+            if (nowMinutes >= startMin && nowMinutes <= endMin) {
+              statusMode = 'berlangsung';
+            } else {
+              statusMode = 'berikutnya';
+            }
+          } else {
+            statusMode = 'berikutnya';
+          }
+        } else {
+          if (defaultActiveIndex == null) {
+            defaultActiveIndex = i;
+          }
+        }
+        item['_status_mode'] = statusMode;
+        enrichedTodayList.add(item);
+      }
+
+      if (defaultActiveIndex == null && enrichedTodayList.isNotEmpty) {
+        allCompleted = true;
+        defaultActiveIndex = enrichedTodayList.length - 1;
+      }
     }
-    if (peralatanList.isEmpty) {
-      peralatanList = ['Kabel UTP Cat6', 'Crimping Tool', 'Laptop / Winbox'];
-    }
+
+    final int currentSelectedIndex = hasTodaySchedule
+        ? ((_selectedSesiIndex != null &&
+                _selectedSesiIndex! >= 0 &&
+                _selectedSesiIndex! < enrichedTodayList.length)
+            ? _selectedSesiIndex!
+            : (defaultActiveIndex ?? 0))
+        : 0;
+
+    final String pillText = hasTodaySchedule
+        ? '${enrichedTodayList.length} Jadwal Praktik'
+        : (hasUpcomingOtherDay ? 'Jadwal Terdekat' : 'Tidak Ada Jadwal');
 
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -462,41 +727,507 @@ class _KejuruanViewState extends State<KejuruanView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4C3EC7).withValues(alpha: 0.05),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.035),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Top Badges Row: "Praktik Bengkel / Lab" and "• Hari Ini • 08.00 WIB"
+          // 1. HEADER COMPACT: "Jadwal Praktik Hari Ini" + Badge Sesi + "Lihat Semua >"
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Jadwal Praktik Hari Ini',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => _openSubMenu('Jadwal Praktik'),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Lihat Semua',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4C3EC7),
+                        ),
+                      ),
+                      SizedBox(width: 1),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: Color(0xFF4C3EC7),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+
+          // 2. SUBHEADER: Tanggal Hari Ini & Badge Jumlah Sesi Praktik
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Pill: Praktik Bengkel / Lab
+              Expanded(
+                child: Text(
+                  _getFormattedDateToday(),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 8.5, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: hasTodaySchedule
+                      ? const Color(0xFFEEF2FF)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: hasTodaySchedule
+                        ? const Color(0xFFC7D2FE)
+                        : const Color(0xFFE2E8F0),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  pillText,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: hasTodaySchedule
+                        ? const Color(0xFF4C3EC7)
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+
+          // 3. KONTEN JADWAL PRAKTIK
+          if (!hasTodaySchedule && !hasUpcomingOtherDay) ...[
+            _buildEmptyPraktikTodayState(),
+          ] else if (hasUpcomingOtherDay) ...[
+            _buildSinglePraktikCard(
+              praktikBerikutnya!,
+              statusMode: 'terdekat',
+              totalToday: 1,
+            ),
+          ] else ...[
+            // Jika semua sesi hari ini sudah selesai, tampilkan strip info hijau ringkas
+            if (allCompleted) ...[
+              _buildAllPraktikCompletedBanner(enrichedTodayList),
+              const SizedBox(height: 8),
+            ],
+
+            // Jika hari ini ada > 1 jadwal (misal Sesi 1 & Sesi 2), tampilkan Tab Pilihan Sesi yang menampilkan seluruh jam sesi sekaligus
+            if (enrichedTodayList.length > 1) ...[
+              _buildSessionSelectorBar(
+                enrichedTodayList,
+                selectedIndex: currentSelectedIndex,
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Kartu Utama Sesi yang Dipilih / Sedang Berlangsung / Berikutnya
+            _buildSinglePraktikCard(
+              enrichedTodayList[currentSelectedIndex],
+              statusMode: (enrichedTodayList[currentSelectedIndex]
+                          ['_status_mode'] ??
+                      'berikutnya')
+                  .toString(),
+              totalToday: enrichedTodayList.length,
+              isSameMapelToday: _isSameMapelInList(enrichedTodayList),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  bool _isSameMapelInList(List<Map<String, dynamic>> list) {
+    if (list.length <= 1) return true;
+    final Set<String> uniqueNames = list
+        .map((e) => (e['judul'] ?? '').toString().trim().toLowerCase())
+        .where((s) => s.isNotEmpty)
+        .toSet();
+    return uniqueNames.length <= 1;
+  }
+
+  Widget _buildSessionSelectorBar(
+    List<Map<String, dynamic>> sessions, {
+    required int selectedIndex,
+  }) {
+    final bool isSameMapel = _isSameMapelInList(sessions);
+    final String prefixLabel = isSameMapel ? 'Sesi' : 'Praktik';
+    final bool isScrollable = sessions.length > 2;
+
+    Widget buildTabItem(int idx) {
+      final item = sessions[idx];
+      final bool isSelected = idx == selectedIndex;
+      final String mode = (item['_status_mode'] ?? 'berikutnya').toString();
+      final String jamMulai = (item['jam_mulai'] ?? '-').toString();
+      final String jamSelesai = (item['jam_selesai'] ?? '-').toString();
+      final int nomor = item['sesi_ke'] is int ? item['sesi_ke'] : (idx + 1);
+
+      Color borderColor;
+      Color bgColor;
+      Color textColor;
+      IconData statusIcon;
+      Color iconColor;
+
+      if (isSelected) {
+        if (mode == 'berlangsung') {
+          bgColor = const Color(0xFFECFDF5);
+          borderColor = const Color(0xFF10B981);
+          textColor = const Color(0xFF065F46);
+          statusIcon = Icons.play_circle_fill_rounded;
+          iconColor = const Color(0xFF059669);
+        } else if (mode == 'selesai') {
+          bgColor = const Color(0xFFF1F5F9);
+          borderColor = const Color(0xFF64748B);
+          textColor = const Color(0xFF1E293B);
+          statusIcon = Icons.check_circle_rounded;
+          iconColor = const Color(0xFF10B981);
+        } else {
+          bgColor = const Color(0xFFEEF2FF);
+          borderColor = const Color(0xFF4C3EC7);
+          textColor = const Color(0xFF312E81);
+          statusIcon = Icons.schedule_rounded;
+          iconColor = const Color(0xFF4C3EC7);
+        }
+      } else {
+        bgColor = const Color(0xFFF8FAFC);
+        borderColor = const Color(0xFFE2E8F0);
+        textColor = const Color(0xFF64748B);
+        if (mode == 'selesai') {
+          statusIcon = Icons.check_circle_outline_rounded;
+          iconColor = const Color(0xFF10B981);
+        } else if (mode == 'berlangsung') {
+          statusIcon = Icons.play_circle_outline_rounded;
+          iconColor = const Color(0xFF059669);
+        } else {
+          statusIcon = Icons.access_time_rounded;
+          iconColor = const Color(0xFF94A3B8);
+        }
+      }
+
+      return InkWell(
+        borderRadius: BorderRadius.circular(11),
+        onTap: () {
+          setState(() {
+            _selectedSesiIndex = idx;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(
+            horizontal: isScrollable ? 12 : 9,
+            vertical: 6.5,
+          ),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(
+              color: borderColor,
+              width: isSelected ? 1.3 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: isScrollable ? MainAxisSize.min : MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(statusIcon, size: 13, color: iconColor),
+              const SizedBox(width: 4.5),
+              if (isScrollable)
+                Text(
+                  '$prefixLabel $nomor • $jamMulai–$jamSelesai',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: textColor,
+                  ),
+                )
+              else
+                Flexible(
+                  child: Text(
+                    '$prefixLabel $nomor • $jamMulai–$jamSelesai',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Desain Hybrid:
+    // - Jika 2 jadwal: Tampil rata kiri-kanan (50% : 50%)
+    // - Jika >= 3 jadwal: Otomatis menjadi Horizontal Scrollable Pills (tetap 1 baris & tidak sempit)
+    if (!isScrollable) {
+      return Row(
+        children: List.generate(sessions.length, (idx) {
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: idx == 0 ? 0 : 6),
+              child: buildTabItem(idx),
+            ),
+          );
+        }),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: List.generate(sessions.length, (idx) {
+          return Padding(
+            padding: EdgeInsets.only(left: idx == 0 ? 0 : 6),
+            child: buildTabItem(idx),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildEmptyPraktikTodayState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE9FE),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.calendar_month_rounded,
+              color: Color(0xFF4C3EC7),
+              size: 19,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tidak Ada Praktik Hari Ini',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                SizedBox(height: 1.5),
+                Text(
+                  'Belum ada jadwal praktik laboratorium/bengkel hari ini.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllPraktikCompletedBanner(
+      List<Map<String, dynamic>> completedList) {
+    final String waktuAkhir = completedList.isNotEmpty
+        ? (completedList.last['jam_selesai'] ?? '-')
+        : '-';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFECFDF5), Color(0xFFD1FAE5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: const Color(0xFFA7F3D0)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.task_alt_rounded,
+            color: Color(0xFF059669),
+            size: 16,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              'Praktik selesai • Semua jadwal berakhir pukul $waktuAkhir WIB',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF065F46),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSinglePraktikCard(
+    Map<String, dynamic> data, {
+    String statusMode = 'berikutnya',
+    int totalToday = 1,
+    bool isSameMapelToday = true,
+  }) {
+    // Parsing daftar peralatan wajib dibawa
+    List<String> peralatanList = [];
+    if (data['peralatan'] is List) {
+      peralatanList = List<String>.from(data['peralatan']);
+    } else if (data['alat_bahan'] != null &&
+        data['alat_bahan'].toString().isNotEmpty &&
+        data['alat_bahan'].toString() != '-') {
+      peralatanList = data['alat_bahan']
+          .toString()
+          .split(RegExp(r'[,;]'))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+
+    final int sesiKe = data['sesi_ke'] is int ? data['sesi_ke'] : 1;
+    final String prefixLabel = isSameMapelToday ? 'Sesi' : 'Praktik';
+    final String rawBadge =
+        (data['badge_waktu'] ?? data['badge'] ?? 'Hari Ini').toString();
+    final String judul = (data['judul'] ?? 'Praktik Kejuruan').toString();
+    final String lab =
+        (data['lab'] ?? data['lokasi'] ?? 'Lab Kejuruan').toString();
+    final String jadwal = (data['jadwal'] ?? data['jam'] ?? '-').toString();
+    final String guru = (data['guru'] ?? 'Guru Pengampu').toString();
+    final String peranGuru =
+        (data['peran_guru'] ?? 'Instruktur Kejuruan').toString();
+
+    // Konfigurasi badge status waktu yang dinamis & kontekstual
+    String statusLabel;
+    Color statusBgColor;
+    Color statusTextColor;
+    Color statusDotColor;
+
+    if (statusMode == 'berlangsung') {
+      statusLabel = totalToday > 1
+          ? 'Sedang Berlangsung • $prefixLabel $sesiKe'
+          : 'Sedang Berlangsung';
+      statusBgColor = const Color(0xFFD1FAE5);
+      statusTextColor = const Color(0xFF047857);
+      statusDotColor = const Color(0xFF059669);
+    } else if (statusMode == 'selesai') {
+      statusLabel = totalToday > 1
+          ? '$prefixLabel $sesiKe • Selesai'
+          : 'Praktik Selesai';
+      statusBgColor = const Color(0xFFF1F5F9);
+      statusTextColor = const Color(0xFF475569);
+      statusDotColor = const Color(0xFF64748B);
+    } else if (statusMode == 'terdekat') {
+      statusLabel = rawBadge;
+      statusBgColor = const Color(0xFFFEF3C7);
+      statusTextColor = const Color(0xFFB45309);
+      statusDotColor = const Color(0xFFD97706);
+    } else {
+      statusLabel = totalToday > 1
+          ? 'Jadwal Berikutnya • $prefixLabel $sesiKe'
+          : 'Jadwal Berikutnya';
+      statusBgColor = const Color(0xFFEEF2FF);
+      statusTextColor = const Color(0xFF4C3EC7);
+      statusDotColor = const Color(0xFF4F46E5);
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: statusMode == 'berlangsung'
+              ? const Color(0xFF6EE7B7)
+              : const Color(0xFFE2E8F0),
+          width: 1.1,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Top Badges Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.construction_rounded,
-                      size: 12,
+                      size: 11.5,
                       color: Color(0xFF4C3EC7),
                     ),
                     SizedBox(width: 4),
                     Text(
-                      "Praktik Bengkel / Lab",
+                      'Praktik Bengkel / Lab',
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF4C3EC7),
                       ),
@@ -504,77 +1235,40 @@ class _KejuruanViewState extends State<KejuruanView> {
                   ],
                 ),
               ),
-              // Right Pill: Hari Ini • 08.00 WIB
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 5.5,
-                      height: 5.5,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF059669),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      praktikBerikutnya['badge_waktu'] ??
-                          praktikBerikutnya['badge'] ??
-                          "Hari Ini • 08.00 WIB",
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF047857),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // 2. Modul & Topic tags
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  praktikBerikutnya['modul_nomor'] ?? "MODUL 04",
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF475569),
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
               const SizedBox(width: 6),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  praktikBerikutnya['topik_modul'] ?? "MikroTik RouterOS",
-                  style: const TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF4F46E5),
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: statusBgColor,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: statusDotColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4.5),
+                      Flexible(
+                        child: Text(
+                          statusLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: statusTextColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -582,26 +1276,27 @@ class _KejuruanViewState extends State<KejuruanView> {
           ),
           const SizedBox(height: 6),
 
-          // 3. Judul Praktik
+          // 2. Judul Praktik
           Text(
-            praktikBerikutnya['judul'] ??
-                "Praktik Konfigurasi Routing & Switching",
+            judul,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
               letterSpacing: -0.3,
-              height: 1.25,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
-          // 4. Dua Kolom: LOKASI & JADWAL
+          // 3. Dua Kolom Ringkas: LOKASI & JADWAL
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
@@ -611,21 +1306,21 @@ class _KejuruanViewState extends State<KejuruanView> {
                   child: Row(
                     children: [
                       Container(
-                        width: 28,
-                        height: 28,
+                        width: 24,
+                        height: 24,
                         decoration: BoxDecoration(
                           color: const Color(0xFFEEF2FF),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(7),
                         ),
                         child: const Center(
                           child: Icon(
                             Icons.dns_rounded,
-                            size: 14,
+                            size: 13,
                             color: Color(0xFF4C3EC7),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 7),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,18 +1328,16 @@ class _KejuruanViewState extends State<KejuruanView> {
                             const Text(
                               "LOKASI",
                               style: TextStyle(
-                                fontSize: 8.5,
+                                fontSize: 8,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF94A3B8),
                                 letterSpacing: 0.3,
                               ),
                             ),
                             Text(
-                              praktikBerikutnya['lab'] ??
-                                  praktikBerikutnya['lokasi'] ??
-                                  "Lab Jaringan 2",
+                              lab,
                               style: const TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF0F172A),
                               ),
@@ -658,7 +1351,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                   ),
                 ),
                 Container(
-                  height: 22,
+                  height: 20,
                   width: 1,
                   color: const Color(0xFFE2E8F0),
                   margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -668,21 +1361,21 @@ class _KejuruanViewState extends State<KejuruanView> {
                   child: Row(
                     children: [
                       Container(
-                        width: 28,
-                        height: 28,
+                        width: 24,
+                        height: 24,
                         decoration: BoxDecoration(
                           color: const Color(0xFFE0F2FE),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(7),
                         ),
                         child: const Center(
                           child: Icon(
                             Icons.access_time_rounded,
-                            size: 14,
+                            size: 13,
                             color: Color(0xFF0284C7),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 7),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,18 +1383,16 @@ class _KejuruanViewState extends State<KejuruanView> {
                             const Text(
                               "JADWAL",
                               style: TextStyle(
-                                fontSize: 8.5,
+                                fontSize: 8,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF94A3B8),
                                 letterSpacing: 0.3,
                               ),
                             ),
                             Text(
-                              praktikBerikutnya['jadwal'] ??
-                                  praktikBerikutnya['jam'] ??
-                                  "08.00–10.15 (Senin)",
+                              jadwal,
                               style: const TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF0F172A),
                               ),
@@ -717,47 +1408,51 @@ class _KejuruanViewState extends State<KejuruanView> {
               ],
             ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 6),
 
-          // 5. Guru / Instruktur Row
+          // 4. Guru / Instruktur Row
           Row(
             children: [
               Container(
-                width: 22,
-                height: 22,
+                width: 20,
+                height: 20,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0xFFEEF2FF),
                 ),
                 child: const Icon(
                   Icons.person_rounded,
-                  size: 13,
+                  size: 12,
                   color: Color(0xFF4C3EC7),
                 ),
               ),
-              const SizedBox(width: 6),
-              Text(
-                praktikBerikutnya['guru'] ?? "Pak Hendra, S.Kom",
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E293B),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  guru,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
               ),
               const SizedBox(width: 4),
               const Text(
                 "•",
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   color: Color(0xFF94A3B8),
                 ),
               ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  praktikBerikutnya['peran_guru'] ?? "Instruktur Kejuruan",
+                  peranGuru,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF64748B),
                   ),
@@ -766,135 +1461,135 @@ class _KejuruanViewState extends State<KejuruanView> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
 
-          // 6. Peralatan Wajib Dibawa Card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFFDE68A),
-                width: 1,
+          // 5. Peralatan Wajib Dibawa Inline Bar (Hanya muncul jika ada, desain 1 baris hemat ruang)
+          if (peralatanList.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFFDE68A),
+                  width: 0.9,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.home_repair_service_rounded,
+                    size: 12,
+                    color: Color(0xFFD97706),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    "Wajib Bawa:",
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFB45309),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: peralatanList.map((alat) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 5),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6.5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFFDE68A),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.check_rounded,
+                                    size: 10,
+                                    color: Color(0xFF059669),
+                                  ),
+                                  const SizedBox(width: 2.5),
+                                  Text(
+                                    alat,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF334155),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(
-                      Icons.home_repair_service_rounded,
-                      size: 13,
-                      color: Color(0xFFD97706),
-                    ),
-                    SizedBox(width: 5),
-                    Text(
-                      "PERALATAN WAJIB DIBAWA:",
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFFB45309),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: peralatanList.map((alat) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2.5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFFFDE68A),
-                          width: 0.9,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 3,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.check_rounded,
-                            size: 11,
-                            color: Color(0xFF059669),
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            alat,
-                            style: const TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF334155),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 8),
 
-          // 7. Bottom Action Buttons: "Lihat Panduan Job Sheet" + Bookmark Button
+          // 6. Bottom Action Buttons: "Lihat Panduan Job Sheet" + Bookmark Button
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 40,
+                  height: 35,
                   child: ElevatedButton(
                     onPressed: () => _openSubMenu("Modul praktik"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4C3EC7),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.description_rounded, size: 16),
-                        SizedBox(width: 6),
-                        Text(
-                          "Lihat Panduan Job Sheet",
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w800,
+                      children: [
+                        Icon(Icons.description_rounded, size: 14.5),
+                        SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            "Lihat Panduan Job Sheet",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14),
+                        Icon(Icons.arrow_forward_rounded, size: 13),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 7),
               Container(
-                height: 40,
-                width: 40,
+                height: 35,
+                width: 35,
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: const Color(0xFFC7D2FE),
                   ),
@@ -904,7 +1599,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                   icon: const Icon(
                     Icons.bookmark_border_rounded,
                     color: Color(0xFF4C3EC7),
-                    size: 20,
+                    size: 18,
                   ),
                   tooltip: 'Simpan Jadwal',
                   onPressed: () {
@@ -930,10 +1625,10 @@ class _KejuruanViewState extends State<KejuruanView> {
         // 1. Kehadiran Praktik (96% (24/25 Sesi) - Sangat Disiplin)
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
               boxShadow: [
                 BoxShadow(
@@ -952,56 +1647,63 @@ class _KejuruanViewState extends State<KejuruanView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Center(
                         child: Icon(
                           Icons.assignment_turned_in_rounded,
-                          size: 17,
+                          size: 15,
                           color: Color(0xFF16A34A),
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        kehadiranBadge,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF15803D),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          kehadiranBadge,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF15803D),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 7),
                 const Text(
                   "KEHADIRAN PRAKTIK",
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF64748B),
                     letterSpacing: 0.3,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 RichText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   text: TextSpan(
                     children: [
                       TextSpan(
                         text: "$kehadiranPraktik ",
                         style: const TextStyle(
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0F172A),
                           letterSpacing: -0.4,
@@ -1012,7 +1714,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                             ? kehadiranSesi
                             : "($kehadiranSesi)",
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF64748B),
                         ),
@@ -1029,10 +1731,10 @@ class _KejuruanViewState extends State<KejuruanView> {
         // 2. Rata-Rata Praktik (88.5 Predikat A- - Kompeten)
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
               boxShadow: [
                 BoxShadow(
@@ -1051,56 +1753,63 @@ class _KejuruanViewState extends State<KejuruanView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: const Color(0xFFEDE9FE),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Center(
                         child: Icon(
                           Icons.school_rounded,
-                          size: 17,
+                          size: 15,
                           color: Color(0xFF6366F1),
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEDE9FE),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        kompetensiBadge,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF4F46E5),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDE9FE),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          kompetensiBadge,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF4F46E5),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 7),
                 const Text(
                   "RATA-RATA PRAKTIK",
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF64748B),
                     letterSpacing: 0.3,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 RichText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   text: TextSpan(
                     children: [
                       TextSpan(
                         text: "$rataRataNilai ",
                         style: const TextStyle(
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0F172A),
                           letterSpacing: -0.4,
@@ -1109,7 +1818,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                       TextSpan(
                         text: predikatNilai,
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF64748B),
                         ),
@@ -1247,10 +1956,12 @@ class _KejuruanViewState extends State<KejuruanView> {
   }
 
   Widget _buildPeminjamanAlatCard() {
-    final namaAlat = peminjamanAlat['nama_alat'] ?? '1 MikroTik RB951';
-    final status = peminjamanAlat['status'] ?? 'Dipinjam';
-    final lokasi = peminjamanAlat['lokasi'] ?? 'Lab 2';
-    final batasKembali = peminjamanAlat['batas_kembali'] ?? '11.00 WIB';
+    if (peminjamanAlat == null) return const SizedBox.shrink();
+    final item = peminjamanAlat!;
+    final namaAlat = item['nama_alat'] ?? item['nama'] ?? 'Peralatan Praktik';
+    final status = item['status'] ?? 'Dipinjam';
+    final lokasi = item['lokasi'] ?? 'Lab';
+    final batasKembali = item['batas_kembali'] ?? item['tgl_kembali'] ?? '-';
 
     return Container(
       width: double.infinity,
@@ -1530,9 +2241,9 @@ class _KejuruanViewState extends State<KejuruanView> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Silakan pelajari Job Sheet Modul 03 dan hubungi guru pengampu kejuruan untuk menentukan jadwal ujian praktik ulang.",
-                      style: TextStyle(
+                    Text(
+                      "Silakan pelajari kembali modul '$remedialTopik' dan hubungi guru pengampu kejuruan untuk menentukan jadwal ujian praktik ulang.",
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF475569),
                         height: 1.4,
@@ -1574,14 +2285,15 @@ class _KejuruanViewState extends State<KejuruanView> {
   }
 
   void _showPeminjamanDetailDialog() {
-    final namaAlat = peminjamanAlat['nama_alat'] ?? '1 MikroTik RB951';
-    final status = peminjamanAlat['status'] ?? 'Dipinjam';
-    final lokasi = peminjamanAlat['lokasi'] ?? 'Lab 2';
-    final batasKembali = peminjamanAlat['batas_kembali'] ?? '11.00 WIB';
-    final sn = peminjamanAlat['sn'] ?? 'RB951-2HnD-7489';
-    final jamPinjam = peminjamanAlat['jam_pinjam'] ?? '08.00 WIB';
-    final petugas =
-        peminjamanAlat['petugas'] ?? 'Pak Hendra, S.Kom (Instruktur Lab)';
+    if (peminjamanAlat == null) return;
+    final item = peminjamanAlat!;
+    final namaAlat = item['nama_alat'] ?? item['nama'] ?? 'Peralatan Praktik';
+    final status = item['status'] ?? 'Dipinjam';
+    final lokasi = item['lokasi'] ?? 'Lab';
+    final batasKembali = item['batas_kembali'] ?? item['tgl_kembali'] ?? '-';
+    final sn = item['sn'] ?? item['kode'] ?? '-';
+    final jamPinjam = item['jam_pinjam'] ?? item['tgl_pinjam'] ?? '-';
+    final petugas = item['petugas'] ?? 'Petugas Lab';
 
     showModalBottomSheet(
       context: context,
@@ -1724,14 +2436,20 @@ class _KejuruanViewState extends State<KejuruanView> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w800,
-            color: isHighlight
-                ? const Color(0xFFD97706)
-                : const Color(0xFF0F172A),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              color: isHighlight
+                  ? const Color(0xFFD97706)
+                  : const Color(0xFF0F172A),
+            ),
           ),
         ),
       ],
@@ -1877,7 +2595,7 @@ class _KejuruanViewState extends State<KejuruanView> {
         splashColor: item.iconColor.withValues(alpha: 0.12),
         highlightColor: item.iconColor.withValues(alpha: 0.05),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
@@ -1909,16 +2627,17 @@ class _KejuruanViewState extends State<KejuruanView> {
                   size: 22,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
-              // Title label (2 baris pas dan presisi)
-              SizedBox(
-                height: 28,
+              // Title label (fleksibel dan tidak overflow)
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 28),
                 child: Center(
                   child: Text(
                     item.title,
                     textAlign: TextAlign.center,
                     maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
@@ -1977,30 +2696,87 @@ class _KejuruanViewState extends State<KejuruanView> {
         ),
         const SizedBox(height: 12),
 
-        // Card 1: JS-04 (Batas: 28 Mar 2025, Siap Diuji, Buka Tugas)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+        if (jobSheets.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.assignment_outlined,
+                    color: Color(0xFF64748B),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        "Belum Ada Job Sheet Aktif",
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        "Modul atau tugas praktikum laboratorium akan ditampilkan di sini.",
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ...jobSheets.take(2).map((item) {
+            final kode = item['kode_modul'] ?? 'MODUL';
+            final judul = item['judul'] ?? 'Praktik Mandiri';
+            final deskripsi = item['deskripsi'] ??
+                (item['kompetensi']?['nama_kompetensi'] ??
+                    'Materi Praktik Kejuruan');
+            final guru = item['guru']?['nama_guru'] ?? 'Instruktur Kejuruan';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Baris Atas: JS-04 + Batas: 28 Mar 2025 | Badge Siap Diuji
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -2010,285 +2786,172 @@ class _KejuruanViewState extends State<KejuruanView> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0xFFC7D2FE)),
                         ),
-                        child: const Text(
-                          "JS–04",
-                          style: TextStyle(
+                        child: Text(
+                          kode,
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF4338CA),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        "Batas: 28 Mar 2025",
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFFDE68A)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.access_time_rounded,
-                          size: 13,
-                          color: Color(0xFFB45309),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "Siap Diuji",
+                        child: const Text(
+                          "Tersedia",
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFFB45309),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Judul & Deskripsi Tugas
-              const Text(
-                "VLAN Trunking & Routing OSPF",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0F172A),
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(height: 3),
-              const Text(
-                "Konfigurasi Switch Manageable & RouterBoard MikroTik",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Baris Bawah: Instruktur & Tombol Buka Tugas >
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(
-                        Icons.info_rounded,
-                        size: 15,
-                        color: Color(0xFF4C3EC7),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        "Instruktur: Pak Hendra",
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF475569),
-                        ),
-                      ),
-                    ],
-                  ),
-                  InkWell(
-                    onTap: () => _openSubMenu("Modul Praktik"),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4C3EC7),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "Buka Tugas",
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 11,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // Card 2: JS-03 (21 Mar 2025, Tuntas, Nilai 92 Grade A)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Baris Atas: JS-03 + 21 Mar 2025 | Badge Tuntas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          "JS–03",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
                             color: Color(0xFF475569),
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    judul,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    deskripsi,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF64748B),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.person_outline_rounded,
+                              size: 15,
+                              color: Color(0xFF4C3EC7),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                guru,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      const Text(
-                        "21 Mar 2025",
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.check_rounded,
-                          size: 13,
-                          color: Color(0xFF059669),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "Tuntas",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF059669),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
+                      InkWell(
+                        onTap: () {
+                          final String kategori =
+                              (item['kategori'] ?? 'Konsentrasi Keahlian')
+                                  .toString();
+                          final String fileUrl = (item['file_url'] ??
+                                  item['file_lembar_kerja'] ??
+                                  item['file'] ??
+                                  '')
+                              .toString();
+                          final String tujuan =
+                              (item['tujuan'] ?? '').toString();
+                          final String alatBahan =
+                              (item['alat_bahan'] ?? '').toString();
+                          final String langkahKerja =
+                              (item['langkah_kerja'] ?? '').toString();
+                          final List<dynamic> rubriks =
+                              item['rubriks'] is List ? item['rubriks'] : [];
 
-              // Baris Bawah: Judul & Subtitle di Kiri, Nilai & Grade di Kanan
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Crimping Kabel Straight & Cross Cat6",
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
-                            letterSpacing: -0.2,
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailModulPraktikView(
+                                judul: judul.toString(),
+                                kode: kode.toString(),
+                                kategori: kategori,
+                                guru: guru.toString(),
+                                fileUrl: fileUrl,
+                                tujuan: tujuan,
+                                alatBahan: alatBahan,
+                                langkahKerja: langkahKerja,
+                                rubriks: rubriks,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4C3EC7),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                        SizedBox(height: 3),
-                        Text(
-                          "Pengujian dengan LAN Tester & Fluke",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF64748B),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Buka Modul",
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 3),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 11,
+                                color: Colors.white,
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: const [
-                      Text(
-                        "Nilai: 92",
-                        style: TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF059669),
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        "Grade A",
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
+            );
+          }),
       ],
     );
   }
 
   Widget _buildInstrukturKonsultasiCard() {
+    String namaGuru = "Guru Pengampu Kejuruan";
+    String peranGuru = "Instruktur Bengkel & Lab Kejuruan";
+    if (praktikBerikutnya != null &&
+        praktikBerikutnya!['guru'] != null &&
+        praktikBerikutnya!['guru'].toString().isNotEmpty) {
+      namaGuru = praktikBerikutnya!['guru'];
+      peranGuru = praktikBerikutnya!['peran_guru'] ?? "Guru Pengampu Praktik";
+    } else if (jobSheets.isNotEmpty &&
+        jobSheets.first['guru']?['nama_guru'] != null) {
+      namaGuru = jobSheets.first['guru']['nama_guru'];
+      peranGuru = "Guru Pengampu Kejuruan";
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2329,20 +2992,20 @@ class _KejuruanViewState extends State<KejuruanView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text(
-                  "Bapak Hendra, S.Kom",
-                  style: TextStyle(
+                  namaGuru,
+                  style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0F172A),
                     letterSpacing: -0.2,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  "Kepala Bengkel & Guru Kejuruan TKJ",
-                  style: TextStyle(
+                  peranGuru,
+                  style: const TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF64748B),
@@ -2395,6 +3058,25 @@ class _KejuruanViewState extends State<KejuruanView> {
   }
 
   void _showKonsultasiBottomSheet() {
+    String namaGuru = "Guru Pengampu Kejuruan";
+    String peranGuru = "Instruktur Bengkel & Lab Kejuruan";
+    String? noHpGuru;
+    if (praktikBerikutnya != null &&
+        praktikBerikutnya!['guru'] != null &&
+        praktikBerikutnya!['guru'].toString().isNotEmpty) {
+      namaGuru = praktikBerikutnya!['guru'];
+      peranGuru = praktikBerikutnya!['peran_guru'] ?? "Guru Pengampu Praktik";
+      noHpGuru = praktikBerikutnya!['no_hp_guru']?.toString();
+    } else if (jobSheets.isNotEmpty &&
+        jobSheets.first['guru']?['nama_guru'] != null) {
+      namaGuru = jobSheets.first['guru']['nama_guru'];
+      peranGuru = "Guru Pengampu Kejuruan";
+      noHpGuru = (jobSheets.first['guru']['no_hp'] ??
+              jobSheets.first['guru']['no_telp'] ??
+              jobSheets.first['guru']['telepon'])
+          ?.toString();
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -2442,18 +3124,18 @@ class _KejuruanViewState extends State<KejuruanView> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          "Bapak Hendra, S.Kom",
-                          style: TextStyle(
+                          namaGuru,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF0F172A),
                           ),
                         ),
                         Text(
-                          "Kepala Bengkel & Guru Kejuruan TKJ",
-                          style: TextStyle(
+                          peranGuru,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF64748B),
                             fontWeight: FontWeight.w500,
@@ -2486,7 +3168,7 @@ class _KejuruanViewState extends State<KejuruanView> {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      "• Setiap hari kerja: 07.30 – 15.30 WIB di Ruang Instruktur Bengkel / Lab Jaringan 2.\n• Silakan konsultasikan kendala konfigurasi job sheet, persiapan UKK, atau perbaikan nilai remedial.",
+                      "• Setiap hari kerja pada jam operasional sekolah di Ruang Instruktur Bengkel / Lab.\n• Silakan konsultasikan kendala konfigurasi job sheet, persiapan UKK, atau perbaikan nilai remedial.",
                       style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF475569),
@@ -2501,13 +3183,29 @@ class _KejuruanViewState extends State<KejuruanView> {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                    String cleanHp =
+                        (noHpGuru ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+                    if (cleanHp.startsWith('0')) {
+                      cleanHp = '62${cleanHp.substring(1)}';
+                    }
+                    if (cleanHp.length >= 9) {
+                      final msg = Uri.encodeComponent(
+                        'Halo Bapak/Ibu $namaGuru, saya $namaSiswa ($namaKelas) ingin berkonsultasi terkait pembelajaran dan praktikum kejuruan.',
+                      );
+                      final waUrl = Uri.parse('https://wa.me/$cleanHp?text=$msg');
+                      if (await canLaunchUrl(waUrl)) {
+                        await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+                        return;
+                      }
+                    }
+                    if (!this.mounted) return;
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      SnackBar(
                         content: Text(
-                            'Pesan konsultasi akan diteruskan ke guru kejuruan.'),
-                        duration: Duration(seconds: 2),
+                            'Silakan temui $namaGuru di Ruang Instruktur Lab / Bengkel pada jam operasional sekolah.'),
+                        duration: const Duration(seconds: 3),
                       ),
                     );
                   },
@@ -2535,522 +3233,38 @@ class _KejuruanViewState extends State<KejuruanView> {
     );
   }
 
-  Future<dynamic> _fetchSubMenuData(String title) async {
-    if (idSiswa == null) return null;
-    String clean = title.replaceAll("\n", " ");
-    String endpoint = '';
-    if (clean.contains("Jadwal")) {
-      endpoint = '/kejuruan/jadwal/$idSiswa';
-    } else if (clean.contains("Modul")) {
-      endpoint = '/kejuruan/modul/$idSiswa';
-    } else if (clean.contains("Nilai")) {
-      endpoint = '/kejuruan/nilai/$idSiswa';
-    } else if (clean.contains("Uji")) {
-      endpoint = '/kejuruan/ukk/$idSiswa';
-    } else if (clean.contains("Sertifikat") || clean.contains("Portofolio")) {
-      endpoint = '/kejuruan/portofolio/$idSiswa';
-    } else if (clean.contains("TKK") || clean.contains("Teori")) {
-      endpoint = '/kejuruan/tkk/$idSiswa';
+  void _openSubMenu(String title) {
+    String clean = title.replaceAll("\n", " ").toLowerCase();
+    Widget targetPage;
+
+    if (clean.contains("jadwal")) {
+      targetPage = JadwalPraktikView(idSiswa: idSiswa);
+    } else if (clean.contains("modul")) {
+      targetPage = ModulPraktikView(idSiswa: idSiswa);
+    } else if (clean.contains("nilai")) {
+      targetPage = NilaiPraktikView(idSiswa: idSiswa);
+    } else if (clean.contains("uji") || clean.contains("ukk")) {
+      targetPage = UjiKompetensiView(idSiswa: idSiswa);
+    } else if (clean.contains("sertifikat") || clean.contains("portofolio")) {
+      targetPage = SertifikatPortofolioView(idSiswa: idSiswa);
+    } else if (clean.contains("tkk") || clean.contains("teori")) {
+      targetPage = TesTeoriTkkView(idSiswa: idSiswa);
+    } else if (clean.contains("pinjam") || clean.contains("alat")) {
+      targetPage = PeminjamanAlatView(idSiswa: idSiswa);
+    } else if (clean.contains("presensi") || clean.contains("bengkel")) {
+      targetPage = PresensiBengkelView(idSiswa: idSiswa);
+    } else {
+      targetPage = JadwalPraktikView(idSiswa: idSiswa);
     }
 
-    if (endpoint.isEmpty) return null;
-
-    try {
-      final res = await ApiService.get(endpoint, silent: true);
-      if (res != null && res['success'] == true) {
-        return res['data'];
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  void _openSubMenu(String title) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildDetailBottomSheet(title),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => targetPage),
     );
   }
 
-  Widget _buildDetailBottomSheet(String title) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.82,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
 
-          // Header Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title.replaceAll("\n", " "),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-          const Divider(color: Color(0xFFECEFF5), height: 18),
 
-          // Content body
-          Expanded(
-            child: _buildSubMenuContent(title),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubMenuContent(String title) {
-    return FutureBuilder<dynamic>(
-      future: _fetchSubMenuData(title),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF4C3EC7)),
-          );
-        }
-
-        final liveData = snapshot.data;
-        String cleanTitle = title.replaceAll("\n", " ");
-
-        // 1. Jadwal Praktik
-        if (cleanTitle.contains("Jadwal")) {
-          if (liveData is List && liveData.isNotEmpty) {
-            return ListView.builder(
-              itemCount: liveData.length,
-              itemBuilder: (context, i) {
-                var item = liveData[i];
-                String mapel = item['mapel']?['nama_mapel'] ??
-                    item['materi'] ??
-                    'Praktik Kejuruan';
-                String lab = item['lab']?['nama_lab'] ?? 'Lab Praktik';
-                String hari = item['hari'] ?? 'Senin';
-                String jamMulai = item['jam_mulai'] != null
-                    ? item['jam_mulai'].toString().substring(0, 5)
-                    : '08.00';
-                String jamSelesai = item['jam_selesai'] != null
-                    ? item['jam_selesai'].toString().substring(0, 5)
-                    : '10.15';
-                String guru = item['guru']?['nama_guru'] ?? '-';
-                String alat = item['alat_bahan'] ?? '-';
-
-                return _buildInfoTile(
-                  title: mapel,
-                  subtitle:
-                      "$lab · $hari, $jamMulai - $jamSelesai\nGuru: $guru\nAlat: $alat",
-                  badge: hari,
-                  badgeColor: const Color(0xFF0284C7),
-                  icon: Icons.access_time_rounded,
-                );
-              },
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "Instalasi Jaringan LAN & Server",
-                subtitle:
-                    "Lab 2 · Senin, 08.00 - 10.15\nGuru: Pak Andi\nAlat: Kabel UTP, Crimping tool, Tester",
-                badge: "Hari Ini",
-                badgeColor: const Color(0xFF0284C7),
-                icon: Icons.access_time_rounded,
-              ),
-              _buildInfoTile(
-                title: "Konfigurasi Mikrotik Router",
-                subtitle:
-                    "Lab Jaringan 1 · Rabu, 10.30 - 12.45\nGuru: Bu Sarah\nAlat: Routerboard RB941, Kabel Console",
-                badge: "Mendatang",
-                badgeColor: const Color(0xFF64748B),
-                icon: Icons.router_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 2. Modul Praktik
-        else if (cleanTitle.contains("Modul")) {
-          if (liveData is List && liveData.isNotEmpty) {
-            return ListView.builder(
-              itemCount: liveData.length,
-              itemBuilder: (context, i) {
-                var item = liveData[i];
-                String judul = item['judul_modul'] ??
-                    item['nama_modul'] ??
-                    'Modul Praktik';
-                String komp = item['kompetensi']?['nama_kompetensi'] ??
-                    'Kompetensi Kejuruan';
-                String status = item['status'] ?? 'Tersedia';
-
-                return _buildInfoTile(
-                  title: judul,
-                  subtitle:
-                      "Kompetensi: $komp\nGuru: ${item['guru']?['nama_guru'] ?? '-'}",
-                  badge: status.toUpperCase(),
-                  badgeColor: const Color(0xFF0D9488),
-                  icon: Icons.menu_book_rounded,
-                );
-              },
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "Modul 01: Perakitan & Pengkabelan UTP",
-                subtitle:
-                    "Revisi 2.0 · 18 Halaman · PDF\nKompetensi: Pengkabelan Jaringan Lokal",
-                badge: "Tersedia",
-                badgeColor: const Color(0xFF0D9488),
-                icon: Icons.menu_book_rounded,
-              ),
-              _buildInfoTile(
-                title: "Modul 02: Routing Statis & Dinamis",
-                subtitle:
-                    "Revisi 1.2 · 24 Halaman · PDF\nKompetensi: Jaringan Skala Menengah",
-                badge: "Tersedia",
-                badgeColor: const Color(0xFF0D9488),
-                icon: Icons.menu_book_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 3. Nilai Praktik
-        else if (cleanTitle.contains("Nilai")) {
-          if (liveData is List && liveData.isNotEmpty) {
-            return ListView.builder(
-              itemCount: liveData.length,
-              itemBuilder: (context, i) {
-                var item = liveData[i];
-                String judul = item['penilaian']?['judul_penilaian'] ??
-                    item['penilaian']?['modul']?['judul_modul'] ??
-                    'Penilaian Praktik';
-                num nilai = item['nilai_akhir'] ?? 0;
-                bool isRemedial = item['is_remedial'] == true || nilai < 75;
-
-                return _buildInfoTile(
-                  title: judul,
-                  subtitle:
-                      "Nilai: $nilai · Status: ${isRemedial ? 'Perlu Remedial' : 'Kompeten'}\nCatatan: ${item['catatan'] ?? '-'}",
-                  badge: isRemedial ? "Remedial" : "Kompeten",
-                  badgeColor: isRemedial
-                      ? const Color(0xFFEA580C)
-                      : const Color(0xFF16A34A),
-                  icon: isRemedial
-                      ? Icons.warning_amber_rounded
-                      : Icons.fact_check_rounded,
-                );
-              },
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "Praktik Pengkabelan Straight & Cross",
-                subtitle:
-                    "Nilai: 88 · KKM: 75 · Sangat Baik\nCatatan: Rapih, urutan warna presisi",
-                badge: "Kompeten",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.fact_check_rounded,
-              ),
-              _buildInfoTile(
-                title: "Konfigurasi Dasar MikroTik",
-                subtitle:
-                    "Nilai: 70 · KKM: 75 · Perlu Remedial\nCatatan: Pelajari kembali subnetting",
-                badge: "Remedial",
-                badgeColor: const Color(0xFFEA580C),
-                icon: Icons.warning_amber_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 4. Uji Kompetensi
-        else if (cleanTitle.contains("Uji kompetensi")) {
-          if (liveData is Map && liveData.isNotEmpty) {
-            String namaKegiatan = liveData['kegiatan']?['nama_kegiatan'] ??
-                'UKK LSP-P1 SMK Wisata Indonesia';
-            String nilai = liveData['nilai_akhir'] != null
-                ? liveData['nilai_akhir'].toString()
-                : 'Terdaftar';
-            return ListView(
-              children: [
-                _buildInfoTile(
-                  title: namaKegiatan,
-                  subtitle:
-                      "Status: Terdaftar Peserta Resmi\nNilai Akhir: $nilai\nPenguji: LSP-P1 SMK Wisata Indonesia",
-                  badge: "Terdaftar",
-                  badgeColor: const Color(0xFF7C3AED),
-                  icon: Icons.workspace_premium_rounded,
-                ),
-              ],
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "UKK Skema Teknisi Madya Jaringan",
-                subtitle:
-                    "Status: Terdaftar Peserta Resmi\nUnit Kompetensi: 10 Unit\nPenguji: LSP-P1 SMK Wisata Indonesia",
-                badge: "Terdaftar",
-                badgeColor: const Color(0xFF7C3AED),
-                icon: Icons.workspace_premium_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 5. Sertifikat & Portofolio
-        else if (cleanTitle.contains("Sertifikat")) {
-          if (liveData is List && liveData.isNotEmpty) {
-            return ListView.builder(
-              itemCount: liveData.length,
-              itemBuilder: (context, i) {
-                var item = liveData[i];
-                return _buildInfoTile(
-                  title: item['nama_kegiatan'] ??
-                      item['judul'] ??
-                      'Portofolio Siswa',
-                  subtitle:
-                      "Tanggal: ${item['tanggal_kegiatan'] ?? '-'}\nKategori: ${item['kategori'] ?? 'Karya Kejuruan'}",
-                  badge: "Terverifikasi",
-                  badgeColor: const Color(0xFF059669),
-                  icon: Icons.folder_shared_rounded,
-                );
-              },
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "Sertifikat Cisco Networking Basics",
-                subtitle:
-                    "Diterbitkan: 12 Agustus 2024\nNomor: CSCO-NET-2024-0891\nKategori: Sertifikasi Vendor",
-                badge: "Terverifikasi",
-                badgeColor: const Color(0xFF059669),
-                icon: Icons.folder_shared_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 6. Tes Teori & TKK
-        else if (cleanTitle.contains("TKK") || cleanTitle.contains("Teori")) {
-          if (liveData is List && liveData.isNotEmpty) {
-            return ListView.builder(
-              itemCount: liveData.length,
-              itemBuilder: (context, i) {
-                var item = liveData[i];
-                String namaTkk = item['jenis_tkk']?['nama_tkk'] ??
-                    'Tanda Kecakapan Kejuruan';
-                return _buildInfoTile(
-                  title: namaTkk,
-                  subtitle:
-                      "SK: ${item['nomor_sertifikat'] ?? '-'}\nTanggal: ${item['tanggal_perolehan'] ?? '-'}",
-                  badge: "Lulus",
-                  badgeColor: const Color(0xFF0284C7),
-                  icon: Icons.verified_user_rounded,
-                );
-              },
-            );
-          }
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "TKK Tingkat Madya - Jaringan Komputer",
-                subtitle:
-                    "SK Pemberian: TKK/TKJ/2024/09\nTanggal Perolehan: 15 Sept 2024\nPemberi: Tim Asesor Sekolah",
-                badge: "Lulus",
-                badgeColor: const Color(0xFF0284C7),
-                icon: Icons.verified_user_rounded,
-              ),
-              _buildInfoTile(
-                title: "Tes Teori Kejuruan: Routing OSPF & BGP",
-                subtitle:
-                    "Skor: 92/100 · Predikat Sangat Baik\nTanggal: 20 Oktober 2026",
-                badge: "Selesai",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.quiz_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 7. Peminjaman Alat
-        else if (cleanTitle.contains("Peminjaman")) {
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "1 MikroTik RouterBOARD RB951-2HnD",
-                subtitle:
-                    "Lab 2 · Dipinjam hari ini pukul 08.00 WIB\nBatas Pengembalian: 11.00 WIB\nPetugas: Pak Hendra, S.Kom",
-                badge: "DIPINJAM",
-                badgeColor: const Color(0xFF0284C7),
-                icon: Icons.devices_other_rounded,
-              ),
-              _buildInfoTile(
-                title: "Crimping Tool Cat6 & Stripper",
-                subtitle:
-                    "Lab 2 · Dikembalikan kemarin pukul 15.30 WIB\nKondisi: Baik & Lengkap",
-                badge: "KEMBALI",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.home_repair_service_rounded,
-              ),
-              _buildInfoTile(
-                title: "Digital LAN Cable Tester RJ45",
-                subtitle:
-                    "Lab Jaringan 1 · Dikembalikan 22 Okt 2026\nKondisi: Normal",
-                badge: "SELESAI",
-                badgeColor: const Color(0xFF64748B),
-                icon: Icons.cable_rounded,
-              ),
-            ],
-          );
-        }
-
-        // 8. Presensi Bengkel
-        else {
-          return ListView(
-            children: [
-              _buildInfoTile(
-                title: "Praktik Konfigurasi Routing & Switching",
-                subtitle:
-                    "Lab Jaringan 2 · Hari Ini, 07.55 WIB\nStatus: Hadir Tepat Waktu (Presensi QR Bengkel)",
-                badge: "HADIR",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.check_circle_rounded,
-              ),
-              _buildInfoTile(
-                title: "Instalasi Patch Panel & Rack Server",
-                subtitle:
-                    "Bengkel Jaringan · 24 Okt 2026, 08.02 WIB\nStatus: Hadir Tepat Waktu",
-                badge: "HADIR",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.check_circle_rounded,
-              ),
-              _buildInfoTile(
-                title: "Crimping & Terminasi Kabel UTP Cat6",
-                subtitle:
-                    "Bengkel Jaringan · 21 Okt 2026, 08.10 WIB\nStatus: Hadir",
-                badge: "HADIR",
-                badgeColor: const Color(0xFF16A34A),
-                icon: Icons.check_circle_rounded,
-              ),
-            ],
-          );
-        }
-      },
-    );
-  }
-
-  Widget _buildInfoTile({
-    required String title,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
-    required IconData icon,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFECEFF5), width: 1),
-            ),
-            child: Icon(icon, color: const Color(0xFF4C3EC7), size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: badgeColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: badgeColor.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(
-                        badge,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: badgeColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _KejuruanMenuItem {

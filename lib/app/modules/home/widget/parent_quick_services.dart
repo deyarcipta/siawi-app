@@ -816,7 +816,10 @@ class _ParentQuickServicesState extends State<ParentQuickServices> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => KejuruanView(signOut: widget.signOut),
+                        builder: (context) => KejuruanView(
+                          signOut: widget.signOut,
+                          idSiswa: activeChildId,
+                        ),
                       ),
                     );
                   },

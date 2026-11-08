@@ -237,7 +237,7 @@ class _BeritaTerbaruState extends State<BeritaTerbaru> {
               )
             else
               SizedBox(
-                height: 248,
+                height: 265,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.hardEdge,
