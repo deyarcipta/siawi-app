@@ -117,7 +117,6 @@ class _UploadFotoState extends State<UploadFoto> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
@@ -137,75 +136,68 @@ class _UploadFotoState extends State<UploadFoto> {
           )
         ],
       ),
+      backgroundColor: Colors.grey[200],
       body: loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              child: Wrap(
-                children: <Widget>[
-                  SafeArea(
-                    child: Container(
-                      width: double.infinity,
-                      height: size.height,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200], // abu-abu putih
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.only(top: 35),
-                              child: ClipOval(
-                                child: _image == null
-                                    ? Image.network(
-                                        'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$fileFoto',
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.file(
-                                        _image!,
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                      ),
-                              ),
-                            ),
-                            _buildTitle('Upload Foto'),
-                            ElevatedButton(
-                              onPressed: _pickImage,
-                              child: Text('Pilih Foto'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                String? idSiswa = await getIdSiswa();
-                                if (idSiswa != null && _image != null) {
-                                  await _uploadImage(idSiswa);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Foto Berhasil Diubah'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Pilih Foto Terlebih Dahulu'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Text('Simpan Foto'),
-                            ),
-                          ],
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: SafeArea(
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: ClipOval(
+                          child: _image == null
+                              ? Image.network(
+                                  'https://siawi.smkwisataindonesia.sch.id/storage/foto-siswa/$fileFoto',
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  _image!,
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      _buildTitle('Upload Foto'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _pickImage,
+                        child: const Text('Pilih Foto'),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          String? idSiswa = await getIdSiswa();
+                          if (idSiswa != null && _image != null) {
+                            await _uploadImage(idSiswa);
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Foto Berhasil Diubah'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Pilih Foto Terlebih Dahulu'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text('Simpan Foto'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
     );

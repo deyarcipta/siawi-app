@@ -114,7 +114,6 @@ class _HomeViewState extends State<HomeView> {
                     ParentQuickServices(widget.signOut, childId: _activeChildId)
                   else ...[
                     QuickPklAttendanceCard(widget.signOut),
-                    const SizedBox(height: 14),
                     Menu(widget.signOut),
                     const SizedBox(height: 20),
                     JadwalToday(widget.signOut),

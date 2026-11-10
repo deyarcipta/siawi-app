@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -93,13 +92,16 @@ class PklService {
   /// Mengambil data target geofencing dan status presensi hari ini
   static Future<Map<String, dynamic>?> getStatusPresensi(String idSiswa) async {
     try {
-      final res = await ApiService.get('/presensi-pkl/target/$idSiswa', forceRefresh: true);
+      final res = await ApiService.get(
+        '/presensi-pkl/target/$idSiswa',
+        forceRefresh: true,
+        silent: true,
+      );
       if (res != null && res['data'] != null) {
         return Map<String, dynamic>.from(res['data']);
       }
     } catch (e) {
-      debugPrint('Error getStatusPresensi: $e');
-      rethrow;
+      debugPrint('Info getStatusPresensi (belum ditempatkan / offline): $e');
     }
     return null;
   }
@@ -173,13 +175,16 @@ class PklService {
     final int t = tahun ?? DateTime.now().year;
 
     try {
-      final res = await ApiService.get('/presensi-pkl/riwayat/$idSiswa?bulan=$b&tahun=$t', forceRefresh: true);
+      final res = await ApiService.get(
+        '/presensi-pkl/riwayat/$idSiswa?bulan=$b&tahun=$t',
+        forceRefresh: true,
+        silent: true,
+      );
       if (res != null && res['data'] != null) {
         return Map<String, dynamic>.from(res['data']);
       }
     } catch (e) {
-      debugPrint('Error getRiwayatPresensi: $e');
-      rethrow;
+      debugPrint('Info getRiwayatPresensi: $e');
     }
     return null;
   }

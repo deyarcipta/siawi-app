@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:siawi_app/app/data/pkl_service.dart';
@@ -44,12 +45,15 @@ class _PresensiPklViewState extends State<PresensiPklView> {
   }
 
   Future<void> _initData() async {
+    await initializeDateFormatting('id_ID', null);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     idSiswa = prefs.getString('idSiswa');
 
     if (idSiswa != null && idSiswa!.isNotEmpty) {
       await _loadTargetAndLocation();
-      _loadRiwayat();
+      if (pklTargetData != null) {
+        _loadRiwayat();
+      }
     } else {
       if (mounted) setState(() => isLoading = false);
     }
@@ -60,29 +64,31 @@ class _PresensiPklViewState extends State<PresensiPklView> {
     setState(() => isLoading = true);
 
     try {
-      // 1. Ambil target geofencing dari server
+      // 1. Ambil target geofencing dari server secara silent
       final data = await PklService.getStatusPresensi(idSiswa!);
       pklTargetData = data;
 
-      // 2. Ambil lokasi GPS HP saat ini
-      try {
-        final pos = await PklService.getCurrentPosition();
-        currentPosition = pos;
+      // 2. Ambil lokasi GPS HP saat ini HANYA jika siswa sudah ditempatkan PKL
+      if (pklTargetData != null) {
+        try {
+          final pos = await PklService.getCurrentPosition();
+          currentPosition = pos;
 
-        if (pos != null && pklTargetData != null) {
-          final per = pklTargetData!['perusahaan'];
-          if (per != null && per['latitude'] != null && per['longitude'] != null) {
-            double officeLat = double.parse(per['latitude'].toString());
-            double officeLon = double.parse(per['longitude'].toString());
-            int radiusMax = int.tryParse(per['radius_meter']?.toString() ?? '50') ?? 50;
+          if (pos != null) {
+            final per = pklTargetData!['perusahaan'];
+            if (per != null && per['latitude'] != null && per['longitude'] != null) {
+              double officeLat = double.parse(per['latitude'].toString());
+              double officeLon = double.parse(per['longitude'].toString());
+              int radiusMax = int.tryParse(per['radius_meter']?.toString() ?? '50') ?? 50;
 
-            int dist = PklService.calculateDistance(pos.latitude, pos.longitude, officeLat, officeLon);
-            currentDistance = dist;
-            isInsideGeofence = dist <= radiusMax;
+              int dist = PklService.calculateDistance(pos.latitude, pos.longitude, officeLat, officeLon);
+              currentDistance = dist;
+              isInsideGeofence = dist <= radiusMax;
+            }
           }
+        } catch (gpsError) {
+          Fluttertoast.showToast(msg: gpsError.toString(), backgroundColor: Colors.orange);
         }
-      } catch (gpsError) {
-        Fluttertoast.showToast(msg: gpsError.toString(), backgroundColor: Colors.orange);
       }
     } catch (e) {
       debugPrint('Error loading PKL target: $e');
@@ -224,7 +230,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Pengajuan Izin / Sakit PKL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
@@ -338,6 +344,37 @@ class _PresensiPklViewState extends State<PresensiPklView> {
     );
   }
 
+  String _formatJam(dynamic rawJam, {String fallback = '-'}) {
+    if (rawJam == null) return fallback;
+    final s = rawJam.toString().trim();
+    if (s.isEmpty || s == '-') return fallback;
+    return s.length >= 5 ? s.substring(0, 5) : s;
+  }
+
+  String _formatTodayIndo() {
+    try {
+      return DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.now());
+    } catch (_) {
+      const bulanIndo = [
+        '',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ];
+      final now = DateTime.now();
+      return '${now.day.toString().padLeft(2, '0')} ${bulanIndo[now.month]} ${now.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -345,36 +382,203 @@ class _PresensiPklViewState extends State<PresensiPklView> {
     }
 
     if (pklTargetData == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.business_center_outlined, size: 64, color: Colors.grey.shade400),
-              const SizedBox(height: 16),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFEEF2FF),
+                      const Color(0xFFE0E7FF).withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.location_city_rounded,
+                    size: 36,
+                    color: Color(0xFF4C3EC7),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFFD97706)),
+                    SizedBox(width: 6),
+                    Text(
+                      'Tahap Persiapan & Pengajuan PKL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               const Text(
-                'Belum Ada Penempatan PKL Aktif',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'Presensi PKL Belum Aktif',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.3,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              Text(
-                'Anda belum memiliki penempatan mitra PKL aktif. Silakan ajukan surat permohonan PKL terlebih dahulu.',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              const Text(
+                'Fitur absensi geofencing & selfie ini akan otomatis terbuka setelah pengajuan tempat PKL Anda disetujui dan diaktifkan oleh BKK / Hubin.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              if (widget.onSwitchToPengajuan != null)
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mainColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: widget.onSwitchToPengajuan,
-                  icon: const Icon(Icons.description, color: Colors.white),
-                  label: const Text('Buka Pengajuan Surat PKL', style: TextStyle(color: Colors.white)),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
                 ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4C3EC7).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              '1',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF4C3EC7),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Ajukan surat permohonan PKL pada tab Pengajuan Surat',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4C3EC7).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              '2',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF4C3EC7),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Verifikasi surat & aktivasi penempatan mitra oleh BKK / Hubin',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.onSwitchToPengajuan != null) ...[
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4C3EC7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: widget.onSwitchToPengajuan,
+                    icon: const Icon(Icons.description_outlined, size: 18),
+                    label: const Text(
+                      'Buka Tab Pengajuan Surat PKL',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -384,7 +588,6 @@ class _PresensiPklViewState extends State<PresensiPklView> {
     final per = pklTargetData?['perusahaan'];
     final presToday = pklTargetData?['presensi_hari_ini'];
     final aturan = pklTargetData?['aturan_presensi'];
-    final aksi = pklTargetData?['aksi'];
 
     bool sudahMasuk = presToday?['sudah_masuk'] == true;
     bool sudahPulang = presToday?['sudah_pulang'] == true;
@@ -419,18 +622,18 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: AppColors.mainColor.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(color: AppColors.mainColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
                         child: const Row(
                           children: [
                             Icon(Icons.business, size: 14, color: Colors.white),
@@ -441,7 +644,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: Colors.emerald.shade400, borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(color: Colors.teal.shade400, borderRadius: BorderRadius.circular(20)),
                         child: const Text('Shift Fleksibel', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
                       ),
                     ],
@@ -454,17 +657,17 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                   const SizedBox(height: 4),
                   Text(
                     per?['alamat_perusahaan'] ?? '-',
-                    style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.85)),
+                    style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.85)),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const Divider(color: Colors.white24, height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.phone_android, size: 14, color: Colors.emerald.shade200),
+                          Icon(Icons.phone_android, size: 14, color: Colors.teal.shade200),
                           const SizedBox(width: 4),
                           Text(
                             aturan?['is_device_locked'] == true ? 'HP Terkunci: ${aturan?['device_terdaftar'] ?? 'Valid'}' : 'HP Bebas Login',
@@ -472,7 +675,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                           ),
                         ],
                       ),
-                      Text('Radius: ${radiusMax}m', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.bold)),
+                      Text('Radius: ${radiusMax}m', style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.9), fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -488,13 +691,13 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade200),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 6)],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Row(
                         children: [
@@ -506,9 +709,9 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isInsideGeofence ? Colors.emerald.shade50 : Colors.red.shade50,
+                          color: isInsideGeofence ? Colors.teal.shade50 : Colors.red.shade50,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: isInsideGeofence ? Colors.emerald.shade200 : Colors.red.shade200),
+                          border: Border.all(color: isInsideGeofence ? Colors.teal.shade200 : Colors.red.shade200),
                         ),
                         child: Text(
                           currentDistance != null
@@ -517,7 +720,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isInsideGeofence ? Colors.emerald.shade700 : Colors.red.shade700,
+                            color: isInsideGeofence ? Colors.teal.shade700 : Colors.red.shade700,
                           ),
                         ),
                       ),
@@ -548,7 +751,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Kehadiran Hari Ini (${DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.now())})',
+                    'Kehadiran Hari Ini (${_formatTodayIndo()})',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
@@ -558,23 +761,23 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: sudahMasuk ? Colors.emerald.shade50 : Colors.grey.shade50,
+                            color: sudahMasuk ? Colors.teal.shade50 : Colors.grey.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: sudahMasuk ? Colors.emerald.shade200 : Colors.grey.shade200),
+                            border: Border.all(color: sudahMasuk ? Colors.teal.shade200 : Colors.grey.shade200),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.between,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Masuk', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: sudahMasuk ? Colors.emerald.shade800 : Colors.grey.shade600)),
-                                  Icon(sudahMasuk ? Icons.check_circle : Icons.circle_outlined, size: 14, color: sudahMasuk ? Colors.emerald : Colors.grey),
+                                  Text('Masuk', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: sudahMasuk ? Colors.teal.shade800 : Colors.grey.shade600)),
+                                  Icon(sudahMasuk ? Icons.check_circle : Icons.circle_outlined, size: 14, color: sudahMasuk ? Colors.teal : Colors.grey),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                sudahMasuk ? '${presToday?['jam_masuk']?.toString().substring(0, 5)} WIB' : 'Belum Masuk',
+                                sudahMasuk ? '${_formatJam(presToday?['jam_masuk'], fallback: '--:--')} WIB' : 'Belum Masuk',
                                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: sudahMasuk ? Colors.black87 : Colors.grey.shade400),
                               ),
                             ],
@@ -586,23 +789,23 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: sudahPulang ? Colors.emerald.shade50 : Colors.grey.shade50,
+                            color: sudahPulang ? Colors.teal.shade50 : Colors.grey.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: sudahPulang ? Colors.emerald.shade200 : Colors.grey.shade200),
+                            border: Border.all(color: sudahPulang ? Colors.teal.shade200 : Colors.grey.shade200),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.between,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Pulang', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: sudahPulang ? Colors.emerald.shade800 : Colors.grey.shade600)),
-                                  Icon(sudahPulang ? Icons.check_circle : Icons.circle_outlined, size: 14, color: sudahPulang ? Colors.emerald : Colors.grey),
+                                  Text('Pulang', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: sudahPulang ? Colors.teal.shade800 : Colors.grey.shade600)),
+                                  Icon(sudahPulang ? Icons.check_circle : Icons.circle_outlined, size: 14, color: sudahPulang ? Colors.teal : Colors.grey),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                sudahPulang ? '${presToday?['jam_pulang']?.toString().substring(0, 5)} WIB' : 'Belum Pulang',
+                                sudahPulang ? '${_formatJam(presToday?['jam_pulang'], fallback: '--:--')} WIB' : 'Belum Pulang',
                                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: sudahPulang ? Colors.black87 : Colors.grey.shade400),
                               ),
                             ],
@@ -630,7 +833,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Foto Selfie Presensi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                         TextButton.icon(
@@ -696,7 +899,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                   height: 50,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.emerald.shade600,
+                      backgroundColor: Colors.teal.shade600,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       elevation: 2,
                     ),
@@ -709,13 +912,13 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: Colors.emerald.shade50, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.emerald.shade200)),
+                  decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.teal.shade200)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.emerald.shade600),
+                      Icon(Icons.check_circle, color: Colors.teal.shade600),
                       const SizedBox(width: 8),
-                      Text('Presensi PKL Hari Ini Sudah Lengkap', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.emerald.shade800)),
+                      Text('Presensi PKL Hari Ini Sudah Lengkap', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.teal.shade800)),
                     ],
                   ),
                 ),
@@ -751,7 +954,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
 
             // 6. Rekapitulasi Riwayat Bulan Ini
             Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Riwayat Presensi Bulan Ini', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 Text('${riwayatList.length} Hari', style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
@@ -770,7 +973,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                       children: [
                         const Text('Hadir', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 2),
-                        Text('${ringkasanRiwayat['hadir'] ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.emerald)),
+                        Text('${ringkasanRiwayat['hadir'] ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.teal)),
                       ],
                     ),
                   ),
@@ -836,7 +1039,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                       border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -845,7 +1048,7 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                             const SizedBox(height: 2),
                             Text(
                               status == 'hadir'
-                                  ? 'Masuk: ${item['jam_masuk']?.toString().substring(0, 5) ?? '-'} | Pulang: ${item['jam_pulang']?.toString().substring(0, 5) ?? '-'}'
+                                  ? 'Masuk: ${_formatJam(item['jam_masuk'])} | Pulang: ${_formatJam(item['jam_pulang'])}'
                                   : 'Keterangan: ${item['keterangan'] ?? status}',
                               style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                             ),
@@ -854,16 +1057,16 @@ class _PresensiPklViewState extends State<PresensiPklView> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: status == 'hadir' ? Colors.emerald.shade50 : Colors.amber.shade50,
+                            color: status == 'hadir' ? Colors.teal.shade50 : Colors.amber.shade50,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: status == 'hadir' ? Colors.emerald.shade200 : Colors.amber.shade200),
+                            border: Border.all(color: status == 'hadir' ? Colors.teal.shade200 : Colors.amber.shade200),
                           ),
                           child: Text(
                             status.toUpperCase(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: status == 'hadir' ? Colors.emerald.shade700 : Colors.amber.shade800,
+                              color: status == 'hadir' ? Colors.teal.shade700 : Colors.amber.shade800,
                             ),
                           ),
                         ),

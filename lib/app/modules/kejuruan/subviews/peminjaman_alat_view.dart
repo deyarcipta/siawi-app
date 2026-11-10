@@ -222,9 +222,10 @@ class _PeminjamanAlatViewState extends State<PeminjamanAlatView> with SingleTick
                                         'keperluan': keperluan,
                                       },
                                     );
-                                    if (!mounted) return;
+                                    if (!sheetCtx.mounted) return;
                                     Navigator.pop(sheetCtx);
-                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(res['message'] ?? "Peminjaman alat berhasil dicatat!"),
                                         backgroundColor: const Color(0xFF16A34A),

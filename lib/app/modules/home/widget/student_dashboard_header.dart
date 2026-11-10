@@ -47,6 +47,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
 
   // PKL Information
   bool hasPkl = false;
+  bool isPklActive = false;
   bool isPklLevel = true;
   String statusPklText = "Siap Ditempatkan";
   String pklNamaPerusahaan = "-";
@@ -104,8 +105,18 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
             pklAlamat = cMap['pklAlamat'] ?? pklAlamat;
             pklPeriode = cMap['pklPeriode'];
             pklGuru = cMap['pklGuru'];
+            if (cMap['isPklActive'] != null) {
+              isPklActive = cMap['isPklActive'] == true;
+            } else {
+              String rawSt = (cMap['pklRawStatus'] ?? pklStatus).toString().toLowerCase();
+              isPklActive = hasPkl &&
+                  pklNamaPerusahaan != '-' &&
+                  pklNamaPerusahaan.isNotEmpty &&
+                  !['selesai', 'ditolak', 'batal', 'belum ditempatkan'].contains(rawSt);
+            }
           });
           await preferences.setBool('is_pkl_level', isPklLevel);
+          await preferences.setBool('is_pkl_active', isPklActive);
         } catch (_) {}
       }
 
@@ -190,6 +201,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
 
         // PKL Data
         bool pExists = false;
+        bool pActive = false;
+        String pRawStatus = "";
         String pNama = "-";
         String pStatus = "Siap Ditempatkan";
         String pAlamat = "-";
@@ -199,6 +212,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         if (pData != null && pData['perusahaan'] != null) {
           var per = pData['perusahaan'];
           pExists = true;
+          pRawStatus = pData['status']?.toString().toLowerCase() ?? '';
+          pActive = !['selesai', 'ditolak', 'batal'].contains(pRawStatus);
           pNama = per['nama_perusahaan'] ?? '-';
           pStatus = pData['status_label'] ?? pData['status'] ?? 'Ditempatkan';
           pAlamat = per['alamat_perusahaan'] ?? '-';
@@ -302,6 +317,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
           semester = schoolSem;
 
           hasPkl = pExists;
+          isPklActive = pActive;
           isPklLevel = pklLevelAllowed;
           statusPklText = pklText;
           pklNamaPerusahaan = pNama;
@@ -324,6 +340,7 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         try {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setBool('is_pkl_level', isPklLevel);
+          await prefs.setBool('is_pkl_active', isPklActive);
           await prefs.setString('namaSiswa', namaSiswa);
           await prefs.setString('namaKelas', namaKelas);
           await prefs.setString('namaJurusan', namaJurusan);
@@ -348,6 +365,8 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
               'poinKedisiplinan': poinKedisiplinan,
               'statusPoin': statusPoin,
               'hasPkl': hasPkl,
+              'isPklActive': isPklActive,
+              'pklRawStatus': pRawStatus,
               'isPklLevel': isPklLevel,
               'statusPklText': statusPklText,
               'pklNamaPerusahaan': pklNamaPerusahaan,
@@ -481,10 +500,12 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
 
         // 3. KARTU UNGU HERO (KOMPETENSI KEAHLIAN / PRESTASI / PKL) - GAMBAR 3
         _buildHeroPurpleCard(context),
-        const SizedBox(height: 14),
 
-        // 4. KARTU PRESENSI BIOMETRIK (PERSIS SEPERTI GAMBAR DENGAN SKENARIO)
-        _buildBiometricAttendanceCard(context),
+        // 4. KARTU PRESENSI KEHADIRAN SEKOLAH (Dihilangkan saat siswa dalam mode PKL aktif)
+        if (!isPklActive) ...[
+          const SizedBox(height: 14),
+          _buildBiometricAttendanceCard(context),
+        ],
       ],
     );
   }
@@ -499,62 +520,69 @@ class _StudentDashboardHeaderState extends State<StudentDashboardHeader> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Kiri: School Icon Box & Title
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/logo/logo-splash.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.school_rounded,
-                      color: Color(0xFF4F46E5),
-                      size: 24,
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/logo/logo-splash.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.school_rounded,
+                        color: Color(0xFF4F46E5),
+                        size: 24,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Beranda',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.3,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Beranda',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        namaSekolah,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.88),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    namaSekolah,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.88),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           // Kanan: Lonceng Notifikasi & Tombol Profil
           Row(
             children: [

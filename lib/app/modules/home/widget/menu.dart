@@ -9,7 +9,6 @@ import 'package:siawi_app/app/modules/kalender/views/kalender_view.dart';
 import 'package:siawi_app/app/modules/kejuruan/views/kejuruan_view.dart';
 import 'package:siawi_app/app/modules/modul/views/modul_mapel_view.dart';
 import 'package:siawi_app/app/modules/point_siswa/views/point_siswa_view.dart';
-import 'package:siawi_app/app/modules/pengajuan_pkl/views/pengajuan_pkl_view.dart';
 import 'package:siawi_app/app/modules/pengajuan_pkl/views/pkl_main_view.dart';
 import 'package:siawi_app/app/modules/tagihan/views/tagihan_view.dart';
 

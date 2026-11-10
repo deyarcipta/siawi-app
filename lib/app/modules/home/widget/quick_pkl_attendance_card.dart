@@ -39,10 +39,19 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
       if (cacheRaw != null && cacheRaw.isNotEmpty) {
         try {
           var cMap = jsonDecode(cacheRaw);
-          if (cMap['hasPkl'] == true && cMap['pklNamaPerusahaan'] != null) {
+          bool cachedActive = cMap['isPklActive'] != null
+              ? cMap['isPklActive'] == true
+              : (cMap['hasPkl'] == true &&
+                  cMap['pklNamaPerusahaan'] != null &&
+                  cMap['pklNamaPerusahaan'] != '-' &&
+                  !['selesai', 'ditolak', 'batal', 'belum ditempatkan']
+                      .contains((cMap['pklRawStatus'] ?? cMap['pklStatus'] ?? '').toString().toLowerCase()));
+          if (mounted) {
             setState(() {
-              isPklActive = true;
-              namaPerusahaan = cMap['pklNamaPerusahaan'];
+              isPklActive = cachedActive;
+              if (cMap['pklNamaPerusahaan'] != null) {
+                namaPerusahaan = cMap['pklNamaPerusahaan'];
+              }
             });
           }
         } catch (_) {}
@@ -69,6 +78,10 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
               jamPulang = quickAction['jam_pulang'];
             }
           });
+        } else {
+          setState(() {
+            isPklActive = false;
+          });
         }
       }
     } catch (_) {}
@@ -83,6 +96,13 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
     ).then((_) => _loadPklData());
   }
 
+  String _formatJam(String? rawJam) {
+    if (rawJam == null) return '--:--';
+    final s = rawJam.trim();
+    if (s.isEmpty || s == '-') return '--:--';
+    return s.length >= 5 ? s.substring(0, 5) : s;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!isPklActive) {
@@ -95,19 +115,19 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
     Color btnText = AppColors.mainColor;
 
     if (actionType == 'pulang') {
-      subText = 'Masuk: ${jamMasuk?.substring(0, 5) ?? '--:--'} WIB';
+      subText = 'Masuk: ${_formatJam(jamMasuk)} WIB';
       timeText = 'Sedang Bertugas';
-      btnBg = Colors.emerald.shade400;
-      btnText = Colors.slate.shade900;
+      btnBg = Colors.teal.shade400;
+      btnText = Colors.blueGrey.shade900;
     } else if (actionType == 'selesai') {
-      subText = 'Masuk: ${jamMasuk?.substring(0, 5) ?? '--:--'} • Pulang: ${jamPulang?.substring(0, 5) ?? '--:--'}';
+      subText = 'Masuk: ${_formatJam(jamMasuk)} • Pulang: ${_formatJam(jamPulang)}';
       timeText = '✓ Selesai';
-      btnBg = Colors.white.withOpacity(0.2);
+      btnBg = Colors.white.withValues(alpha: 0.2);
       btnText = Colors.white;
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.fromLTRB(15, 0, 15, 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -120,7 +140,7 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.mainColor.withOpacity(0.35),
+            color: AppColors.mainColor.withValues(alpha: 0.35),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -137,7 +157,7 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'PRESENSI KERJA INDUSTRI (PKL)',
@@ -151,7 +171,7 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Row(
@@ -179,7 +199,7 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 14, color: Colors.emerald.shade300),
+                    Icon(Icons.location_on, size: 14, color: Colors.teal.shade300),
                     const SizedBox(width: 4),
                     const Text(
                       'Validasi Geofencing Radius Kantor',
@@ -189,16 +209,29 @@ class _QuickPklAttendanceCardState extends State<QuickPklAttendanceCard> {
                 ),
                 const Divider(color: Colors.white24, height: 22),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(subText, style: const TextStyle(fontSize: 10, color: Color(0xFFDDD4FF))),
-                        const SizedBox(height: 1),
-                        Text(timeText, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            subText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 10, color: Color(0xFFDDD4FF)),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            timeText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: btnBg,

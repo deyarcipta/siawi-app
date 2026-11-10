@@ -77,7 +77,9 @@ class _NilaiPraktikViewState extends State<NilaiPraktikView> {
                 nilaiAkhir < kkm;
             return {
               'judul': modul['judul'] ?? m['judul'] ?? komp['nama_kompetensi'] ?? 'Praktik Kejuruan',
-              'modul': modul['kode_modul'] ?? m['kode_modul'] ?? 'Modul Praktik',
+              'modul': modul['kode_modul'] ??
+                  m['kode_modul'] ??
+                  (komp['kode_kompetensi'] != null ? '${komp['kode_kompetensi']} • Kompetensi ATP' : 'Modul Praktik'),
               'nilai': nilaiAkhir,
               'nilai_awal': nilaiAwal,
               'nilai_remedial': nilaiRemedial,
@@ -91,7 +93,7 @@ class _NilaiPraktikViewState extends State<NilaiPraktikView> {
               'catatan': m['catatan_guru'] ?? m['catatan'] ?? 'Tidak ada catatan khusus dari instruktur.',
               'aspek': m['detail_aspek'] is Map ? m['detail_aspek'] : {},
               'is_remedial': perluRemedial,
-              'sudah_remedial': m['is_remedial'] == true,
+              'sudah_remedial': m['is_remedial'] == true || nilaiRemedial != null,
             };
           }).toList();
         }
@@ -133,6 +135,9 @@ class _NilaiPraktikViewState extends State<NilaiPraktikView> {
   void _showDetailNilai(Map<String, dynamic> item) {
     String judul = (item['judul'] ?? 'Penilaian Praktik').toString();
     double nilai = double.tryParse(item['nilai'].toString()) ?? 0;
+    double nilaiAwal = double.tryParse(item['nilai_awal']?.toString() ?? '$nilai') ?? nilai;
+    double? nilaiRemedial = item['nilai_remedial'] != null ? double.tryParse(item['nilai_remedial'].toString()) : null;
+    bool sudahRemedial = item['sudah_remedial'] == true || nilaiRemedial != null;
     int kkm = int.tryParse(item['kkm']?.toString() ?? '75') ?? 75;
     bool isRem = item['is_remedial'] == true || nilai < kkm;
     String guru = (item['guru'] ?? '-').toString();
@@ -247,7 +252,11 @@ class _NilaiPraktikViewState extends State<NilaiPraktikView> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isRem ? "Silakan hubungi guru untuk jadwal pengayaan / remedial." : "Predikat Sangat Memuaskan (A). Pertahankan prestasi!",
+                            isRem
+                                ? "Silakan hubungi guru untuk jadwal pengayaan / remedial."
+                                : (sudahRemedial
+                                    ? "Tuntas Remedial (Nilai Awal: ${nilaiAwal.toStringAsFixed(0)} → Akhir: ${nilai.toStringAsFixed(0)})"
+                                    : "Predikat ${_getGradeString(nilai)}. Pertahankan prestasi!"),
                             style: TextStyle(
                               fontSize: 11.5,
                               color: isRem ? const Color(0xFF9F1239) : const Color(0xFF475569),

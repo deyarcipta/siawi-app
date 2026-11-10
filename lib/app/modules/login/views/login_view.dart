@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:siawi_app/app/modules/home/views/MyHomePage.dart';
 import 'package:siawi_app/app/modules/login/views/lupa_password_view.dart';
+import 'package:siawi_app/app/routes/app_pages.dart';
 // import 'package:siawi_app/app/modules/home/views/home_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 
@@ -21,10 +22,10 @@ class LoginView extends GetView<LoginController> {
   // const LoginView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginSiawi(),
-    );
+    return const LoginSiawi();
+
+
+
   }
 }
 
@@ -171,7 +172,7 @@ class _LoginSiawiState extends State<LoginSiawi> {
 
         if (mounted) {
           setState(() {
-            _loginStatus = LoginStatus.signIn;
+            MyHomePage.activeRole = role; Get.offAllNamed(Routes.HOME);
           });
         }
       } else {

@@ -59,7 +59,7 @@ class _TagihanViewState extends State<TagihanView> {
         }
       }
     } catch (e) {
-      debugPrint('Failed to load tagihan: $e');
+      debugPrint('Failed to load tagihan: $e'); if (mounted) { setState(() { _hasError = true; isLoading = false; }); }
     }
   }
 
@@ -69,11 +69,17 @@ class _TagihanViewState extends State<TagihanView> {
     _initController();
   }
 
+  bool _hasError = false;
+
   Future<void> _initController() async {
+    setState(() {
+      isLoading = true;
+      _hasError = false;
+    });
     await _loadStudentData();
     await _fetchTagihan();
 
-    if (nis != null && linkTagihan != null) {
+    if (linkTagihan != null && linkTagihan!.isNotEmpty) {
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(const Color(0x00000000))
@@ -179,8 +185,42 @@ class _TagihanViewState extends State<TagihanView> {
       ),
       body: Stack(
         children: [
-          if (_controller != null)
+          if (_controller != null && !_hasError)
             WebViewWidget(controller: _controller!)
+          else if (_hasError || (!isLoading && linkTagihan == null))
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off_rounded, size: 54, color: Color(0xFF94A3B8)),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Gagal Memuat Portal Tagihan',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Pastikan koneksi internet aktif dan server pembayaran sedang online.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 18),
+                    ElevatedButton.icon(
+                      onPressed: _initController,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Coba Lagi'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4C3EC7),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
           else
             const Center(
               child: CircularProgressIndicator(

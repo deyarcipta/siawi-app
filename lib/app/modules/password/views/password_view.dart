@@ -1,10 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:siawi_app/app/modules/home/views/home_view.dart';
 import 'package:siawi_app/utils/colors.dart';
 import 'package:siawi_app/app/data/api_service.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
 
 class PasswordView extends StatefulWidget {
   final VoidCallback signOut;
@@ -15,72 +12,91 @@ class PasswordView extends StatefulWidget {
 }
 
 class _PasswordViewState extends State<PasswordView> {
-  late String password1;
-  late String password2;
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _pass1Controller = TextEditingController();
+  final TextEditingController _pass2Controller = TextEditingController();
+  bool _obscurePass1 = true;
+  bool _obscurePass2 = true;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _pass1Controller.dispose();
+    _pass2Controller.dispose();
+    super.dispose();
+  }
 
   Future<String?> _getIdSiswa() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     return preferences.getString('idSiswa');
   }
 
-  void gantiPassword(String idSiswa) async {
+  Future<void> gantiPassword(String idSiswa) async {
+    setState(() => _isSubmitting = true);
     try {
       final jsonResponse = await ApiService.post('/ubahPassword', {
         'idSiswa': idSiswa,
-        'password1': password1,
-        'password2': password2,
+        'password1': _pass1Controller.text.trim(),
+        'password2': _pass2Controller.text.trim(),
       });
+
+      if (!mounted) return;
 
       if (jsonResponse != null && jsonResponse['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password Berhasil Diganti'),
-            backgroundColor: Colors.green,
+            content: Text('Password berhasil diganti!'),
+            backgroundColor: Color(0xFF10B981),
             duration: Duration(seconds: 2),
           ),
         );
-
-        // Navigasi ke halaman lain setelah menampilkan pesan toast
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomeView(widget.signOut)),
-        );
+        Navigator.pop(context);
       } else {
+        String msg = jsonResponse != null && jsonResponse['message'] != null
+            ? jsonResponse['message'].toString()
+            : 'Password gagal diganti. Silakan coba lagi.';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password Gagal Diganti'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: const Color(0xFFEF4444),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      print('Error changing password: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Password Gagal Diganti'),
-          backgroundColor: Colors.red,
+          content: Text('Terjadi kesalahan koneksi saat mengubah password.'),
+          backgroundColor: Color(0xFFEF4444),
           duration: Duration(seconds: 2),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: AppColors.mainColor,
         centerTitle: true,
         leading: BackButton(color: AppColors.white),
         title: Text(
-          'SI AWI',
-          style: TextStyle(color: AppColors.white),
+          'Ubah Password',
+          style: TextStyle(
+            color: AppColors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
         ),
         actions: [
           Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+            padding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
             child: Image.asset(
               'assets/logo/logo-splash.png',
               width: 30,
@@ -88,137 +104,188 @@ class _PasswordViewState extends State<PasswordView> {
           )
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // const SizedBox(
-              //   height: 50,
-              // ),
-              SizedBox(
-                width: 125,
-                height: 125,
-                child: Image.asset(
-                  "assets/logo/logo-splash.png",
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
-                child: SizedBox(
-                  height: 72,
-                  width: 320,
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter password';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => password1 = value!,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.white,
-                      contentPadding: const EdgeInsets.all(0),
-                      hintText: "Password Baru",
-                      prefixIcon: Container(
-                        padding: const EdgeInsets.only(left: 20, right: 15),
-                        child: const Icon(
-                          Icons.lock,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          physics: const BouncingScrollPhysics(),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                Center(
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.mainColor.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: AppColors.mainColor,
-                        ),
-                      ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      "assets/logo/logo-splash.png",
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: SizedBox(
+                const SizedBox(height: 20),
+                const Text(
+                  "Keamanan Akun SIAWI",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  "Pastikan password baru Anda kuat dan mudah diingat",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                TextFormField(
+                  controller: _pass1Controller,
+                  obscureText: _obscurePass1,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Silakan masukkan password baru';
+                    }
+                    if (value.trim().length < 5) {
+                      return 'Password minimal 5 karakter';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Password Baru",
+                    hintText: "Masukkan password baru",
+                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.mainColor),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePass1 ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () => setState(() => _obscurePass1 = !_obscurePass1),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.mainColor, width: 2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _pass2Controller,
+                  obscureText: _obscurePass2,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Silakan ulangi password baru';
+                    }
+                    if (value.trim() != _pass1Controller.text.trim()) {
+                      return 'Konfirmasi password tidak cocok';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Ulangi Password Baru",
+                    hintText: "Ketik ulang password baru",
+                    prefixIcon: Icon(Icons.lock_reset_rounded, color: AppColors.mainColor),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePass2 ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () => setState(() => _obscurePass2 = !_obscurePass2),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.mainColor, width: 2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
                   height: 50,
-                  width: 320,
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter password again';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => password2 = value!,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.white,
-                      contentPadding: const EdgeInsets.all(0),
-                      hintText: "Ulangi Password Baru",
-                      prefixIcon: Container(
-                        padding: const EdgeInsets.only(left: 20, right: 15),
-                        child: Icon(
-                          Icons.lock,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: AppColors.mainColor,
-                        ),
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              final messenger = ScaffoldMessenger.of(context);
+                              final idSiswa = await _getIdSiswa();
+                              if (idSiswa != null && idSiswa.isNotEmpty) {
+                                await gantiPassword(idSiswa);
+                              } else {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('ID siswa tidak ditemukan. Silakan login ulang.'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.mainColor,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            "SIMPAN PASSWORD",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                   ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          _getIdSiswa().then((idSiswa) {
-                            if (idSiswa != null) {
-                              gantiPassword(idSiswa);
-                            } else {
-                              // Fluttertoast.showToast(
-                              //   msg: 'Gagal memuat ID siswa',
-                              //   backgroundColor: Colors.red,
-                              //   textColor: Colors.white,
-                              //   toastLength: Toast.LENGTH_SHORT,
-                              // );
-                            }
-                          });
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mainColor,
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        fixedSize: const Size(200, 50),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                      child: Text(
-                        "SIMPAN",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

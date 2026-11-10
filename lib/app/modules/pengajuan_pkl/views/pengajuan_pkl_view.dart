@@ -7,7 +7,8 @@ import 'package:siawi_app/utils/colors.dart';
 
 class PengajuanPklView extends StatefulWidget {
   final VoidCallback signOut;
-  const PengajuanPklView(this.signOut, {super.key});
+  final bool isEmbedded;
+  const PengajuanPklView(this.signOut, {super.key, this.isEmbedded = false});
 
   @override
   State<PengajuanPklView> createState() => _PengajuanPklViewState();
@@ -585,14 +586,117 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
     );
   }
 
+  Widget _buildEmbeddedProfileBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFEEF2FF),
+            Color(0xFFF8FAFC),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE0E7FF)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFF4C3EC7),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4C3EC7).withValues(alpha: 0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.person_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (namaSiswa != null && namaSiswa!.isNotEmpty)
+                      ? namaSiswa!
+                      : 'Siswa',
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${(kelasSiswa != null && kelasSiswa != '-') ? kelasSiswa : 'Kelas'} • NIS: ${(nisSiswa != null && nisSiswa != '-') ? nisSiswa : '-'}',
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE0E7FF)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.business_rounded,
+                  size: 14,
+                  color: Color(0xFF4C3EC7),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${mitraList.length} Mitra',
+                  style: const TextStyle(
+                    color: Color(0xFF4C3EC7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
-          // 1. HERO HEADER LENGKUNG SIAWI
-          _buildHeroHeader(),
+          // 1. HERO HEADER LENGKUNG SIAWI (Hanya jika dibuka standalone)
+          if (!widget.isEmbedded) _buildHeroHeader(),
 
           // 2. KONTEN UTAMA
           Expanded(
@@ -614,6 +718,7 @@ class _PengajuanPklViewState extends State<PengajuanPklView> {
                       ),
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       children: [
+                        if (widget.isEmbedded) _buildEmbeddedProfileBanner(),
                         // Card Alur Pengajuan PKL
                         _buildHeaderCard(),
                         const SizedBox(height: 20),

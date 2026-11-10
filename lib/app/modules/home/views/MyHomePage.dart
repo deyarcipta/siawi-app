@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool _showBottomNavBar = true;
+  StreamSubscription<String>? _tokenRefreshSub;
+  StreamSubscription<RemoteMessage>? _messageSub;
+
   void _toggleBottomNavBar(bool show) {
     setState(() {
       _showBottomNavBar = show;
@@ -34,17 +38,28 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> SignOut() async {
+    _tokenRefreshSub?.cancel();
+    _messageSub?.cancel();
+
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.setInt("value", 0);
     await preferences.remove("role");
+    await preferences.remove("idSiswa");
+    await preferences.remove("nis");
+    await preferences.remove("namaSiswa");
+    await preferences.remove("namaKelas");
+    await preferences.remove("namaJurusan");
     await preferences.remove("namaOrtu");
     await preferences.remove("idOrangTua");
     await preferences.remove("childrenJson");
     MyHomePage.activeRole = 'siswa';
-    setState(() {
-      _showBottomNavBar = false;
-      widget.signOut();
-    });
+
+    if (mounted) {
+      setState(() {
+        _showBottomNavBar = false;
+        widget.signOut();
+      });
+    }
     Get.offAllNamed(Routes.LOGIN);
   }
 
@@ -73,6 +88,13 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _tokenRefreshSub?.cancel();
+    _messageSub?.cancel();
+    super.dispose();
+  }
+
   Future<void> _initFirebaseMessaging() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -86,26 +108,24 @@ class _MyHomePageState extends State<MyHomePage> {
       sound: true,
     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
+    debugPrint('User granted permission: ${settings.authorizationStatus}');
 
     try {
       String? token = await messaging.getToken();
       if (token != null) {
-        print('FCM Token: $token');
         _sendTokenToServer(token);
       }
 
-      messaging.onTokenRefresh.listen((newToken) {
+      _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = messaging.onTokenRefresh.listen((newToken) {
         _sendTokenToServer(newToken);
       });
     } catch (e) {
-      print('Error getting FCM Token: $e');
+      debugPrint('Error getting FCM Token: $e');
     }
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
+    _messageSub?.cancel();
+    _messageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
         Get.snackbar(
           message.notification!.title ?? 'Notifikasi',
@@ -123,20 +143,75 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _sendTokenToServer(String token) async {
     try {
-      final jsonResponse = await ApiService.post('/update-fcm-token', {
+      await ApiService.post('/update-fcm-token', {
         'idSiswa': idSiswa,
         'fcm_token': token,
       });
-      if (jsonResponse != null) {
-        print('FCM Token successfully synced with server');
-      }
     } catch (e) {
-      print('Error syncing FCM Token to server: $e');
+      debugPrint('Error syncing FCM Token to server: $e');
     }
   }
 
   int _selectedIndex = 2;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  void _onTabSelected(int index) {
+    if (_selectedIndex == index) {
+      // Jika tab yang sama ditekan, pop hingga root tab tersebut
+      _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      return;
+    }
+
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    String targetRoute = '/';
+    if (role == "orang_tua") {
+      switch (index) {
+        case 0:
+          targetRoute = '/profile';
+          break;
+        case 1:
+          targetRoute = '/tagihan';
+          break;
+        case 2:
+          targetRoute = '/';
+          break;
+        case 3:
+          targetRoute = '/point';
+          break;
+        case 4:
+          targetRoute = '/about';
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          targetRoute = '/profile';
+          break;
+        case 1:
+          targetRoute = '/jadwal';
+          break;
+        case 2:
+          targetRoute = '/';
+          break;
+        case 3:
+          targetRoute = '/modul';
+          break;
+        case 4:
+          targetRoute = '/about';
+          break;
+      }
+    }
+
+    // Bersihkan stack dan arahkan ke tab tujuan tanpa menumpuk rute tanpa akhir
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      targetRoute,
+      (route) => route.isFirst && route.settings.name == '/',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -146,10 +221,8 @@ class _MyHomePageState extends State<MyHomePage> {
         final isFirstRouteInCurrentTab =
             !await _navigatorKey.currentState!.maybePop();
         if (isFirstRouteInCurrentTab) {
-          if (_selectedIndex != 0) {
-            setState(() {
-              _selectedIndex = 0;
-            });
+          if (_selectedIndex != 2) {
+            _onTabSelected(2); // Kembali ke Home tab
           } else {
             await SystemNavigator.pop();
           }
@@ -184,7 +257,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 builder = (BuildContext context) => const AboutView();
                 break;
               default:
-                throw Exception('Invalid route: ${routeSettings.name}');
+                builder = (BuildContext context) =>
+                    HomeView(SignOut, toggleBottomNavBar: _toggleBottomNavBar, initialRole: role);
             }
             return MaterialPageRoute(builder: builder, settings: routeSettings);
           },
@@ -241,50 +315,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 currentIndex: _selectedIndex,
                 unselectedItemColor: Colors.white54,
                 selectedItemColor: Colors.white,
-                onTap: (index) {
-                  setState(() {
-                    _selectedIndex = index;
-                    if (role == "orang_tua") {
-                      switch (index) {
-                        case 0:
-                          _navigatorKey.currentState!.pushNamed('/profile');
-                          break;
-                        case 1:
-                          _navigatorKey.currentState!.pushNamed('/tagihan');
-                          break;
-                        case 2:
-                          _navigatorKey.currentState!.pushNamed('/');
-                          break;
-                        case 3:
-                          _navigatorKey.currentState!.pushNamed('/point');
-                          break;
-                        case 4:
-                          _navigatorKey.currentState!.pushNamed('/about');
-                          break;
-                      }
-                    } else {
-                      switch (index) {
-                        case 0:
-                          _navigatorKey.currentState!.pushNamed('/profile');
-                          break;
-                        case 1:
-                          _navigatorKey.currentState!.pushNamed('/jadwal');
-                          break;
-                        case 2:
-                          _navigatorKey.currentState!.pushNamed('/');
-                          break;
-                        case 3:
-                          _navigatorKey.currentState!.pushNamed('/modul');
-                          break;
-                        case 4:
-                          _navigatorKey.currentState!.pushNamed('/about');
-                          break;
-                      }
-                    }
-                  });
-                },
+                onTap: _onTabSelected,
               )
-            : null, // Hapus BottomNavigationBar jika _showBottomNavBar adalah false
+            : null,
       ),
     );
   }

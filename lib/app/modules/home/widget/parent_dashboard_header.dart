@@ -509,62 +509,71 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(3),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/logo/logo-splash.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.school_rounded,
-                    color: Color(0xFF5B4BD1),
-                    size: 24,
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(3),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/logo/logo-splash.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.school_rounded,
+                      color: Color(0xFF5B4BD1),
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'PORTAL ORANG TUA',
-                  style: TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PORTAL ORANG TUA',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        letterSpacing: 0.8,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Dashboard',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Dashboard',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         Row(
           children: [
             GestureDetector(
@@ -862,19 +871,21 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: displayChildren.map((child) {
-              bool isSelected = (child['id'] == selectedChildId) ||
-                  (selectedChildId == null && child == displayChildren.first);
+          Builder(
+            builder: (context) {
+              final bool needsHorizontalScroll = displayChildren.length > 2;
 
-              String cNama = child['nama'] ?? 'Anak';
-              if (cNama.length > 12) {
-                cNama = '${cNama.substring(0, 10)}...';
-              }
-              String cKelas = child['kelas'] ?? 'Kelas';
+              Widget buildChildItem(dynamic child) {
+                bool isSelected = (child['id'] == selectedChildId) ||
+                    (selectedChildId == null && child == displayChildren.first);
 
-              return Expanded(
-                child: Padding(
+                String cNama = child['nama'] ?? 'Anak';
+                if (cNama.length > 12) {
+                  cNama = '${cNama.substring(0, 10)}...';
+                }
+                String cKelas = child['kelas'] ?? 'Kelas';
+
+                Widget content = Padding(
                   padding: EdgeInsets.only(
                     right: child == displayChildren.last ? 0 : 8,
                   ),
@@ -984,9 +995,31 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader> {
                       ),
                     ),
                   ),
-                ),
+                );
+
+                if (needsHorizontalScroll) {
+                  return SizedBox(
+                    width: 175,
+                    child: content,
+                  );
+                } else {
+                  return Expanded(child: content);
+                }
+              }
+
+              final rowContent = Row(
+                children: displayChildren.map(buildChildItem).toList(),
               );
-            }).toList(),
+
+              if (needsHorizontalScroll) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: rowContent,
+                );
+              }
+              return rowContent;
+            },
           ),
         ],
       ),

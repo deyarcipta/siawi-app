@@ -42,6 +42,7 @@ class _AbsenState extends State<Absen> {
   }
 
   bool loading = false;
+  bool isPklActive = false;
   String? nama;
   String? kehadiran1;
   String? kehadiran2;
@@ -127,8 +128,23 @@ class _AbsenState extends State<Absen> {
       if (datasiswa != null && datasiswa['data'] != null) {
         var siswaData = datasiswa['data'];
         var kehadiranToday = datasiswa['kehadiranToday'];
+        var pData = datasiswa['siswaPkl'];
+        bool pActive = false;
+        if (pData != null && pData['perusahaan'] != null) {
+          String rawPklStatus = pData['status']?.toString().toLowerCase() ?? '';
+          pActive = !['selesai', 'ditolak', 'batal'].contains(rawPklStatus);
+        }
+        if (pActive) {
+          setState(() {
+            isPklActive = true;
+            _timer?.cancel();
+            _timer = null;
+          });
+          return;
+        }
         if (siswaData['nis'] != null) {
           setState(() {
+            isPklActive = false;
             nama = siswaData['nama_siswa'].toString();
             if (kehadiranToday != null) {
               String status = kehadiranToday['kehadiran'].toString();
@@ -185,6 +201,9 @@ class _AbsenState extends State<Absen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isPklActive) {
+      return const SizedBox.shrink();
+    }
     var size = MediaQuery.of(context).size;
     return Wrap(
       children: <Widget>[
